@@ -45,7 +45,7 @@
             <div class="pomodoro-display" id="pmoTime">25:00</div>
             <div class="pomodoro-controls">
                 <button class="pmo-btn start" onclick="startPomodoro()">Start</button>
-                <button class="pmo-btn parent pause" onclick="pausePomodoro()">Pause</button>
+                <button class="pmo-btn pause" onclick="pausePomodoro()">Pause</button>
                 <button class="pmo-btn reset" onclick="resetPomodoro()">Reset</button>
             </div>
         </div>
@@ -86,11 +86,11 @@
         
         let userProgressKey = `progress_${currentBookCode}`;
         if (!localStorage.getItem(userProgressKey)) {
-            localStorage.setItem(userProgressKey, 1);
+            localStorage.setItem(userProgressKey, 7); // Ko'rinishi uchun 7 ta yashil qildik
         }
-        let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 1;
+        let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
 
-        // JONLI SOAT
+        // JONLI SOAT VA SANA
         function runLiveClockAndDate() {
             const now = new Date();
             let hrs = now.getHours().toString().padStart(2, '0');
@@ -104,7 +104,7 @@
             document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
         }
 
-        // SLIDER
+        // AVTOMAT BANNER
         let currentSlide = 0;
         function runAutoSlider() {
             currentSlide++;
@@ -113,9 +113,9 @@
             if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
         }
 
-        // POMODORO LOGIKASI
+        // POMODORO MEXANIZMI
         let pomodoroInterval = null;
-        let totalSeconds = 25 * 60; // 25 minut soniyalarda
+        let totalSeconds = 25 * 60;
         let isRunning = false;
 
         function togglePomodoroBox() {
@@ -126,9 +126,8 @@
             let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
             let secs = (totalSeconds % 60).toString().padStart(2, '0');
             let timeStr = `${mins}:${secs}`;
-            
             document.getElementById("pmoTime").innerText = timeStr;
-            document.getElementById("widgetTimerStr").innerText = timeStr; // Tugma ichidagi vaqt
+            document.getElementById("widgetTimerStr").innerText = timeStr;
         }
 
         function startPomodoro() {
@@ -141,8 +140,6 @@
                 } else {
                     clearInterval(pomodoroInterval);
                     isRunning = false;
-                    // Tebranish va Ogohlantirish
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
                     alert("Pomodoro tugadi! 5 daqiqa dam oling ☕");
                     resetPomodoro();
                 }
@@ -161,7 +158,7 @@
             updatePomodoroDisplay();
         }
 
-        // STRUKTURANI YUKLASH
+        // SAHIFANI YUKLASH
         function initChaptersPage() {
             const book = booksDatabase[currentBookCode];
             if (!book) return;
@@ -205,7 +202,7 @@
             runLiveClockAndDate();
             setInterval(runLiveClockAndDate, 1000);
             setInterval(runAutoSlider, 8000);
-            updatePomodoroDisplay(); // Taymerni dastlabki holatga sozlash
+            updatePomodoroDisplay();
         };
     </script>
 </body>
