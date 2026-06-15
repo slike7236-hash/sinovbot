@@ -3,167 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mavzular Ro'yxati</title>
-    
+    <title>Mavzular</title>
     <link rel="stylesheet" href="chapters.css">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar-menu" id="sidebarMenu">
+        <div class="sidebar-header">
+            <h3><i class="fa-solid fa-user-gear"></i> Menu Panel</h3>
+            <button class="close-sidebar" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="sidebar-content">
+            <div style="font-size: 12px; color: #888; margin-bottom: 10px;">ID: <span style="color:#fff">#774921</span></div>
+            <a href="index.html" class="menu-item"><i class="fa-solid fa-house"></i> Bosh sahifa</a>
+            <a href="#" class="menu-item"><i class="fa-solid fa-star"></i> Tanlangan darslar</a>
+            <a href="#" class="menu-item"><i class="fa-solid fa-circle-question"></i> Yordam & Aloqa</a>
+            <a href="#" class="menu-item"><i class="fa-solid fa-gear"></i> Sozlamalar</a>
+        </div>
+    </div>
+
     <div class="navbar-chapters">
         <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
         <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
-        <button class="burger-btn-chapters"><i class="fa-solid fa-bars"></i></button>
+        <button class="burger-btn-chapters" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
     </div>
 
-    <div class="hero-banner-chapters">
-        <div class="banner-overlay">
-            <h2 id="bannerMessage">Bilim olishdan to'xtamang!</h2>
-            <p>Har kuni kamida 1 ta mavzuni mukammal o'rganing.</p>
+    <div class="slider-wrapper">
+        <div class="slides-container" id="slidesContainer">
+            <div class="slide slide1">
+                <h2>O'rganishni boshlang!</h2>
+                <p>Har kuni 1 ta dars o'rganish sizni muvaffaqiyatga yetaklaydi.</p>
+            </div>
+            <div class="slide slide2">
+                <h2>Audio eshitishni unutmang</h2>
+                <p>To'g'ri talaffuz ingliz tilida eng muhim qismdir.</p>
+            </div>
+            <div class="slide slide3">
+                <h2>Yangi so'zlar xazinasi</h2>
+                <p>Ushbu kitob yordamida so'z boyligingiz 2 barobarga oshadi.</p>
+            </div>
+            <div class="slide slide4">
+                <h2>Premium Obuna faol</h2>
+                <p>Barcha imkoniyatlar siz uchun cheksiz ochilgan.</p>
+            </div>
         </div>
     </div>
 
     <div class="chapters-container">
-        <div class="chapters-list" id="chaptersContainer">
-            </div>
+        <div class="chapters-list" id="chaptersContainer"></div>
     </div>
 
     <div class="smart-footer-panel">
-        <div class="info-row">
-            <span class="live-clock"><i class="fa-regular fa-clock"></i> <span id="digitalClock">00:00:00</span></span>
-            <span class="subscription-days"><i class="fa-regular fa-calendar-check"></i> <span id="subDays">12</span> kundan buyon obunasiz</span>
+        <div class="clock-widget-container">
+            <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">00.00.0000</span></span>
+            <span class="clock-device" id="digitalClock">00:00:00</span>
         </div>
         
         <div class="progress-zone">
-            <div class="progress-text">Progress: <span id="progressStatus">0-mavzuga keldingiz</span></div>
-            <div class="dots-container" id="dotsContainer">
-                </div>
+            <div class="progress-text">Progress: <span id="progressValue">0/0</span></div>
+            <div class="dots-container" id="dotsContainer"></div>
         </div>
     </div>
 
     <script>
-        // 1. 16 TA KITOBNING MAVZULAR BAZASI
-const booksDatabase = {
-    "ess1": {
-        title: "Essential English Words 1",
-        banner: "Ingliz tilining poydevorini mustahkamlang!",
-        totalLessonsCount: 30, // KITOBDAGI JAMI HAQIQIY MAVZULAR SONI (Progress foizi uchun muhim)
-        units: [
-            { id: 1, name: "The Lion and the Mouse" },
-            { id: 2, name: "The Birthday Party" },
-            { id: 3, name: "The First Day of School" },
-            { id: 4, name: "The Clever Fox" },
-            { id: 5, name: "The Magic Pot" },
-            { id: 6, name: "A Day at the Zoo" },
-            { id: 7, name: "The Brave Little Tailor" }
-        ]
-    },
-    "ess2": {
-        title: "Essential English Words 2",
-        banner: "So'z boyligingizni keyingi bosqichga olib chiqing!",
-        totalLessonsCount: 30,
-        units: [
-            { id: 1, name: "Nature & Environment" },
-            { id: 2, name: "Health & Medicine" },
-            { id: 3, name: "Technology Today" }
-        ]
-    }
-};
+        const booksDatabase = {
+            "ess1": {
+                title: "Essential English Words 1",
+                units: [
+                    { id: 1, name: "The Lion and the Mouse" },
+                    { id: 2, name: "The Birthday Party" },
+                    { id: 3, name: "The First Day of School" },
+                    { id: 4, name: "The Clever Fox" },
+                    { id: 5, name: "The Magic Pot" },
+                    { id: 6, name: "A Day at the Zoo" },
+                    { id: 7, name: "The Brave Little Tailor" }
+                ]
+            }
+        };
 
-const urlParams = new URLSearchParams(window.location.search);
-const currentBookCode = urlParams.get('book') || "ess1";
-
-let userProgressKey = `progress_${currentBookCode}`;
-let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 0; 
-
-if (!localStorage.getItem(userProgressKey)) {
-    localStorage.setItem(userProgressKey, 7); // Test uchun 7-dars
-    currentSavedLesson = 7;
-}
-
-// REAL VAQTDA ISHLOVCHI SOAT MEXANIZMI
-function runLiveClock() {
-    const now = new Date();
-    let hrs = now.getHours().toString().padStart(2, '0');
-    let mins = now.getMinutes().toString().padStart(2, '0');
-    let secs = now.getSeconds().toString().padStart(2, '0');
-    
-    const clockElement = document.getElementById('digitalClock');
-    if (clockElement) {
-        clockElement.innerText = `${hrs}:${mins}:${secs}`;
-    }
-}
-
-function initChaptersPage() {
-    const book = booksDatabase[currentBookCode];
-    
-    const titleElement = document.getElementById("bookTitle");
-    const bannerMessage = document.getElementById("bannerMessage");
-    const container = document.getElementById("chaptersContainer");
-    const dotsContainer = document.getElementById("dotsContainer");
-    const progressStatus = document.getElementById("progressStatus");
-
-    if (!book) {
-        titleElement.innerText = "Kitob topilmadi";
-        return;
-    }
-
-    titleElement.innerText = book.title;
-    bannerMessage.innerText = book.banner;
-
-    // Mavzularni ekranga chiqarish
-    container.innerHTML = "";
-    book.units.forEach(unit => {
-        const card = document.createElement("a");
-        card.className = "chapter-card";
-        card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentBookCode = urlParams.get('book') || "ess1";
         
-        card.innerHTML = `
-            <div class="chapter-info">
-                <div class="chapter-num">Mavzu ${unit.id}</div>
-                <div class="chapter-name">${unit.name}</div>
-            </div>
-            <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
-        `;
-        container.appendChild(card);
-    });
-
-    // PROGRESS DOTS VA FOIZ HISOBLAGICH
-    dotsContainer.innerHTML = "";
-    
-    // Endi foiz faqat bor darsga emas, kitobning umumiy darslar soniga (30 taga) nisbatan hisoblanadi
-    const totalBookLessons = book.totalLessonsCount || 30; 
-    let progressPercent = Math.round((currentSavedLesson / totalBookLessons) * 100);
-    if(progressPercent > 100) progressPercent = 100;
-
-    progressStatus.innerText = `${currentSavedLesson}-mavzuga keldingiz (Progress: ${progressPercent}%)`;
-
-    // Pastda nechta nuqta chizishni belgilash (nechta dars yuklangan bo'lsa shuncha doiracha chiqadi)
-    const loadedUnitsCount = book.units.length;
-    for (let i = 1; i <= loadedUnitsCount; i++) {
-        const dot = document.createElement("div");
-        dot.className = "dot";
-        if (i <= currentSavedLesson) {
-            dot.classList.add("active");
+        // Test uchun progressni 1-dars deb belgilaymiz (Progress: 1/7 oooooo bo'lishi uchun)
+        let userProgressKey = `progress_${currentBookCode}`;
+        if (!localStorage.getItem(userProgressKey)) {
+            localStorage.setItem(userProgressKey, 1);
         }
-        dotsContainer.appendChild(dot);
-    }
-}
+        let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 1;
 
-function initSubscriptionInfo() {
-    document.getElementById("subDays").innerText = "15"; 
-}
+        // JONLI SOAT VA SANA FUNKSIYASI
+        function runLiveClockAndDate() {
+            const now = new Date();
+            
+            // Soat
+            let hrs = now.getHours().toString().padStart(2, '0');
+            let mins = now.getMinutes().toString().padStart(2, '0');
+            let secs = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('digitalClock').innerText = `${hrs}:${mins}:${secs}`;
+            
+            // Sana (Kun.Oy.Yil)
+            let day = now.getDate().toString().padStart(2, '0');
+            let month = (now.getMonth() + 1).toString().padStart(2, '0');
+            let year = now.getFullYear();
+            document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
+        }
 
-// SAHIFA YUKLANGANDA HAMMASINI ISHGA TUSHIRISH
-window.onload = function() {
-    initChaptersPage();
-    initSubscriptionInfo();
-    
-    // Soatni zudlik bilan yoqamiz va har soniyada yangilab turamiz
-    runLiveClock();
-    setInterval(runLiveClock, 1000);
-};
+        // AVTOMAT BANNER SURILISH MEXANIZMI (Har 8 sekundda)
+        let currentSlide = 0;
+        function runAutoSlider() {
+            currentSlide++;
+            if (currentSlide > 3) currentSlide = 0; // 4 ta slayd bor (0,1,2,3)
+            const container = document.getElementById("slidesContainer");
+            if(container) {
+                container.style.transform = `translateX(-${currentSlide * 25}%)`;
+            }
+        }
+
+        // MENU PANELINI OCHIB-YOPISH
+        function toggleSidebar() {
+            document.getElementById("sidebarMenu").classList.toggle("open");
+            document.getElementById("sidebarOverlay").classList.toggle("show");
+        }
+
+        // SAHIFANI TO'LDIRISH
+        function initChaptersPage() {
+            const book = booksDatabase[currentBookCode];
+            if (!book) return;
+
+            document.getElementById("bookTitle").innerText = book.title;
+
+            // Mavzularni chizish
+            const container = document.getElementById("chaptersContainer");
+            container.innerHTML = "";
+            book.units.forEach(unit => {
+                const card = document.createElement("a");
+                card.className = "chapter-card";
+                card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
+                card.innerHTML = `
+                    <div class="chapter-info">
+                        <div class="chapter-num">Mavzu ${unit.id}</div>
+                        <div class="chapter-name">${unit.name}</div>
+                    </div>
+                    <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
+                `;
+                container.appendChild(card);
+            });
+
+            // "Progress: 1/12 ooooo" tizimi
+            const totalUnits = book.units.length;
+            document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits}`;
+
+            const dotsContainer = document.getElementById("dotsContainer");
+            dotsContainer.innerHTML = "";
+            for (let i = 1; i <= totalUnits; i++) {
+                const dot = document.createElement("div");
+                dot.className = "dot";
+                if (i <= currentSavedLesson) {
+                    dot.classList.add("active");
+                }
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        window.onload = function() {
+            initChaptersPage();
+            
+            // Soatni yoqish
+            runLiveClockAndDate();
+            setInterval(runLiveClockAndDate, 1000);
+
+            // Banner aylanishini yoqish (Har 8000 millisekund = 8 sekundda)
+            setInterval(runAutoSlider, 8000);
+        };
     </script>
 </body>
 </html>
