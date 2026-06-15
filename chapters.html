@@ -9,14 +9,12 @@
 </head>
 <body>
 
-    <!-- NAVBAR -->
     <div class="navbar-chapters">
         <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
         <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
         <a href="index.html" class="back-btn"><i class="fa-solid fa-house"></i></a>
     </div>
 
-    <!-- REKLAMA BANNERI -->
     <div class="slider-wrapper">
         <div class="slides-container" id="slidesContainer">
             <div class="slide slide1">
@@ -25,7 +23,7 @@
             </div>
             <div class="slide slide2">
                 <h2>Audio eshitishni unutmang</h2>
-                <p>To'g'ri talaffuz ingliz tilida eng muhim qismdir.</p>
+                <p>To'g'ri talaffuz ingliz tilida eng mohir qismdir.</p>
             </div>
             <div class="slide slide3">
                 <h2>Yangi so'zlar xazinasi</h2>
@@ -38,44 +36,26 @@
         </div>
     </div>
 
-    <!-- MAVZULAR RO'YXATI -->
     <div class="chapters-container">
         <div class="chapters-list" id="chaptersContainer"></div>
     </div>
 
-    <!-- PASTKI AQLLI PANEL (YANGI PARALEL DIZAYN) -->
     <div class="smart-footer-panel">
-        
-        <!-- YUQORI QATOR -->
-        <div class="footer-top-row">
-            <!-- Chap tomonda: Sana va Soat parallel -->
-            <div class="widgets-left-side">
+        <div class="footer-widgets-row">
+            <div class="left-widgets">
                 <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">00.00.2026</span></span>
                 <span class="clock-device" id="digitalClock">00:00:00</span>
             </div>
             
-            <!-- O'ng tomonda: Integrallashgan Pomodoro -->
-            <div class="pomodoro-footer-zone">
-                <div class="pmo-inline-box" id="pomodoroBox">
-                    <div class="pmo-display" id="pmoTime">25:00</div>
-                    <div class="pmo-controls">
-                        <button class="pmo-btn start" onclick="startPomodoro()">Start</button>
-                        <button class="pmo-btn pause" onclick="pausePomodoro()">Pause</button>
-                        <button class="pmo-btn reset" onclick="resetPomodoro()">Reset</button>
-                    </div>
-                </div>
-                <button class="pmo-trigger-inline-btn" onclick="togglePomodoroBox()">
-                    <i class="fa-solid fa-stopwatch"></i> <span id="widgetTimerStr">25:00</span>
-                </button>
+            <div class="pomodoro-neon-device" id="pmoDevice" onclick="handlePmoClick()" oncontextmenu="handlePmoLongPress(event)">
+                <i class="fa-solid fa-stopwatch"></i> <span id="pmoTime">25:00</span>
             </div>
         </div>
         
-        <!-- PASTKI QATOR: PROGRESS TO'LIQ ENIGA -->
         <div class="progress-zone">
             <div class="progress-text">Progress: <span id="progressValue">0/0 (0%)</span></div>
             <div class="dots-container" id="dotsContainer"></div>
         </div>
-
     </div>
 
     <script>
@@ -103,7 +83,7 @@
         }
         let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
 
-        // JONLI SOAT
+        // JONLI ODDY SOAT
         function runLiveClockAndDate() {
             const now = new Date();
             let hrs = now.getHours().toString().padStart(2, '0');
@@ -117,7 +97,7 @@
             document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
         }
 
-        // BANNER SLIDER
+        // SLIDER BANNER
         let currentSlide = 0;
         function runAutoSlider() {
             currentSlide++;
@@ -126,53 +106,56 @@
             if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
         }
 
-        // POMODORO LOGIKASI
+        // AQLLI VA TOZA POMODORO LOGIKASI
         let pomodoroInterval = null;
         let totalSeconds = 25 * 60;
         let isRunning = false;
 
-        function togglePomodoroBox() {
-            const box = document.getElementById("pomodoroBox");
-            box.classList.toggle("show");
-        }
-
         function updatePomodoroDisplay() {
             let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
             let secs = (totalSeconds % 60).toString().padStart(2, '0');
-            let timeStr = `${mins}:${secs}`;
-            document.getElementById("pmoTime").innerText = timeStr;
-            document.getElementById("widgetTimerStr").innerText = timeStr;
+            document.getElementById("pmoTime").innerText = `${mins}:${secs}`;
         }
 
-        function startPomodoro() {
-            if (isRunning) return;
-            isRunning = true;
-            pomodoroInterval = setInterval(() => {
-                if (totalSeconds > 0) {
-                    totalSeconds--;
-                    updatePomodoroDisplay();
-                } else {
-                    clearInterval(pomodoroInterval);
-                    isRunning = false;
-                    alert("Pomodoro vaqti tugadi! Biroz dam oling ☕");
-                    resetPomodoro();
-                }
-            }, 1000);
+        // Bir marta bosilganda Start / Pause bo'lishi
+        function handlePmoClick() {
+            const device = document.getElementById("pmoDevice");
+            if (isRunning) {
+                // Pause holati
+                clearInterval(pomodoroInterval);
+                isRunning = false;
+                device.classList.remove("working");
+            } else {
+                // Start holati
+                isRunning = true;
+                device.classList.add("working");
+                pomodoroInterval = setInterval(() => {
+                    if (totalSeconds > 0) {
+                        totalSeconds--;
+                        updatePomodoroDisplay();
+                    } else {
+                        clearInterval(pomodoroInterval);
+                        isRunning = false;
+                        device.classList.remove("working");
+                        alert("Pomodoro tugadi! 5 daqiqa dam oling ☕");
+                        resetPomodoroLogic();
+                    }
+                }, 1000);
+            }
         }
 
-        // Pause qilinganda pult yopilmaydi, vaqt to'xtaydi xolos
-        function pausePomodoro() {
-            clearInterval(pomodoroInterval);
-            isRunning = false;
+        // Sichqonchaning o'ng tugmasi bosilganda (yoki telefonda uzoq bosib turganda) Reset bo'lishi
+        function handlePmoLongPress(event) {
+            event.preventDefault(); // Ekrandan menyu chiqib ketishini to'sadi
+            resetPomodoroLogic();
         }
 
-        // Reset bosilganda vaqt tiklanadi va boshqaruv pulti berkinadi
-        function resetPomodoro() {
+        function resetPomodoroLogic() {
             clearInterval(pomodoroInterval);
             isRunning = false;
             totalSeconds = 25 * 60;
             updatePomodoroDisplay();
-            document.getElementById("pomodoroBox").classList.remove("show");
+            document.getElementById("pmoDevice").classList.remove("working");
         }
 
         // SAHIFANI YUKLASH
@@ -220,6 +203,16 @@
             setInterval(runLiveClockAndDate, 1000);
             setInterval(runAutoSlider, 8000);
             updatePomodoroDisplay();
+            
+            // Mobil foydalanuvchilar uchun ham uzoq bosganda (Long Press) Reset ishlashi uchun:
+            const pmoDevice = document.getElementById("pmoDevice");
+            let pressTimer;
+            pmoDevice.addEventListener('touchstart', function() {
+                pressTimer = setTimeout(resetPomodoroLogic, 800);
+            });
+            pmoDevice.addEventListener('touchend', function() {
+                clearTimeout(pressTimer);
+            });
         };
     </script>
 </body>
