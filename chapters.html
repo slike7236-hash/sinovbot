@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mavzular</title>
-    <link rel="stylesheet" href="chapters.css">
+    <link rel="stylesheet" href="chapters.css?v=3.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -23,7 +23,7 @@
             </div>
             <div class="slide slide2">
                 <h2>Audio eshitishni unutmang</h2>
-                <p>To'g'ri talaffuz ingliz tilida eng mohir qismdir.</p>
+                <p>To'g'ri talaffuz ingliz tilida eng muhim qismdir.</p>
             </div>
             <div class="slide slide3">
                 <h2>Yangi so'zlar xazinasi</h2>
@@ -43,11 +43,11 @@
     <div class="smart-footer-panel">
         <div class="footer-widgets-row">
             <div class="left-widgets">
-                <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">00.00.2026</span></span>
+                <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">15.06.2026</span></span>
                 <span class="clock-device" id="digitalClock">00:00:00</span>
             </div>
             
-            <div class="pomodoro-neon-device" id="pmoDevice" onclick="handlePmoClick()" oncontextmenu="handlePmoLongPress(event)">
+            <div class="pomodoro-neon-box" id="pmoDevice" onclick="handleTimerClick()" oncontextmenu="handleTimerReset(event)">
                 <i class="fa-solid fa-stopwatch"></i> <span id="pmoTime">25:00</span>
             </div>
         </div>
@@ -83,7 +83,7 @@
         }
         let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
 
-        // JONLI ODDY SOAT
+        // JONLI SOAT MEXANIZMI
         function runLiveClockAndDate() {
             const now = new Date();
             let hrs = now.getHours().toString().padStart(2, '0');
@@ -97,7 +97,7 @@
             document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
         }
 
-        // SLIDER BANNER
+        // SLIDER
         let currentSlide = 0;
         function runAutoSlider() {
             currentSlide++;
@@ -106,56 +106,54 @@
             if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
         }
 
-        // AQLLI VA TOZA POMODORO LOGIKASI
+        // ULTRA TOZA POMODORO LOGIKASI
         let pomodoroInterval = null;
         let totalSeconds = 25 * 60;
         let isRunning = false;
 
-        function updatePomodoroDisplay() {
+        function updateTimerDisplay() {
             let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
             let secs = (totalSeconds % 60).toString().padStart(2, '0');
             document.getElementById("pmoTime").innerText = `${mins}:${secs}`;
         }
 
-        // Bir marta bosilganda Start / Pause bo'lishi
-        function handlePmoClick() {
-            const device = document.getElementById("pmoDevice");
+        // Bir marta urganda Start yoki Pause bo'ladi
+        function handleTimerClick() {
+            const el = document.getElementById("pmoDevice");
             if (isRunning) {
-                // Pause holati
                 clearInterval(pomodoroInterval);
                 isRunning = false;
-                device.classList.remove("working");
+                el.classList.remove("running");
             } else {
-                // Start holati
                 isRunning = true;
-                device.classList.add("working");
+                el.classList.add("running");
                 pomodoroInterval = setInterval(() => {
                     if (totalSeconds > 0) {
                         totalSeconds--;
-                        updatePomodoroDisplay();
+                        updateTimerDisplay();
                     } else {
                         clearInterval(pomodoroInterval);
                         isRunning = false;
-                        device.classList.remove("working");
+                        el.classList.remove("running");
                         alert("Pomodoro tugadi! 5 daqiqa dam oling ☕");
-                        resetPomodoroLogic();
+                        resetTimerSystem();
                     }
                 }, 1000);
             }
         }
 
-        // Sichqonchaning o'ng tugmasi bosilganda (yoki telefonda uzoq bosib turganda) Reset bo'lishi
-        function handlePmoLongPress(event) {
-            event.preventDefault(); // Ekrandan menyu chiqib ketishini to'sadi
-            resetPomodoroLogic();
+        // Kompyuterda o'ng tugma bosilganda noldan boshlash (Reset)
+        function handleTimerReset(event) {
+            if (event) event.preventDefault();
+            resetTimerSystem();
         }
 
-        function resetPomodoroLogic() {
+        function resetTimerSystem() {
             clearInterval(pomodoroInterval);
             isRunning = false;
             totalSeconds = 25 * 60;
-            updatePomodoroDisplay();
-            document.getElementById("pmoDevice").classList.remove("working");
+            updateTimerDisplay();
+            document.getElementById("pmoDevice").classList.remove("running");
         }
 
         // SAHIFANI YUKLASH
@@ -202,16 +200,16 @@
             runLiveClockAndDate();
             setInterval(runLiveClockAndDate, 1000);
             setInterval(runAutoSlider, 8000);
-            updatePomodoroDisplay();
+            updateTimerDisplay();
             
-            // Mobil foydalanuvchilar uchun ham uzoq bosganda (Long Press) Reset ishlashi uchun:
+            // Mobil telefonda uzoq bosib turganda (Long press) Reset bo'lishi uchun:
             const pmoDevice = document.getElementById("pmoDevice");
-            let pressTimer;
+            let touchTimer;
             pmoDevice.addEventListener('touchstart', function() {
-                pressTimer = setTimeout(resetPomodoroLogic, 800);
+                touchTimer = setTimeout(resetTimerSystem, 900); // 0.9 soniya bosib tursa o'zi nollanadi
             });
             pmoDevice.addEventListener('touchend', function() {
-                clearTimeout(pressTimer);
+                clearTimeout(touchTimer);
             });
         };
     </script>
