@@ -1,54 +1,9 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mavzular Ro'yxati</title>
-    
-    <link rel="stylesheet" href="chapters.css">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-
-    <div class="navbar-chapters">
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-        <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
-        <button class="burger-btn-chapters"><i class="fa-solid fa-bars"></i></button>
-    </div>
-
-    <div class="hero-banner-chapters">
-        <div class="banner-overlay">
-            <h2 id="bannerMessage">Bilim olishdan to'xtamang!</h2>
-            <p>Har kuni kamida 1 ta mavzuni mukammal o'rganing.</p>
-        </div>
-    </div>
-
-    <div class="chapters-container">
-        <div class="chapters-list" id="chaptersContainer">
-            </div>
-    </div>
-
-    <div class="smart-footer-panel">
-        <div class="info-row">
-            <span class="live-clock"><i class="fa-regular fa-clock"></i> <span id="digitalClock">00:00:00</span></span>
-            <span class="subscription-days"><i class="fa-regular fa-calendar-check"></i> <span id="subDays">12</span> kundan buyon obunasiz</span>
-        </div>
-        
-        <div class="progress-zone">
-            <div class="progress-text">Progress: <span id="progressStatus">0-mavzuga keldingiz</span></div>
-            <div class="dots-container" id="dotsContainer">
-                </div>
-        </div>
-    </div>
-
-    <script>
-       // 1. 16 TA KITOBNING MAVZULAR BAZASI
-// Bu yerda har bir kitobning kodi va uning ichidagi darslar tartib bilan turadi
+// 1. 16 TA KITOBNING MAVZULAR BAZASI
 const booksDatabase = {
     "ess1": {
         title: "Essential English Words 1",
         banner: "Ingliz tilining poydevorini mustahkamlang!",
+        totalLessonsCount: 30, // KITOBDAGI JAMI HAQIQIY MAVZULAR SONI (Progress foizi uchun muhim)
         units: [
             { id: 1, name: "The Lion and the Mouse" },
             { id: 2, name: "The Birthday Party" },
@@ -56,47 +11,45 @@ const booksDatabase = {
             { id: 4, name: "The Clever Fox" },
             { id: 5, name: "The Magic Pot" },
             { id: 6, name: "A Day at the Zoo" },
-            { id: 7, name: "The Brave Little Tailor" } // Sinov uchun 7 ta yozdik, 30 tagacha davom etishi mumkin
+            { id: 7, name: "The Brave Little Tailor" }
         ]
     },
     "ess2": {
         title: "Essential English Words 2",
         banner: "So'z boyligingizni keyingi bosqichga olib chiqing!",
+        totalLessonsCount: 30,
         units: [
             { id: 1, name: "Nature & Environment" },
             { id: 2, name: "Health & Medicine" },
             { id: 3, name: "Technology Today" }
         ]
-    },
-    "sol1": {
-        title: "Solution Elementary",
-        banner: "Gramatika va so'zlashuvni birga rivojlantiring!",
-        units: [
-            { id: 1, name: "Unit 1A: Personal Information" },
-            { id: 2, name: "Unit 1B: My Family & Friends" },
-            { id: 3, name: "Unit 1C: School Routine" }
-        ]
     }
-    // Qolgan 13 ta kitobni ham xuddi shu formatda bazaga qo'shib chiqasiz...
 };
 
-// 2. LINKDAN QAYSI KITOB TANLANGANINI ANIQLASH (URL Parameter)
 const urlParams = new URLSearchParams(window.location.search);
-const currentBookCode = urlParams.get('book') || "ess1"; // Agar link bo'sh bo'lsa, avtomat ess1 ochiladi
+const currentBookCode = urlParams.get('book') || "ess1";
 
-// 3. FOYDALANUVCHINING PROGRESSINI ANIQLASH (LocalStorage xotirasi)
-// Har bir kitob uchun alohida progress saqlanadi. Agar yangi kirgan bo'lsa, 0-mavzuda bo'ladi.
 let userProgressKey = `progress_${currentBookCode}`;
 let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 0; 
 
-// [SINOV UCHUN]: Agar hozircha progressni tekshirib ko'rmoqchi bo'lsangiz, 
-// pastdagi qatorda 0 o'rniga o'zingiz aytgandek 7 sonini yozib sinab ko'rishingiz mumkin:
 if (!localStorage.getItem(userProgressKey)) {
-    localStorage.setItem(userProgressKey, 7); // 7-mavzuga kelgan deb belgilaymiz
+    localStorage.setItem(userProgressKey, 7); // Test uchun 7-dars
     currentSavedLesson = 7;
 }
 
-// 4. SAHIFANI DINAMIK TO'LDIRISH FUNKSIYASI
+// REAL VAQTDA ISHLOVCHI SOAT MEXANIZMI
+function runLiveClock() {
+    const now = new Date();
+    let hrs = now.getHours().toString().padStart(2, '0');
+    let mins = now.getMinutes().toString().padStart(2, '0');
+    let secs = now.getSeconds().toString().padStart(2, '0');
+    
+    const clockElement = document.getElementById('digitalClock');
+    if (clockElement) {
+        clockElement.innerText = `${hrs}:${mins}:${secs}`;
+    }
+}
+
 function initChaptersPage() {
     const book = booksDatabase[currentBookCode];
     
@@ -111,16 +64,14 @@ function initChaptersPage() {
         return;
     }
 
-    // A. Kitob nomi va Banner matnini o'zgartiramiz
     titleElement.innerText = book.title;
     bannerMessage.innerText = book.banner;
 
-    // B. Mavzular ro'yxatini generatsiya qilamiz
+    // Mavzularni ekranga chiqarish
     container.innerHTML = "";
     book.units.forEach(unit => {
         const card = document.createElement("a");
         card.className = "chapter-card";
-        // 3-sahifaga (Training) kitob kodi va unit raqamini ko'prik qilib uzatamiz
         card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
         
         card.innerHTML = `
@@ -133,50 +84,38 @@ function initChaptersPage() {
         container.appendChild(card);
     });
 
-    // D. "ooooo" SHAKLIDAGI PROGRESS DOTLARINI YARATISH
+    // PROGRESS DOTS VA FOIZ HISOBLAGICH
     dotsContainer.innerHTML = "";
-    const totalUnits = book.units.length; // Kitobdagi jami mavzular soni
-
-    // Nechanchi darsda kelganiga qarab foizini hisoblaymiz
-    let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
+    
+    // Endi foiz faqat bor darsga emas, kitobning umumiy darslar soniga (30 taga) nisbatan hisoblanadi
+    const totalBookLessons = book.totalLessonsCount || 30; 
+    let progressPercent = Math.round((currentSavedLesson / totalBookLessons) * 100);
     if(progressPercent > 100) progressPercent = 100;
 
     progressStatus.innerText = `${currentSavedLesson}-mavzuga keldingiz (Progress: ${progressPercent}%)`;
 
-    // Jami mavzular sonicha doiracha (dot) yaratamiz
-    for (let i = 1; i <= totalUnits; i++) {
+    // Pastda nechta nuqta chizishni belgilash (nechta dars yuklangan bo'lsa shuncha doiracha chiqadi)
+    const loadedUnitsCount = book.units.length;
+    for (let i = 1; i <= loadedUnitsCount; i++) {
         const dot = document.createElement("div");
         dot.className = "dot";
-        
-        // Agar doiracha raqami foydalanuvchi o'qigan darslardan kichik yoki teng bo'lsa - YASHIL qilamiz
         if (i <= currentSavedLesson) {
             dot.classList.add("active");
         }
-        
         dotsContainer.appendChild(dot);
     }
 }
 
-// 5. OBUNA BO'LGAN KUNLARINI HISOBLASH (Telegram va haqiqiy vaqt bilan ulanadi)
-// Hozircha sinov uchun tasodifiy (masalan 12 kun) yoki o'zgarmas qilib qo'yamiz
 function initSubscriptionInfo() {
-    const subDaysElement = document.getElementById("subDays");
-    // Bu yerga kelajakda foydalanuvchi ro'yxatdan o'tgan sana qo'yiladi
-    // Hozircha statik 12 kun turibdi, buni xohlagancha o'zgartirish mumkin
-    subDaysElement.innerText = "15"; 
+    document.getElementById("subDays").innerText = "15"; 
 }
 
-// Sahifa to'liq yuklanganda barcha funksiyalarni ishga tushiramiz
+// SAHIFA YUKLANGANDA HAMMASINI ISHGA TUSHIRISH
 window.onload = function() {
     initChaptersPage();
     initSubscriptionInfo();
     
-    // HTML fayl ichidagi soat mexanizmi ham parallel ishlayveradi
-    if (typeof updateClock === "function") {
-        updateClock();
-        setInterval(updateClock, 1000);
-    }
+    // Soatni zudlik bilan yoqamiz va har soniyada yangilab turamiz
+    runLiveClock();
+    setInterval(runLiveClock, 1000);
 };
-    </script>
-</body>
-</html>
