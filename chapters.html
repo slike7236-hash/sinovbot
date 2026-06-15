@@ -67,143 +67,153 @@
 
     <script>
         const booksDatabase = {
-            "ess1": {
-                title: "Essential English Words 1",
-                units: [
-                    { id: 1, name: "The Lion and the Mouse" },
-                    { id: 2, name: "The Birthday Party" },
-                    { id: 3, name: "The First Day of School" },
-                    { id: 4, name: "The Clever Fox" },
-                    { id: 5, name: "The Magic Pot" },
-                    { id: 6, name: "A Day at the Zoo" },
-                    { id: 7, name: "The Brave Little Tailor" }
-                ]
-            }
-        };
+    "ess1": {
+        title: "Essential English Words 1",
+        units: [
+            { id: 1, name: "The Lion and the Mouse" },
+            { id: 2, name: "The Birthday Party" },
+            { id: 3, name: "The First Day of School" },
+            { id: 4, name: "The Clever Fox" },
+            { id: 5, name: "The Magic Pot" },
+            { id: 6, name: "A Day at the Zoo" },
+            { id: 7, name: "The Brave Little Tailor" }
+        ]
+    }
+};
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentBookCode = urlParams.get('book') || "ess1";
-        
-        let userProgressKey = `progress_${currentBookCode}`;
-        if (!localStorage.getItem(userProgressKey)) {
-            localStorage.setItem(userProgressKey, 7); // Ko'rinishi uchun 7 ta yashil qildik
-        }
-        let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
+const urlParams = new URLSearchParams(window.location.search);
+const currentBookCode = urlParams.get('book') || "ess1";
 
-        // JONLI SOAT VA SANA
-        function runLiveClockAndDate() {
-            const now = new Date();
-            let hrs = now.getHours().toString().padStart(2, '0');
-            let mins = now.getMinutes().toString().padStart(2, '0');
-            let secs = now.getSeconds().toString().padStart(2, '0');
-            document.getElementById('digitalClock').innerText = `${hrs}:${mins}:${secs}`;
-            
-            let day = now.getDate().toString().padStart(2, '0');
-            let month = (now.getMonth() + 1).toString().padStart(2, '0');
-            let year = now.getFullYear();
-            document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
-        }
+let userProgressKey = `progress_${currentBookCode}`;
+if (!localStorage.getItem(userProgressKey)) {
+    localStorage.setItem(userProgressKey, 7);
+}
+let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
 
-        // AVTOMAT BANNER
-        let currentSlide = 0;
-        function runAutoSlider() {
-            currentSlide++;
-            if (currentSlide > 3) currentSlide = 0;
-            const container = document.getElementById("slidesContainer");
-            if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
-        }
+// JONLI SOAT VA SANA
+function runLiveClockAndDate() {
+    const now = new Date();
+    let hrs = now.getHours().toString().padStart(2, '0');
+    let mins = now.getMinutes().toString().padStart(2, '0');
+    let secs = now.getSeconds().toString().padStart(2, '0');
+    document.getElementById('digitalClock').innerText = `${hrs}:${mins}:${secs}`;
+    
+    let day = now.getDate().toString().padStart(2, '0');
+    let month = (now.getMonth() + 1).toString().padStart(2, '0');
+    let year = now.getFullYear();
+    document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
+}
 
-        // POMODORO MEXANIZMI
-        let pomodoroInterval = null;
-        let totalSeconds = 25 * 60;
-        let isRunning = false;
+// AVTOMAT BANNER
+let currentSlide = 0;
+function runAutoSlider() {
+    currentSlide++;
+    if (currentSlide > 3) currentSlide = 0;
+    const container = document.getElementById("slidesContainer");
+    if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
+}
 
-        function togglePomodoroBox() {
-            document.getElementById("pomodoroBox").classList.toggle("show");
-        }
+// POMODORO MEXANIZMI (YANGILANGAN VARIANT)
+let pomodoroInterval = null;
+let totalSeconds = 25 * 60;
+let isRunning = false;
 
-        function updatePomodoroDisplay() {
-            let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-            let secs = (totalSeconds % 60).toString().padStart(2, '0');
-            let timeStr = `${mins}:${secs}`;
-            document.getElementById("pmoTime").innerText = timeStr;
-            document.getElementById("widgetTimerStr").innerText = timeStr;
-        }
+// Katta pult ochilganda kichik qizil tugmani yashirish logikasi
+function togglePomodoroBox() {
+    const pmoBox = document.getElementById("pomodoroBox");
+    const triggerBtn = document.querySelector(".pomodoro-trigger-btn");
+    
+    pmoBox.classList.add("show"); // Katta pultni ochamiz
+    triggerBtn.style.display = "none"; // Kichik qizil tugmani yashiramiz
+}
 
-        function startPomodoro() {
-            if (isRunning) return;
-            isRunning = true;
-            pomodoroInterval = setInterval(() => {
-                if (totalSeconds > 0) {
-                    totalSeconds--;
-                    updatePomodoroDisplay();
-                } else {
-                    clearInterval(pomodoroInterval);
-                    isRunning = false;
-                    alert("Pomodoro tugadi! 5 daqiqa dam oling ☕");
-                    resetPomodoro();
-                }
-            }, 1000);
-        }
+function updatePomodoroDisplay() {
+    let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+    let secs = (totalSeconds % 60).toString().padStart(2, '0');
+    let timeStr = `${mins}:${secs}`;
+    document.getElementById("pmoTime").innerText = timeStr;
+    document.getElementById("widgetTimerStr").innerText = timeStr;
+}
 
-        function pausePomodoro() {
+function startPomodoro() {
+    if (isRunning) return;
+    isRunning = true;
+    pomodoroInterval = setInterval(() => {
+        if (totalSeconds > 0) {
+            totalSeconds--;
+            updatePomodoroDisplay();
+        } else {
             clearInterval(pomodoroInterval);
             isRunning = false;
+            alert("Pomodoro tugadi! 5 daqiqa dam oling ☕");
+            resetPomodoro();
         }
+    }, 1000);
+}
 
-        function resetPomodoro() {
-            clearInterval(pomodoroInterval);
-            isRunning = false;
-            totalSeconds = 25 * 60;
-            updatePomodoroDisplay();
-        }
+function pausePomodoro() {
+    clearInterval(pomodoroInterval);
+    isRunning = false;
+}
 
-        // SAHIFANI YUKLASH
-        function initChaptersPage() {
-            const book = booksDatabase[currentBookCode];
-            if (!book) return;
+// Reset bosilganda katta pult yopiladi va kichik qizil tugma yana qaytib chiqadi
+function resetPomodoro() {
+    clearInterval(pomodoroInterval);
+    isRunning = false;
+    totalSeconds = 25 * 60;
+    updatePomodoroDisplay();
+    
+    // Katta pultni yopib, kichik qizil tugmani qaytaramiz
+    document.getElementById("pomodoroBox").classList.remove("show");
+    document.querySelector(".pomodoro-trigger-btn").style.display = "flex";
+}
 
-            document.getElementById("bookTitle").innerText = book.title;
+// SAHIFANI YUKLASH
+function initChaptersPage() {
+    const book = booksDatabase[currentBookCode];
+    if (!book) return;
 
-            const container = document.getElementById("chaptersContainer");
-            container.innerHTML = "";
-            book.units.forEach(unit => {
-                const card = document.createElement("a");
-                card.className = "chapter-card";
-                card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
-                card.innerHTML = `
-                    <div class="chapter-info">
-                        <div class="chapter-num">Mavzu ${unit.id}</div>
-                        <div class="chapter-name">${unit.name}</div>
-                    </div>
-                    <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
-                `;
-                container.appendChild(card);
-            });
+    document.getElementById("bookTitle").innerText = book.title;
 
-            const totalUnits = book.units.length;
-            let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
-            if (progressPercent > 100) progressPercent = 100;
+    const container = document.getElementById("chaptersContainer");
+    container.innerHTML = "";
+    book.units.forEach(unit => {
+        const card = document.createElement("a");
+        card.className = "chapter-card";
+        card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
+        card.innerHTML = `
+            <div class="chapter-info">
+                <div class="chapter-num">Mavzu ${unit.id}</div>
+                <div class="chapter-name">${unit.name}</div>
+            </div>
+            <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
+        `;
+        container.appendChild(card);
+    });
 
-            document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
+    const totalUnits = book.units.length;
+    let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
+    if (progressPercent > 100) progressPercent = 100;
 
-            const dotsContainer = document.getElementById("dotsContainer");
-            dotsContainer.innerHTML = "";
-            for (let i = 1; i <= totalUnits; i++) {
-                const dot = document.createElement("div");
-                dot.className = "dot";
-                if (i <= currentSavedLesson) dot.classList.add("active");
-                dotsContainer.appendChild(dot);
-            }
-        }
+    document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
 
-        window.onload = function() {
-            initChaptersPage();
-            runLiveClockAndDate();
-            setInterval(runLiveClockAndDate, 1000);
-            setInterval(runAutoSlider, 8000);
-            updatePomodoroDisplay();
-        };
+    const dotsContainer = document.getElementById("dotsContainer");
+    dotsContainer.innerHTML = "";
+    for (let i = 1; i <= totalUnits; i++) {
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        if (i <= currentSavedLesson) dot.classList.add("active");
+        dotsContainer.appendChild(dot);
+    }
+}
+
+window.onload = function() {
+    initChaptersPage();
+    runLiveClockAndDate();
+    setInterval(runLiveClockAndDate, 1000);
+    setInterval(runAutoSlider, 8000);
+    updatePomodoroDisplay();
+};
     </script>
 </body>
 </html>
