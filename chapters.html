@@ -10,8 +10,8 @@
 <body>
 
     <div class="navbar-chapters">
-        <div style="width: 40px;"></div> <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
         <a href="index.html" class="home-btn"><i class="fa-solid fa-house"></i></a>
+        <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
     </div>
 
     <div class="slider-wrapper">
@@ -103,7 +103,7 @@
             document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
         }
 
-        // AUTO SLIDER BANNER
+        // SLIDER
         let currentSlide = 0;
         function runAutoSlider() {
             currentSlide++;
@@ -112,7 +112,7 @@
             if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
         }
 
-        // TAYMER MEXANIZMI
+        // TAYMER LOGIKASI
         let pomodoroInterval = null;
         let totalSeconds = 25 * 60;
         let isRunning = false;
@@ -151,7 +151,7 @@
             updatePomodoroDisplay();
         }
 
-        // SAHIFANI INICIALIZATSIYA QILISH
+        // SAHIFANI YUKLASH
         function initChaptersPage() {
             const book = booksDatabase[currentBookCode];
             if (!book) return;
