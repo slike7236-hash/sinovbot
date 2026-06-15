@@ -4,7 +4,7 @@
     --bg-color: #f7f5f0;
     --success-color: #2ecc71;
     --dark-grey: #2c3e50;
-    --neon-timer-color: #ff4757; /* Chiroyli neon qizil */
+    --neon-timer-color: #ff4757;
 }
 
 body {
@@ -13,7 +13,7 @@ body {
     background-color: var(--bg-color);
     color: #333;
     box-sizing: border-box;
-    padding-bottom: 120px; /* Pastki panel darslarni to'sib qo'ymasligi uchun */
+    padding-bottom: 120px;
     overflow-x: hidden;
 }
 
@@ -40,27 +40,6 @@ body {
     flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* BANNER */
-.slider-wrapper {
-    position: relative; width: 100%; height: 110px; overflow: hidden;
-    border-bottom: 3px solid var(--accent-color);
-}
-.slides-container { display: flex; width: 400%; height: 100%; transition: transform 0.6s ease-in-out; }
-.slide {
-    width: 25%; height: 100%; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; color: white; text-align: center;
-    padding: 0 20px; box-sizing: border-box; background-size: cover; background-position: center; position: relative;
-}
-.slide::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.65); z-index: 1; }
-.slide h2, .slide p { position: relative; z-index: 2; margin: 0; }
-.slide h2 { font-size: 16px; font-weight: bold; margin-bottom: 5px; }
-.slide p { font-size: 12px; color: #f1c40f; }
-
-.slide1 { background-image: url('https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=600'); }
-.slide2 { background-image: url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=600'); }
-.slide3 { background-image: url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=600'); }
-.slide4 { background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600'); }
-
 /* MAVZULAR RO'YXATI */
 .chapters-container { max-width: 480px; margin: 0 auto; padding: 15px; }
 .chapters-list { display: flex; flex-direction: column; gap: 12px; }
@@ -74,7 +53,7 @@ body {
 .chapter-name { font-size: 14px; font-weight: 600; }
 .chapter-icon { color: var(--accent-color); font-size: 13px; background: #ecf0f1; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 
-/* FAQAT BITTA CHIROYLI VA TOZA PASTKI PANEL */
+/* PASTKI AQLLI PANEL */
 .smart-footer-panel {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background-color: #ffffff; border-top: 1px solid #e2e8f0;
@@ -83,13 +62,11 @@ body {
     display: flex; flex-direction: column; gap: 8px;
 }
 
-/* Vidjetlar qatori (Sana, Soat va Pomodoro) */
 .footer-widgets-row {
     display: flex; justify-content: space-between; align-items: center; width: 100%;
 }
 .left-widgets { display: flex; align-items: center; gap: 8px; }
 
-/* Oddiy soat va sana dizayni */
 .date-device { font-size: 12px; font-weight: bold; color: var(--dark-grey); display: flex; align-items: center; gap: 4px; }
 .clock-device {
     background: #0f172a; color: #00ff66; padding: 3px 8px;
@@ -97,7 +74,7 @@ body {
     font-size: 13px; font-weight: bold; border: 1px solid #334155;
 }
 
-/* O'NG TOMONDA QOLGAN FAQAT BITTA CHIROYLI NEON TAYMER */
+/* BURCHAKDAGI TOZA NEON TAYMER */
 .pomodoro-neon-box {
     background: #0f172a; color: var(--neon-timer-color); padding: 3px 8px;
     border-radius: 6px; font-family: 'Courier New', monospace;
@@ -108,7 +85,7 @@ body {
 .pomodoro-neon-box:active { background: #1e293b; transform: scale(0.95); }
 .pomodoro-neon-box.running { box-shadow: 0 0 8px rgba(255, 71, 87, 0.6); border-color: #ff4757; }
 
-/* PROGRESS AREA */
+/* PROGRESS */
 .progress-zone { display: flex; align-items: center; gap: 8px; width: 100%; border-top: 1px dashed #e2e8f0; padding-top: 6px; }
 .progress-text { font-size: 11px; font-weight: bold; color: var(--dark-grey); white-space: nowrap; }
 .dots-container { display: flex; gap: 4px; overflow-x: auto; width: 100%; }
