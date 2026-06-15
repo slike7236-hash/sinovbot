@@ -9,25 +9,10 @@
 </head>
 <body>
 
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-    <div class="sidebar-menu" id="sidebarMenu">
-        <div class="sidebar-header">
-            <h3><i class="fa-solid fa-user-gear"></i> Menu Panel</h3>
-            <button class="close-sidebar" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="sidebar-content">
-            <div style="font-size: 12px; color: #888; margin-bottom: 10px;">ID: <span style="color:#fff">#774921</span></div>
-            <a href="index.html" class="menu-item"><i class="fa-solid fa-house"></i> Bosh sahifa</a>
-            <a href="#" class="menu-item"><i class="fa-solid fa-star"></i> Tanlangan darslar</a>
-            <a href="#" class="menu-item"><i class="fa-solid fa-circle-question"></i> Yordam & Aloqa</a>
-            <a href="#" class="menu-item"><i class="fa-solid fa-gear"></i> Sozlamalar</a>
-        </div>
-    </div>
-
     <div class="navbar-chapters">
         <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
         <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
-        <button class="burger-btn-chapters" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-house"></i></a>
     </div>
 
     <div class="slider-wrapper">
@@ -55,14 +40,27 @@
         <div class="chapters-list" id="chaptersContainer"></div>
     </div>
 
+    <div class="pomodoro-floating-widget">
+        <div class="pomodoro-box" id="pomodoroBox">
+            <div class="pomodoro-display" id="pmoTime">25:00</div>
+            <div class="pomodoro-controls">
+                <button class="pmo-btn start" onclick="startPomodoro()">Start</button>
+                <button class="pmo-btn parent pause" onclick="pausePomodoro()">Pause</button>
+                <button class="pmo-btn reset" onclick="resetPomodoro()">Reset</button>
+            </div>
+        </div>
+        <button class="pomodoro-trigger-btn" onclick="togglePomodoroBox()">
+            <i class="fa-solid fa-stopwatch"></i> <span id="widgetTimerStr">25:00</span>
+        </button>
+    </div>
+
     <div class="smart-footer-panel">
         <div class="clock-widget-container">
             <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">00.00.0000</span></span>
             <span class="clock-device" id="digitalClock">00:00:00</span>
         </div>
-        
         <div class="progress-zone">
-            <div class="progress-text">Progress: <span id="progressValue">0/0</span></div>
+            <div class="progress-text">Progress: <span id="progressValue">0/0 (0%)</span></div>
             <div class="dots-container" id="dotsContainer"></div>
         </div>
     </div>
@@ -86,55 +84,90 @@
         const urlParams = new URLSearchParams(window.location.search);
         const currentBookCode = urlParams.get('book') || "ess1";
         
-        // Test uchun progressni 1-dars deb belgilaymiz (Progress: 1/7 oooooo bo'lishi uchun)
         let userProgressKey = `progress_${currentBookCode}`;
         if (!localStorage.getItem(userProgressKey)) {
             localStorage.setItem(userProgressKey, 1);
         }
         let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 1;
 
-        // JONLI SOAT VA SANA FUNKSIYASI
+        // JONLI SOAT
         function runLiveClockAndDate() {
             const now = new Date();
-            
-            // Soat
             let hrs = now.getHours().toString().padStart(2, '0');
             let mins = now.getMinutes().toString().padStart(2, '0');
             let secs = now.getSeconds().toString().padStart(2, '0');
             document.getElementById('digitalClock').innerText = `${hrs}:${mins}:${secs}`;
             
-            // Sana (Kun.Oy.Yil)
             let day = now.getDate().toString().padStart(2, '0');
             let month = (now.getMonth() + 1).toString().padStart(2, '0');
             let year = now.getFullYear();
             document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
         }
 
-        // AVTOMAT BANNER SURILISH MEXANIZMI (Har 8 sekundda)
+        // SLIDER
         let currentSlide = 0;
         function runAutoSlider() {
             currentSlide++;
-            if (currentSlide > 3) currentSlide = 0; // 4 ta slayd bor (0,1,2,3)
+            if (currentSlide > 3) currentSlide = 0;
             const container = document.getElementById("slidesContainer");
-            if(container) {
-                container.style.transform = `translateX(-${currentSlide * 25}%)`;
-            }
+            if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
         }
 
-        // MENU PANELINI OCHIB-YOPISH
-        function toggleSidebar() {
-            document.getElementById("sidebarMenu").classList.toggle("open");
-            document.getElementById("sidebarOverlay").classList.toggle("show");
+        // POMODORO LOGIKASI
+        let pomodoroInterval = null;
+        let totalSeconds = 25 * 60; // 25 minut soniyalarda
+        let isRunning = false;
+
+        function togglePomodoroBox() {
+            document.getElementById("pomodoroBox").classList.toggle("show");
         }
 
-        // SAHIFANI TO'LDIRISH
+        function updatePomodoroDisplay() {
+            let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            let secs = (totalSeconds % 60).toString().padStart(2, '0');
+            let timeStr = `${mins}:${secs}`;
+            
+            document.getElementById("pmoTime").innerText = timeStr;
+            document.getElementById("widgetTimerStr").innerText = timeStr; // Tugma ichidagi vaqt
+        }
+
+        function startPomodoro() {
+            if (isRunning) return;
+            isRunning = true;
+            pomodoroInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updatePomodoroDisplay();
+                } else {
+                    clearInterval(pomodoroInterval);
+                    isRunning = false;
+                    // Tebranish va Ogohlantirish
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                    alert("Pomodoro tugadi! 5 daqiqa dam oling ☕");
+                    resetPomodoro();
+                }
+            }, 1000);
+        }
+
+        function pausePomodoro() {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
+        }
+
+        function resetPomodoro() {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
+            totalSeconds = 25 * 60;
+            updatePomodoroDisplay();
+        }
+
+        // STRUKTURANI YUKLASH
         function initChaptersPage() {
             const book = booksDatabase[currentBookCode];
             if (!book) return;
 
             document.getElementById("bookTitle").innerText = book.title;
 
-            // Mavzularni chizish
             const container = document.getElementById("chaptersContainer");
             container.innerHTML = "";
             book.units.forEach(unit => {
@@ -151,31 +184,28 @@
                 container.appendChild(card);
             });
 
-            // "Progress: 1/12 ooooo" tizimi
             const totalUnits = book.units.length;
-            document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits}`;
+            let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
+            if (progressPercent > 100) progressPercent = 100;
+
+            document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
 
             const dotsContainer = document.getElementById("dotsContainer");
             dotsContainer.innerHTML = "";
             for (let i = 1; i <= totalUnits; i++) {
                 const dot = document.createElement("div");
                 dot.className = "dot";
-                if (i <= currentSavedLesson) {
-                    dot.classList.add("active");
-                }
+                if (i <= currentSavedLesson) dot.classList.add("active");
                 dotsContainer.appendChild(dot);
             }
         }
 
         window.onload = function() {
             initChaptersPage();
-            
-            // Soatni yoqish
             runLiveClockAndDate();
             setInterval(runLiveClockAndDate, 1000);
-
-            // Banner aylanishini yoqish (Har 8000 millisekund = 8 sekundda)
             setInterval(runAutoSlider, 8000);
+            updatePomodoroDisplay(); // Taymerni dastlabki holatga sozlash
         };
     </script>
 </body>
