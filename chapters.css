@@ -4,7 +4,7 @@
     --bg-color: #f7f5f0;
     --success-color: #2ecc71;
     --dark-grey: #2c3e50;
-    --pomodoro-color: #e74c3c;
+    --widget-bg: #f1f5f9; /* Qora fon o'rniga yumshoq, panelga mos och rang */
 }
 
 body {
@@ -13,11 +13,11 @@ body {
     background-color: var(--bg-color);
     color: #333;
     box-sizing: border-box;
-    padding-bottom: 140px; /* Pastki panel darslarni to'smasligi uchun */
+    padding-bottom: 140px;
     overflow-x: hidden;
 }
 
-/* NAVBAR (Faqat Home tugmasi bilan) */
+/* NAVBAR - HOME CHAPGA O'TDI */
 .navbar-chapters {
     background-color: var(--primary-color);
     color: white;
@@ -41,9 +41,12 @@ body {
 .book-title-zone {
     font-size: 16px; font-weight: bold;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    flex: 1;
+    text-align: center;
+    margin-right: 40px; /* Ong tomon bo'sh qolgani uchun matn markazda turishi uchun padding */
 }
 
-/* SLIDER BANNER (Matnlar buzilib ketmasligi uchun to'g'rilandi) */
+/* REKLAMA BANNERI */
 .slider-wrapper {
     position: relative; width: 100%; height: 110px; overflow: hidden;
     border-bottom: 3px solid var(--accent-color);
@@ -64,8 +67,12 @@ body {
 .slide3 { background-image: url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=600'); }
 .slide4 { background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600'); }
 
-/* MAVZULAR RO'YXATI */
-.chapters-container { max-width: 480px; margin: 0 auto; padding: 15px; }
+/* MAVZULAR RO'YXATI (Kompyuter va telefonga moslashuvchan maket) */
+.chapters-container { 
+    max-width: 600px; /* Katta ekranda ham chiroyli markazda turishi uchun */
+    margin: 0 auto; 
+    padding: 15px; 
+}
 .chapters-list { display: flex; flex-direction: column; gap: 12px; }
 .chapter-card {
     background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 15px;
@@ -77,56 +84,60 @@ body {
 .chapter-name { font-size: 14px; font-weight: 600; }
 .chapter-icon { color: var(--accent-color); font-size: 13px; background: #ecf0f1; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 
-/* PASTKI STRUKTURALI PANEL */
+/* PASTKI PANEL (Kompyuterda ham chiroyli markazlashadi) */
 .smart-footer-panel {
-    position: fixed; bottom: 0; left: 0; width: 100%;
-    background-color: #ffffff; border-top: 1px solid #e2e8f0;
+    position: fixed; bottom: 0; left: 50%;
+    transform: translateX(-50%); /* Kompyuter ekranida panelni o'rtaga keltirish */
+    width: 100%; max-width: 600px; /* Kompyuterda judayam yoyilib ketmaydi */
+    background-color: #ffffff; border: 1px solid #e2e8f0;
+    border-radius: 12px 12px 0 0;
     padding: 10px 15px; box-sizing: border-box; z-index: 999;
-    box-shadow: 0 -4px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 -4px 25px rgba(0,0,0,0.08);
     display: flex; flex-direction: column; gap: 10px;
 }
 
-/* Chapda soat/sana, o'ngda esa chiroyli pult qatori */
 .footer-top-row {
     display: flex; justify-content: space-between; align-items: center; width: 100%;
 }
 .widgets-left-side {
-    display: flex; flex-direction: column; gap: 4px;
+    display: flex; flex-direction: column; gap: 6px;
 }
 .date-device { font-size: 12px; font-weight: bold; color: var(--dark-grey); display: flex; align-items: center; gap: 4px; }
+
+/* SOAT INTEGRATSIYASI */
 .clock-device {
-    background: #0f172a; color: #00ff66; padding: 3px 8px;
-    border-radius: 6px; font-family: 'Courier New', monospace;
-    font-size: 13px; font-weight: bold; border: 1px solid #334155;
+    background: var(--widget-bg); color: #059669; padding: 4px 10px;
+    border-radius: 6px; font-family: 'Segoe UI', monospace;
+    font-size: 13px; font-weight: bold; border: 1px solid #cbd5e1;
     text-align: center; display: inline-block; width: fit-content;
 }
 
-/* ENG CHIROYLI TAYMER PULTINI O'NGGA INTEGRATSIYA QILISH */
+/* BIROZ KICHRAYTIRILGAN VA YUMSHOQ FONLI TAYMER PULTI */
 .pomodoro-integrated-box {
-    background: #0f172a; border: 1px solid #334155; border-radius: 10px;
-    padding: 6px 10px; display: flex; flex-direction: column; align-items: center;
-    gap: 4px; width: 150px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    background: var(--widget-bg); border: 1px solid #cbd5e1; border-radius: 8px;
+    padding: 4px 8px; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; width: 125px; /* Biroz ixchamlashtirildi */
 }
 .pmo-display-neon {
-    font-size: 18px; font-weight: bold; font-family: 'Courier New', monospace;
-    color: #ff4757; text-shadow: 0 0 5px rgba(255, 71, 87, 0.6);
+    font-size: 15px; font-weight: bold; font-family: 'Segoe UI', monospace;
+    color: #dc2626; /* To'qroq, ko'zni ogritmaydigan qizil */
 }
 .pmo-controls-row {
-    display: flex; gap: 4px; width: 100%;
+    display: flex; gap: 3px; width: 100%;
 }
 .pmo-btn-style {
-    flex: 1; border: none; padding: 4px 2px; border-radius: 4px;
-    font-size: 10px; font-weight: bold; cursor: pointer; color: white;
+    flex: 1; border: none; padding: 3px 0; border-radius: 4px;
+    font-size: 9px; font-weight: bold; cursor: pointer; color: white;
     text-align: center; transition: opacity 0.1s;
 }
 .pmo-btn-style:active { opacity: 0.7; }
-.pmo-btn-style.start { background-color: var(--success-color); }
-.pmo-btn-style.pause { background-color: #f1c40f; color: #333; }
-.pmo-btn-style.reset { background-color: #7f8c8d; }
+.pmo-btn-style.start { background-color: #10b981; }
+.pmo-btn-style.pause { background-color: #f59e0b; color: white; }
+.pmo-btn-style.reset { background-color: #6b7280; }
 
 /* PROGRESS */
 .progress-zone { display: flex; align-items: center; gap: 8px; width: 100%; border-top: 1px dashed #e2e8f0; padding-top: 6px; }
 .progress-text { font-size: 11px; font-weight: bold; color: var(--dark-grey); white-space: nowrap; }
 .dots-container { display: flex; gap: 4px; overflow-x: auto; width: 100%; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background-color: #dcdde1; flex-shrink: 0; }
-.dot.active { background-color: var(--success-color); box-shadow: 0 0 4px var(--success-color); }
+.dot.active { background-color: #10b981; box-shadow: 0 0 4px #10b981; }
