@@ -9,12 +9,14 @@
 </head>
 <body>
 
+    <!-- NAVBAR -->
     <div class="navbar-chapters">
         <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
         <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
         <a href="index.html" class="back-btn"><i class="fa-solid fa-house"></i></a>
     </div>
 
+    <!-- REKLAMA BANNERI -->
     <div class="slider-wrapper">
         <div class="slides-container" id="slidesContainer">
             <div class="slide slide1">
@@ -36,184 +38,189 @@
         </div>
     </div>
 
+    <!-- MAVZULAR RO'YXATI -->
     <div class="chapters-container">
         <div class="chapters-list" id="chaptersContainer"></div>
     </div>
 
-    <div class="pomodoro-floating-widget">
-        <div class="pomodoro-box" id="pomodoroBox">
-            <div class="pomodoro-display" id="pmoTime">25:00</div>
-            <div class="pomodoro-controls">
-                <button class="pmo-btn start" onclick="startPomodoro()">Start</button>
-                <button class="pmo-btn pause" onclick="pausePomodoro()">Pause</button>
-                <button class="pmo-btn reset" onclick="resetPomodoro()">Reset</button>
+    <!-- PASTKI AQLLI PANEL (YANGI PARALEL DIZAYN) -->
+    <div class="smart-footer-panel">
+        
+        <!-- YUQORI QATOR -->
+        <div class="footer-top-row">
+            <!-- Chap tomonda: Sana va Soat parallel -->
+            <div class="widgets-left-side">
+                <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">00.00.2026</span></span>
+                <span class="clock-device" id="digitalClock">00:00:00</span>
+            </div>
+            
+            <!-- O'ng tomonda: Integrallashgan Pomodoro -->
+            <div class="pomodoro-footer-zone">
+                <div class="pmo-inline-box" id="pomodoroBox">
+                    <div class="pmo-display" id="pmoTime">25:00</div>
+                    <div class="pmo-controls">
+                        <button class="pmo-btn start" onclick="startPomodoro()">Start</button>
+                        <button class="pmo-btn pause" onclick="pausePomodoro()">Pause</button>
+                        <button class="pmo-btn reset" onclick="resetPomodoro()">Reset</button>
+                    </div>
+                </div>
+                <button class="pmo-trigger-inline-btn" onclick="togglePomodoroBox()">
+                    <i class="fa-solid fa-stopwatch"></i> <span id="widgetTimerStr">25:00</span>
+                </button>
             </div>
         </div>
-        <button class="pomodoro-trigger-btn" onclick="togglePomodoroBox()">
-            <i class="fa-solid fa-stopwatch"></i> <span id="widgetTimerStr">25:00</span>
-        </button>
-    </div>
-
-    <div class="smart-footer-panel">
-        <div class="clock-widget-container">
-            <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">00.00.0000</span></span>
-            <span class="clock-device" id="digitalClock">00:00:00</span>
-        </div>
+        
+        <!-- PASTKI QATOR: PROGRESS TO'LIQ ENIGA -->
         <div class="progress-zone">
             <div class="progress-text">Progress: <span id="progressValue">0/0 (0%)</span></div>
             <div class="dots-container" id="dotsContainer"></div>
         </div>
+
     </div>
 
     <script>
         const booksDatabase = {
-    "ess1": {
-        title: "Essential English Words 1",
-        units: [
-            { id: 1, name: "The Lion and the Mouse" },
-            { id: 2, name: "The Birthday Party" },
-            { id: 3, name: "The First Day of School" },
-            { id: 4, name: "The Clever Fox" },
-            { id: 5, name: "The Magic Pot" },
-            { id: 6, name: "A Day at the Zoo" },
-            { id: 7, name: "The Brave Little Tailor" }
-        ]
-    }
-};
+            "ess1": {
+                title: "Essential English Words 1",
+                units: [
+                    { id: 1, name: "The Lion and the Mouse" },
+                    { id: 2, name: "The Birthday Party" },
+                    { id: 3, name: "The First Day of School" },
+                    { id: 4, name: "The Clever Fox" },
+                    { id: 5, name: "The Magic Pot" },
+                    { id: 6, name: "A Day at the Zoo" },
+                    { id: 7, name: "The Brave Little Tailor" }
+                ]
+            }
+        };
 
-const urlParams = new URLSearchParams(window.location.search);
-const currentBookCode = urlParams.get('book') || "ess1";
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentBookCode = urlParams.get('book') || "ess1";
+        
+        let userProgressKey = `progress_${currentBookCode}`;
+        if (!localStorage.getItem(userProgressKey)) {
+            localStorage.setItem(userProgressKey, 7);
+        }
+        let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
 
-let userProgressKey = `progress_${currentBookCode}`;
-if (!localStorage.getItem(userProgressKey)) {
-    localStorage.setItem(userProgressKey, 7);
-}
-let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
+        // JONLI SOAT
+        function runLiveClockAndDate() {
+            const now = new Date();
+            let hrs = now.getHours().toString().padStart(2, '0');
+            let mins = now.getMinutes().toString().padStart(2, '0');
+            let secs = now.getSeconds().toString().padStart(2, '0');
+            document.getElementById('digitalClock').innerText = `${hrs}:${mins}:${secs}`;
+            
+            let day = now.getDate().toString().padStart(2, '0');
+            let month = (now.getMonth() + 1).toString().padStart(2, '0');
+            let year = now.getFullYear();
+            document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
+        }
 
-// JONLI SOAT VA SANA
-function runLiveClockAndDate() {
-    const now = new Date();
-    let hrs = now.getHours().toString().padStart(2, '0');
-    let mins = now.getMinutes().toString().padStart(2, '0');
-    let secs = now.getSeconds().toString().padStart(2, '0');
-    document.getElementById('digitalClock').innerText = `${hrs}:${mins}:${secs}`;
-    
-    let day = now.getDate().toString().padStart(2, '0');
-    let month = (now.getMonth() + 1).toString().padStart(2, '0');
-    let year = now.getFullYear();
-    document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
-}
+        // BANNER SLIDER
+        let currentSlide = 0;
+        function runAutoSlider() {
+            currentSlide++;
+            if (currentSlide > 3) currentSlide = 0;
+            const container = document.getElementById("slidesContainer");
+            if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
+        }
 
-// AVTOMAT BANNER
-let currentSlide = 0;
-function runAutoSlider() {
-    currentSlide++;
-    if (currentSlide > 3) currentSlide = 0;
-    const container = document.getElementById("slidesContainer");
-    if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
-}
+        // POMODORO LOGIKASI
+        let pomodoroInterval = null;
+        let totalSeconds = 25 * 60;
+        let isRunning = false;
 
-// POMODORO MEXANIZMI (YANGILANGAN VARIANT)
-let pomodoroInterval = null;
-let totalSeconds = 25 * 60;
-let isRunning = false;
+        function togglePomodoroBox() {
+            const box = document.getElementById("pomodoroBox");
+            box.classList.toggle("show");
+        }
 
-// Katta pult ochilganda kichik qizil tugmani yashirish logikasi
-function togglePomodoroBox() {
-    const pmoBox = document.getElementById("pomodoroBox");
-    const triggerBtn = document.querySelector(".pomodoro-trigger-btn");
-    
-    pmoBox.classList.add("show"); // Katta pultni ochamiz
-    triggerBtn.style.display = "none"; // Kichik qizil tugmani yashiramiz
-}
+        function updatePomodoroDisplay() {
+            let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            let secs = (totalSeconds % 60).toString().padStart(2, '0');
+            let timeStr = `${mins}:${secs}`;
+            document.getElementById("pmoTime").innerText = timeStr;
+            document.getElementById("widgetTimerStr").innerText = timeStr;
+        }
 
-function updatePomodoroDisplay() {
-    let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-    let secs = (totalSeconds % 60).toString().padStart(2, '0');
-    let timeStr = `${mins}:${secs}`;
-    document.getElementById("pmoTime").innerText = timeStr;
-    document.getElementById("widgetTimerStr").innerText = timeStr;
-}
+        function startPomodoro() {
+            if (isRunning) return;
+            isRunning = true;
+            pomodoroInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updatePomodoroDisplay();
+                } else {
+                    clearInterval(pomodoroInterval);
+                    isRunning = false;
+                    alert("Pomodoro vaqti tugadi! Biroz dam oling ☕");
+                    resetPomodoro();
+                }
+            }, 1000);
+        }
 
-function startPomodoro() {
-    if (isRunning) return;
-    isRunning = true;
-    pomodoroInterval = setInterval(() => {
-        if (totalSeconds > 0) {
-            totalSeconds--;
-            updatePomodoroDisplay();
-        } else {
+        // Pause qilinganda pult yopilmaydi, vaqt to'xtaydi xolos
+        function pausePomodoro() {
             clearInterval(pomodoroInterval);
             isRunning = false;
-            alert("Pomodoro tugadi! 5 daqiqa dam oling ☕");
-            resetPomodoro();
         }
-    }, 1000);
-}
 
-function pausePomodoro() {
-    clearInterval(pomodoroInterval);
-    isRunning = false;
-}
+        // Reset bosilganda vaqt tiklanadi va boshqaruv pulti berkinadi
+        function resetPomodoro() {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
+            totalSeconds = 25 * 60;
+            updatePomodoroDisplay();
+            document.getElementById("pomodoroBox").classList.remove("show");
+        }
 
-// Reset bosilganda katta pult yopiladi va kichik qizil tugma yana qaytib chiqadi
-function resetPomodoro() {
-    clearInterval(pomodoroInterval);
-    isRunning = false;
-    totalSeconds = 25 * 60;
-    updatePomodoroDisplay();
-    
-    // Katta pultni yopib, kichik qizil tugmani qaytaramiz
-    document.getElementById("pomodoroBox").classList.remove("show");
-    document.querySelector(".pomodoro-trigger-btn").style.display = "flex";
-}
+        // SAHIFANI YUKLASH
+        function initChaptersPage() {
+            const book = booksDatabase[currentBookCode];
+            if (!book) return;
 
-// SAHIFANI YUKLASH
-function initChaptersPage() {
-    const book = booksDatabase[currentBookCode];
-    if (!book) return;
+            document.getElementById("bookTitle").innerText = book.title;
 
-    document.getElementById("bookTitle").innerText = book.title;
+            const container = document.getElementById("chaptersContainer");
+            container.innerHTML = "";
+            book.units.forEach(unit => {
+                const card = document.createElement("a");
+                card.className = "chapter-card";
+                card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
+                card.innerHTML = `
+                    <div class="chapter-info">
+                        <div class="chapter-num">Mavzu ${unit.id}</div>
+                        <div class="chapter-name">${unit.name}</div>
+                    </div>
+                    <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
+                `;
+                container.appendChild(card);
+            });
 
-    const container = document.getElementById("chaptersContainer");
-    container.innerHTML = "";
-    book.units.forEach(unit => {
-        const card = document.createElement("a");
-        card.className = "chapter-card";
-        card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
-        card.innerHTML = `
-            <div class="chapter-info">
-                <div class="chapter-num">Mavzu ${unit.id}</div>
-                <div class="chapter-name">${unit.name}</div>
-            </div>
-            <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
-        `;
-        container.appendChild(card);
-    });
+            const totalUnits = book.units.length;
+            let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
+            if (progressPercent > 100) progressPercent = 100;
 
-    const totalUnits = book.units.length;
-    let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
-    if (progressPercent > 100) progressPercent = 100;
+            document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
 
-    document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
+            const dotsContainer = document.getElementById("dotsContainer");
+            dotsContainer.innerHTML = "";
+            for (let i = 1; i <= totalUnits; i++) {
+                const dot = document.createElement("div");
+                dot.className = "dot";
+                if (i <= currentSavedLesson) dot.classList.add("active");
+                dotsContainer.appendChild(dot);
+            }
+        }
 
-    const dotsContainer = document.getElementById("dotsContainer");
-    dotsContainer.innerHTML = "";
-    for (let i = 1; i <= totalUnits; i++) {
-        const dot = document.createElement("div");
-        dot.className = "dot";
-        if (i <= currentSavedLesson) dot.classList.add("active");
-        dotsContainer.appendChild(dot);
-    }
-}
-
-window.onload = function() {
-    initChaptersPage();
-    runLiveClockAndDate();
-    setInterval(runLiveClockAndDate, 1000);
-    setInterval(runAutoSlider, 8000);
-    updatePomodoroDisplay();
-};
+        window.onload = function() {
+            initChaptersPage();
+            runLiveClockAndDate();
+            setInterval(runLiveClockAndDate, 1000);
+            setInterval(runAutoSlider, 8000);
+            updatePomodoroDisplay();
+        };
     </script>
 </body>
 </html>
