@@ -4,7 +4,7 @@
     --bg-color: #f7f5f0;
     --success-color: #2ecc71;
     --dark-grey: #2c3e50;
-    --pomodoro-color: #e74c3c; /* Pomidor qizil rangi */
+    --pomodoro-color: #e74c3c;
 }
 
 body {
@@ -13,7 +13,7 @@ body {
     background-color: var(--bg-color);
     color: #333;
     box-sizing: border-box;
-    padding-bottom: 140px; 
+    padding-bottom: 150px; /* Pastki panel darslarni to'sib qo'ymasligi uchun */
     overflow-x: hidden;
 }
 
@@ -40,7 +40,7 @@ body {
     flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* AVTOMAT BANNER */
+/* BANNER */
 .slider-wrapper {
     position: relative; width: 100%; height: 110px; overflow: hidden;
     border-bottom: 3px solid var(--accent-color);
@@ -74,7 +74,7 @@ body {
 .chapter-name { font-size: 14px; font-weight: 600; }
 .chapter-icon { color: var(--accent-color); font-size: 13px; background: #ecf0f1; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 
-/* PASTKI AQLLI PANEL */
+/* PASTKI PANEL */
 .smart-footer-panel {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background-color: #ffffff; border-top: 1px solid #e0e0e0;
@@ -94,85 +94,45 @@ body {
 }
 .date-device { font-size: 12px; font-weight: bold; color: var(--dark-grey); display: flex; align-items: center; gap: 5px; }
 
-/* PROGRESS PANEL */
+/* PROGRESS */
 .progress-zone { display: flex; align-items: center; gap: 8px; width: 100%; }
 .progress-text { font-size: 12px; font-weight: bold; color: var(--dark-grey); white-space: nowrap; }
 .dots-container { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background-color: #dcdde1; flex-shrink: 0; }
 .dot.active { background-color: var(--success-color); box-shadow: 0 0 4px var(--success-color); }
 
-/* QALQIB TURUVCHI POMODORO TAYMERI (FLOATING WIDGET) */
+/* QALQIB TURUVCHI TAYMER (FLOATING DIZAYN) */
 .pomodoro-floating-widget {
     position: fixed;
-    bottom: 150px; /* Pastki paneldan teparoqda turadi */
-    right: 20px;
-    z-index: 120;
+    bottom: 120px; /* Pastki paneldan teparoqda, qat'iy joyda turadi */
+    right: 15px;
+    z-index: 999; /* Hamma narsaning tepasida turishi uchun */
     display: flex;
     flex-direction: column;
     align-items: flex-end;
     gap: 8px;
 }
-
-/* Kichkina dumaloq tugma holati */
 .pomodoro-trigger-btn {
     background-color: var(--pomodoro-color);
-    color: white;
-    border: none;
-    padding: 10px 14px;
-    border-radius: 30px;
-    font-size: 12px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
-    transition: transform 0.2s;
+    color: white; border: none; padding: 10px 14px; border-radius: 30px;
+    font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 6px;
+    cursor: pointer; box-shadow: 0 4px 12px rgba(231, 76, 60, 0.4);
 }
-.pomodoro-trigger-btn:active { transform: scale(0.95); }
-
-/* Ichki boshqaruv menyusi */
 .pomodoro-box {
-    background: white;
-    border: 2px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 12px;
-    display: none; /* Bosilganda ochiladi */
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    width: 140px;
+    background: white; border: 2px solid #e2e8f0; border-radius: 14px; padding: 12px;
+    display: none; flex-direction: column; align-items: center; gap: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15); width: 140px;
 }
 .pomodoro-box.show { display: flex; }
-
 .pomodoro-display {
-    font-size: 22px;
-    font-weight: bold;
-    font-family: monospace;
-    color: var(--dark-grey);
-    background: #f1f2f6;
-    padding: 4px 12px;
-    border-radius: 8px;
-    width: 100%;
-    text-align: center;
-    box-sizing: border-box;
+    font-size: 22px; font-weight: bold; font-family: monospace;
+    color: var(--dark-grey); background: #f1f2f6; padding: 4px 12px;
+    border-radius: 8px; width: 100%; text-align: center; box-sizing: border-box;
 }
-
-.pomodoro-controls {
-    display: flex;
-    gap: 6px;
-    width: 100%;
-}
+.pomodoro-controls { display: flex; gap: 4px; width: 100%; }
 .pmo-btn {
-    flex: 1;
-    border: none;
-    padding: 6px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
-    color: white;
+    flex: 1; border: none; padding: 6px; border-radius: 6px;
+    font-size: 11px; font-weight: bold; cursor: pointer; color: white;
 }
 .pmo-btn.start { background-color: var(--success-color); }
 .pmo-btn.pause { background-color: #f1c40f; color: #333; }
