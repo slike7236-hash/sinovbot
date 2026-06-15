@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Vocabularies Portal</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0b1d33;
+            --accent-color: #3498db;
+            --bg-color: #f7f5f0;
+            --drawer-width: 260px;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-color);
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        /* NAVBAR TIZIMI */
+        .navbar {
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            height: 60px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 10;
+        }
+        .burger-btn {
+            background: none; border: none; color: white;
+            font-size: 22px; cursor: pointer; padding: 5px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .marquee-zone { width: 50%; overflow: hidden; white-space: nowrap; }
+        .logo-marquee { 
+            font-size: 18px; font-weight: 900; display: inline-block; color: #fff;
+            text-shadow: 0 0 8px rgba(52, 152, 219, 0.8);
+            animation: runInsideZone 8s linear infinite;
+        }
+        @keyframes runInsideZone { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .lang-select {
+            background: #2c3e50; color: white; border: 1px solid #444;
+            padding: 4px 6px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer;
+        }
+
+        /* ☰ SIDEBAR (YON MENU) STILI */
+        .sidebar {
+            position: fixed; top: 0; left: calc(-1 * var(--drawer-width));
+            width: var(--drawer-width); height: 100%;
+            background-color: #ffffff; box-shadow: 4px 0 15px rgba(0,0,0,0.25);
+            transition: left 0.3s ease; z-index: 150;
+            display: flex; flex-direction: column; box-sizing: border-box;
+        }
+        .sidebar.open { left: 0; }
+        .sidebar-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 140;
+        }
+        .sidebar-header {
+            background-color: var(--primary-color); color: white;
+            padding: 20px 15px; font-weight: bold; font-size: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .sidebar-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }
+        
+        .sidebar-menu { padding: 10px 0; overflow-y: auto; flex: 1; }
+        .menu-title { font-size: 12px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; padding: 10px 15px 5px 15px; margin: 0; }
+        .menu-item { 
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 20px; color: #2c3e50; text-decoration: none; 
+            font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s;
+        }
+        .menu-item:active { background-color: #ecf0f1; }
+        .menu-item i { width: 18px; color: var(--accent-color); text-align: center; }
+        .sub-menu { padding-left: 15px; }
+        .sub-menu .menu-item { font-size: 13px; padding: 8px 20px; color: #555; }
+        .menu-sep { height: 1px; border-top: 1px solid #edf0f2; margin: 10px 0; }
+
+        /* REKLAMA BANNERI */
+        .hero-wrapper {
+            width: 100%; overflow: hidden; position: relative;
+            background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000') no-repeat center center/cover;
+            border-bottom: 3px solid var(--accent-color); z-index: 1;
+        }
+        .slider-container { display: flex; width: 300%; transition: transform 0.8s ease-in-out; }
+        .slide { width: 100vw; box-sizing: border-box; color: white; text-align: center; padding: 25px 15px; min-height: 110px; display: flex; flex-direction: column; justify-content: center; flex-shrink: 0; }
+        .slide h1 { font-size: 18px; margin: 0 0 5px 0; font-weight: bold; }
+        .slide p { font-size: 12px; color: #f1c40f; margin: 0; }
+
+        /* BADGELAR */
+        .user-badge { text-align: center; margin: 0; font-weight: bold; color: #2c3e50; font-size: 12px; background: #fff; padding: 8px; border-bottom: 1px solid #ddd; }
+        .section-title { text-align: center; margin: 20px 0 10px 0; font-size: 16px; color: var(--primary-color); text-transform: uppercase; font-weight: bold; }
+
+        /* ↔️ YONMA-YON KARUSEL TIZIMI */
+        .carousel-wrapper { position: relative; width: 100%; max-width: 320px; margin: 0 auto; overflow: hidden; padding: 10px 0; z-index: 5; }
+        .books-slider { display: flex; transition: transform 0.4s ease-out; width: auto; }
+        .book-card { 
+            background: white; border: 1px solid #e0e0e0; border-radius: 8px; 
+            width: 280px; padding: 15px; margin: 0 20px;
+            text-align: center; box-shadow: 0 3px 8px rgba(0,0,0,0.05); box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .book-img { width: 120px; height: 170px; margin: 0 auto 10px auto; display: block; border-radius: 4px; box-shadow: 2px 2px 8px rgba(0,0,0,0.25); object-fit: cover; }
+        .book-title { font-size: 14px; margin: 5px 0; font-weight: bold; height: 40px; display: flex; align-items: center; justify-content: center; }
+        .book-price { color: #27ae60; font-weight: bold; font-size: 15px; margin-bottom: 10px; }
+        
+        .book-btn { 
+            display: inline-block; color: white; padding: 10px; text-decoration: none; border-radius: 4px; font-weight: bold; width: 100%; font-size: 13px;
+            box-sizing: border-box; border: none; cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .book-btn:active { transform: scale(0.97); }
+
+        /* NAVIGATSIYA TUGMALARI < > */
+        .nav-btn {
+            position: absolute; top: 50%; transform: translateY(-50%); background: rgba(11, 29, 51, 0.85); color: white; border: none;
+            width: 36px; height: 36px; border-radius: 50%; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 8; display: flex; align-items: center; justify-content: center;
+        }
+        .nav-btn:active { background: var(--accent-color); }
+        .nav-btn.prev { left: 2px; }
+        .nav-btn.next { right: 2px; }
+
+        /* TO'LOV TIZIMLARI */
+        .payment-grid { display: flex; justify-content: center; gap: 10px; margin: 10px auto; padding: 0 15px; max-width: 340px; }
+        .payment-card { 
+            background: white; border: 2px solid #e0e0e0; border-radius: 6px; flex: 1; padding: 10px 2px; font-size: 13px; font-weight: bold; 
+            text-align: center; cursor: pointer; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .payment-card:active { transform: scale(0.95); }
+        .payment-card i { font-size: 18px; }
+        .click-btn { color: #5e257c; border-color: #5e257c; }
+        .payme-btn { color: #00bfa5; border-color: #00bfa5; }
+        .visa-btn { color: #1a1f71; border-color: #1a1f71; }
+
+        /* MODAL ALERT OYNASI */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; justify-content: center; align-items: center; }
+        .modal-box { background: white; padding: 20px; border-radius: 10px; width: 85%; max-width: 300px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); animation: popIn 0.3s ease; }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-box h3 { margin: 0 0 10px 0; color: var(--primary-color); font-size: 18px; }
+        .modal-box p { font-size: 13px; color: #555; margin-bottom: 20px; line-height: 1.4; text-align: left; white-space: pre-line; }
+        .modal-redirect-btn { display: block; background: #229ED9; color: white; padding: 10px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-bottom: 10px; font-size: 14px; }
+        .modal-close-btn { display: block; background: #e74c3c; color: white; padding: 8px; border: none; border-radius: 5px; width: 100%; font-size: 12px; cursor: pointer; }
+
+        footer { background-color: var(--primary-color); color: white; text-align: center; padding: 12px; margin-top: 20px; font-size: 11px; }
+
+        @media (min-width: 768px) {
+            .logo-marquee { font-size: 32px; } .slide h1 { font-size: 30px; }
+            .carousel-wrapper { max-width: 700px; } .nav-btn { display: none; }
+            .books-slider { justify-content: center; flex-wrap: wrap; }
+            .book-card { margin: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-header">
+            <span id="m-menu-title">Menyu</span>
+            <button class="sidebar-close" onclick="toggleSidebar(false)">✕</button>
+        </div>
+        <div class="sidebar-menu">
+            <p class="menu-title" id="m-cate-title">Kategoriyalar</p>
+            <div class="sub-menu">
+                <div class="menu-item" onclick="jumpToBookIndex(0)"><i class="fa-solid fa-book"></i> Essential Words</div>
+                <div class="menu-item" onclick="jumpToBookIndex(6)"><i class="fa-solid fa-graduation-cap"></i> Solution Books</div>
+                <div class="menu-item" onclick="jumpToBookIndex(11)"><i class="fa-solid fa-book-open"></i> Read and Understand</div>
+                <div class="menu-item" onclick="jumpToBookIndex(15)"><i class="fa-solid fa-star"></i> IELTS Vocabularies</div>
+            </div>
+
+            <div class="menu-sep"></div>
+            <p class="menu-title" id="m-obuna-title">Obunalar</p>
+            <div class="sub-menu">
+                <div class="menu-item" onclick="showOwnedBooks()"><i class="fa-solid fa-circle-check"></i> Obuna bo'linganlar</div>
+            </div>
+
+            <div class="menu-sep"></div>
+            <div class="menu-item" onclick="openInfoModal('guide')"><i class="fa-solid fa-circle-info"></i> <span id="m-guide">Qo'llanma</span></div>
+            <div class="menu-item" onclick="openInfoModal('about')"><i class="fa-solid fa-circle-user"></i> <span id="m-about">Biz haqimizda</span></div>
+        </div>
+    </div>
+
+    <div class="navbar">
+        <button class="burger-btn" onclick="toggleSidebar(true)">☰</button>
+        <div class="marquee-zone">
+            <div class="logo-marquee">My Vocabularies</div>
+        </div>
+        <div>
+            <select class="lang-select" onchange="changeLanguage(this.value)">
+                <option value="uz">O'Z</option>
+                <option value="en">EN</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="hero-wrapper">
+        <div class="slider-container" id="sliderContainer">
+            <div class="slide">
+                <h1 id="hero-title-1">⚡ CLICK orqali oson to'lov!</h1>
+                <p id="hero-desc-1">10% keshbekka ega bo'ling.</p>
+            </div>
+            <div class="slide">
+                <h1 id="hero-title-2">💸 PAYME bilan 0% komissiya!</h1>
+                <p id="hero-desc-2">Darsliklarni bir zumda faollashtiring.</p>
+            </div>
+            <div class="slide">
+                <h1 id="hero-title-3">🎉 Intellektual o'yinlar!</h1>
+                <p id="hero-desc-3">Bilimingizni yuqori darajaga olib chiqing.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="user-badge" id="userInfo">Foydalanuvchi: Aniqlanmoqda...</div>
+
+    <div class="section-title" id="sec-title">— KITOBLAR RO'YXATI —</div>
+    
+    <div class="carousel-wrapper">
+        <button class="nav-btn prev" onclick="moveBooks(-1)"><i class="fa-solid fa-angle-left"></i></button>
+        <div class="books-slider" id="booksSlider">
+            
+            <div class="book-card">
+                <img src="ess1.jpg" class="book-img" alt="Essential 1">
+                <div class="book-title" id="t-book-1">Essential English Words 1</div>
+                <div class="book-price" id="p-price-1">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-1">...</button>
+            </div>
+            <div class="book-card">
+                <img src="ess2.jpg" class="book-img" alt="Essential 2">
+                <div class="book-title" id="t-book-2">Essential English Words 2</div>
+                <div class="book-price" id="p-price-2">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-2">...</button>
+            </div>
+            <div class="book-card">
+                <img src="ess3.jpg" class="book-img" alt="Essential 3">
+                <div class="book-title" id="t-book-3">Essential English Words 3</div>
+                <div class="book-price" id="p-price-3">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-3">...</button>
+            </div>
+            <div class="book-card">
+                <img src="ess4.jpg" class="book-img" alt="Essential 4">
+                <div class="book-title" id="t-book-4">Essential English Words 4</div>
+                <div class="book-price" id="p-price-4">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-4">...</button>
+            </div>
+            <div class="book-card">
+                <img src="ess5.jpg" class="book-img" alt="Essential 5">
+                <div class="book-title" id="t-book-5">Essential English Words 5</div>
+                <div class="book-price" id="p-price-5">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-5">...</button>
+            </div>
+            <div class="book-card">
+                <img src="ess6.jpg" class="book-img" alt="Essential 6">
+                <div class="book-title" id="t-book-6">Essential English Words 6</div>
+                <div class="book-price" id="p-price-6">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-6">...</button>
+            </div>
+
+            <div class="book-card">
+                <img src="solel.jpg" class="book-img" alt="Solution El">
+                <div class="book-title" id="t-book-7">Solution Elementary</div>
+                <div class="book-price" id="p-price-7">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-7">...</button>
+            </div>
+            <div class="book-card">
+                <img src="solpre.jpg" class="book-img" alt="Solution Pre">
+                <div class="book-title" id="t-book-8">Solution Pre-Intermediate</div>
+                <div class="book-price" id="p-price-8">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-8">...</button>
+            </div>
+            <div class="book-card">
+                <img src="solint.jpg" class="book-img" alt="Solution Int">
+                <div class="book-title" id="t-book-9">Solution Intermediate</div>
+                <div class="book-price" id="p-price-9">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-9">...</button>
+            </div>
+            <div class="book-card">
+                <img src="solup.jpg" class="book-img" alt="Solution Upper">
+                <div class="book-title" id="t-book-10">Solution Upper-Intermediate</div>
+                <div class="book-price" id="p-price-10">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-10">...</button>
+            </div>
+            <div class="book-card">
+                <img src="solad.jpg" class="book-img" alt="Solution Adv">
+                <div class="book-title" id="t-book-11">Solution Advanced</div>
+                <div class="book-price" id="p-price-11">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-11">...</button>
+            </div>
+
+            <div class="book-card">
+                <img src="read1.jpg" class="book-img" alt="Read 1">
+                <div class="book-title" id="t-book-12">Read & Understand 1</div>
+                <div class="book-price" id="p-price-12">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-12">...</button>
+            </div>
+            <div class="book-card">
+                <img src="read2.jpg" class="book-img" alt="Read 2">
+                <div class="book-title" id="t-book-13">Read & Understand 2</div>
+                <div class="book-price" id="p-price-13">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-13">...</button>
+            </div>
+            <div class="book-card">
+                <img src="read3.jpg" class="book-img" alt="Read 3">
+                <div class="book-title" id="t-book-14">Read & Understand 3</div>
+                <div class="book-price" id="p-price-14">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-14">...</button>
+            </div>
+            <div class="book-card">
+                <img src="read4.jpg" class="book-img" alt="Read 4">
+                <div class="book-title" id="t-book-15">Read & Understand 4</div>
+                <div class="book-price" id="p-price-15">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-15">...</button>
+            </div>
+
+            <div class="book-card">
+                <img src="ielt.jpg" class="book-img" alt="IELTS Vocab">
+                <div class="book-title" id="t-book-16">Vocabulary for IELTS</div>
+                <div class="book-price" id="p-price-16">💰 25,000 so'm</div>
+                <button class="book-btn" id="btn-read-16">...</button>
+            </div>
+
+        </div>
+        <button class="nav-btn next" onclick="moveBooks(1)"><i class="fa-solid fa-angle-right"></i></button>
+    </div>
+
+    <div class="payment-section">
+        <div class="section-title" id="pay-title">— TO'LOV TIZIMLARI —</div>
+        <div class="payment-grid">
+            <div class="payment-card click-btn" onclick="openPaymentModal('CLICK Tizimi', 'Click orqali xavfsiz o\'tkazma.', 'https://t.me/Payment_managerbot?start=Visa_Card')">
+                <i class="fa-solid fa-credit-card"></i> CLICK
+            </div>
+            <div class="payment-card payme-btn" onclick="openPaymentModal('PAYME Tizimi', 'Payme orqali 0% komissiya.', 'https://t.me/Payment_managerbot?start=Visa_Card')">
+                <i class="fa-solid fa-bolt"></i> PAYME
+            </div>
+            <div class="payment-card visa-btn" onclick="openPaymentModal('VISA Card', 'Xalqaro bank kartalari tizimi.', 'https://t.me/Payment_managerbot?start=Visa_Card')">
+                <i class="fa-brands fa-cc-visa"></i> VISA
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-box">
+            <h3 id="modalTitle">Sotib olish</h3>
+            <p id="modalDesc">...</p>
+            <button class="modal-redirect-btn" id="modalRedirectLink" onclick="triggerTelegramLink()">Botga o'tish ➔</button>
+            <button class="modal-close-btn" onclick="closeModal()">Yopish</button>
+        </div>
+    </div>
+
+    <footer>
+        <p id="footer-text">© 2026 My Vocabularies. Barcha huquqlar himoyalangan.</p>
+    </footer>
+
+    <script>
+        // PREMIUM METOD
+        const premiumUsers = {"651936747": ["ess1", "ess2", "ess3", "ess4", "ess5", "ess6"]};
+
+        let currentLang = 'uz';
+        let currentBookIndex = 0;
+        const totalBooksCount = 16; // Jami 16 ta kitob
+        let activeRedirectUrl = ""; // Dinamik link saqlagich
+
+        // Telegram Integration
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const telegramUser = tg.initDataUnsafe?.user;
+        let userId = 0;
+
+        if (telegramUser) {
+            userId = telegramUser.id;
+            document.getElementById("userInfo").innerText = `Foydalanuvchi: ${telegramUser.first_name} (ID: ${userId})`;
+        } else {
+            document.getElementById("userInfo").innerText = "Foydalanuvchi: Brauzerdan kirildi (ID: ---)";
+        }
+
+        // Barcha kitoblar ma'lumotlar bazasi (@Payment_managerbot ga bog'landi)
+        const booksData = [
+            { id: 1, code: "ess1", nameUz: "Essential English Words 1", nameEn: "Essential English Words 1", path: "essential-words-1/index.html", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_1" },
+            { id: 2, code: "ess2", nameUz: "Essential English Words 2", nameEn: "Essential English Words 2", path: "essential-words-2/index.html", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_2" },
+            { id: 3, code: "ess3", nameUz: "Essential English Words 3", nameEn: "Essential English Words 3", path: "essential-words-3/index.html", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_3" },
+            { id: 4, code: "ess4", nameUz: "Essential English Words 4", nameEn: "Essential English Words 4", path: "essential-words-4/index.html", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_4" },
+            { id: 5, code: "ess5", nameUz: "Essential English Words 5", nameEn: "Essential English Words 5", path: "essential-words-5/index.html", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_5" },
+            { id: 6, code: "ess6", nameUz: "Essential English Words 6", nameEn: "Essential English Words 6", path: "essential-words-6/index.html", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_6" },
+            { id: 7, code: "solel", nameUz: "Solution Elementary", nameEn: "Solution Elementary", path: "solution-elementary/index.html", link: "https://t.me/Payment_managerbot?start=Solution_Elementary" },
+            { id: 8, code: "solpre", nameUz: "Solution Pre-Intermediate", nameEn: "Solution Pre-Intermediate", path: "solution-pre/index.html", link: "https://t.me/Payment_managerbot?start=Solution_Pre_Intermediate" },
+            { id: 9, code: "solint", nameUz: "Solution Intermediate", nameEn: "Solution Intermediate", path: "solution-intermediate/index.html", link: "https://t.me/Payment_managerbot?start=Solution_Intermediate" },
+            { id: 10, code: "solup", nameUz: "Solution Upper-Intermediate", nameEn: "Solution Upper-Intermediate", path: "solution-upper/index.html", link: "https://t.me/Payment_managerbot?start=Solution_Upper_Intermediate" },
+            { id: 11, code: "solad", nameUz: "Solution Advanced", nameEn: "Solution Advanced", path: "solution-advanced/index.html", link: "https://t.me/Payment_managerbot?start=Solution_Advanced" },
+            { id: 12, code: "read1", nameUz: "Read & Understand 1", nameEn: "Read & Understand 1", path: "read-1/index.html", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_1" },
+            { id: 13, code: "read2", nameUz: "Read & Understand 2", nameEn: "Read & Understand 2", path: "read-2/index.html", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_2" },
+            { id: 14, code: "read3", nameUz: "Read & Understand 3", nameEn: "Read & Understand 3", path: "read-3/index.html", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_3" },
+            { id: 15, code: "read4", nameUz: "Read & Understand 4", nameEn: "Read & Understand 4", path: "read-4/index.html", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_4" },
+            { id: 16, code: "ielt", nameUz: "Vocabulary for IELTS", nameEn: "Vocabulary for IELTS", path: "ielts-vocab/index.html", link: "https://t.me/Payment_managerbot?start=Vocabulary_for_IELTS" }
+        ];
+
+        // Sidebar boshqaruvi
+        function toggleSidebar(open) {
+            const sidebar = document.getElementById("sidebarMenu");
+            const overlay = document.getElementById("sidebarOverlay");
+            if (open) { sidebar.classList.add("open"); overlay.style.display = "block"; } 
+            else { sidebar.classList.remove("open"); overlay.style.display = "none"; }
+        }
+
+        // BURGER MENUDAN TANLANGANDA KARUSELNI O'SHA JAYGA SURISH
+        function jumpToBookIndex(index) {
+            toggleSidebar(false);
+            currentBookIndex = index;
+            renderCarouselPosition();
+        }
+
+        // Karuselni surish formulasi
+        function renderCarouselPosition() {
+            const slider = document.getElementById("booksSlider");
+            if (slider) {
+                const offset = currentBookIndex * 320; 
+                slider.style.transform = `translateX(-${offset}px)`;
+            }
+        }
+
+        // < va > tugmalari bosilganda varaqlash
+        function moveBooks(direction) {
+            currentBookIndex += direction;
+            if (currentBookIndex < 0) currentBookIndex = 0;
+            if (currentBookIndex > totalBooksCount - 1) currentBookIndex = totalBooksCount - 1;
+            renderCarouselPosition();
+        }
+
+        // Obunalar bo'limi bosilganda
+        function showOwnedBooks() {
+            toggleSidebar(false);
+            const userOwned = premiumUsers[userId] || [];
+            if(userOwned.length === 0) {
+                document.getElementById("modalTitle").innerText = currentLang === 'uz' ? "Obunalar" : "Subscriptions";
+                document.getElementById("modalDesc").innerText = currentLang === 'uz' ? "Sizda hozircha faol obunalar maint emas." : "You do not have active subscriptions yet.";
+                document.getElementById("modalRedirectLink").style.display = "none";
+                document.getElementById("customModal").style.display = "flex";
+            } else {
+                const firstOwnedIndex = booksData.findIndex(b => userOwned.includes(b.code));
+                if (firstOwnedIndex !== -1) jumpToBookIndex(firstOwnedIndex);
+            }
+        }
+
+        // Tugmalarni jonlantirish va tilga moslash
+        function checkBookAccess() {
+            booksData.forEach(book => {
+                const btn = document.getElementById(`btn-read-${book.id}`);
+                const priceLabel = document.getElementById(`p-price-${book.id}`);
+                const titleLabel = document.getElementById(`t-book-${book.id}`);
+                
+                if (titleLabel) titleLabel.innerText = currentLang === 'uz' ? book.nameUz : book.nameEn;
+                if (priceLabel) priceLabel.innerText = currentLang === 'uz' ? "💰 25,000 so'm" : "💰 25,000 UZS";
+                if (!btn) return;
+
+                if (premiumUsers[userId] && premiumUsers[userId].includes(book.code)) {
+                    btn.onclick = function() { window.location.href = book.path; };
+                    btn.style.backgroundColor = "#27ae60"; 
+                    btn.innerText = currentLang === 'uz' ? "O'qishni boshlash ➔" : "Start Reading ➔";
+                } else {
+                    btn.onclick = function() { openBookModal(currentLang === 'uz' ? book.nameUz : book.nameEn, book.link); };
+                    btn.style.backgroundColor = "#e74c3c"; 
+                    btn.innerText = currentLang === 'uz' ? "Sotib olish 🛒" : "Buy 🛒";
+                }
+            });
+        }
+
+        // Mini App ichidan linklarni xavfsiz ochish funksiyasi
+        function triggerTelegramLink() {
+            if (activeRedirectUrl) {
+                if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
+                    window.Telegram.WebApp.openTelegramLink(activeRedirectUrl);
+                } else {
+                    window.open(activeRedirectUrl, '_blank');
+                }
+            }
+            closeModal();
+        }
+
+        // Modallar ochilishi
+        function openBookModal(name, link) {
+            activeRedirectUrl = link;
+            document.getElementById("modalTitle").innerText = currentLang === 'uz' ? "Sotib olish" : "Purchase";
+            document.getElementById("modalDesc").innerText = currentLang === 'uz' ? 
+                `Siz "${name}" darsligini tanladingiz.\nNarxi: 25,000 so'm.\n\nKitobni faollashtirish uchun rasmiy botimizga o'ting va to'lov chekini yuboring.` :
+                `You selected "${name}".\nPrice: 25,000 UZS.\n\nTo activate this book, please go to our official bot and send the payment receipt.`;
+            document.getElementById("modalRedirectLink").innerText = currentLang === 'uz' ? "Botga o'tish ➔" : "Go to Bot ➔";
+            document.getElementById("modalRedirectLink").style.display = "block";
+            document.getElementById("customModal").style.display = "flex";
+        }
+
+        function openPaymentModal(title, text, link) {
+            activeRedirectUrl = link;
+            document.getElementById("modalTitle").innerText = title;
+            document.getElementById("modalDesc").innerText = text;
+            document.getElementById("modalRedirectLink").innerText = currentLang === 'uz' ? "To'lovga o'tish ➔" : "Proceed ➔";
+            document.getElementById("modalRedirectLink").style.display = "block";
+            document.getElementById("customModal").style.display = "flex";
+        }
+
+        function openInfoModal(type) {
+            toggleSidebar(false);
+            const title = document.getElementById("modalTitle");
+            const desc = document.getElementById("modalDesc");
+            document.getElementById("modalRedirectLink").style.display = "none";
+            
+            if (type === 'guide') {
+                title.innerText = currentLang === 'uz' ? "Qo'llanma" : "Guide";
+                desc.innerText = currentLang === 'uz' ? 
+                    "1. Yon menyu orqali kerakli bo'lim darsliklariga tezkor sakrang.\n2. Kitoblarni yonboshga surish orqali < va > tugmalaridan foydalaning.\n3. Har bir darslik maxsus audio va testlar bilan ta'minlangan." :
+                    "1. Use sidebar menu to slide directly into specific books.\n2. Swipe or click < and > arrows to browse courses.\n3. Every single textbook includes dynamic audios and practices.";
+            } else {
+                title.innerText = currentLang === 'uz' ? "Biz haqimizda" : "About Us";
+                desc.innerText = currentLang === 'uz' ? 
+                    "My Vocabularies — ingliz tili lug'at boyligi va darsliklarini yonma-yon formatda oson o'rganish imkonini beruvchi mukammal WebApp tizimidir." :
+                    "My Vocabularies — is a highly optimized interactive WebApp mini-platform providing swift horizontal learning for core English books.";
+            }
+            document.getElementById("customModal").style.display = "flex";
+        }
+
+        function closeModal() { document.getElementById("customModal").style.display = "none"; }
+
+        // Tarjima lug'ati
+        const translations = {
+            uz: {
+                "m-menu-title": "Menyu", "m-cate-title": "Kategoriyalar", "m-obuna-title": "Obunalar", "m-guide": "Qo'llanma", "m-about": "Biz haqimizda",
+                "sec-title": "— KITOBLAR RO'YXATI —", "pay-title": "— TO'LOV TIZIMLARI —", "footer-text": "© 2026 My Vocabularies. Barcha huquqlar himoyalangan."
+            },
+            en: {
+                "m-menu-title": "Menu", "m-cate-title": "Categories", "m-obuna-title": "Subscriptions", "m-guide": "User Guide", "m-about": "About Us",
+                "sec-title": "— BOOKS LIST —", "pay-title": "— PAYMENT SYSTEMS —", "footer-text": "© 2026 My Vocabularies. All rights reserved."
+            }
+        };
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            for (let key in translations[lang]) {
+                const element = document.getElementById(key);
+                if (element) element.innerText = translations[lang][key];
+            }
+            localStorage.setItem('selectedLang', lang);
+            checkBookAccess();
+        }
+
+        // Yuqori banner avtomat aylanishi
+        let currentSlide = 0;
+        setInterval(() => {
+            currentSlide = (currentSlide + 1) % 3;
+            const container = document.getElementById("sliderContainer");
+            if(container) container.style.transform = `translateX(-${currentSlide * 100}vw)`;
+        }, 5000);
+
+        window.onload = function() {
+            const savedLang = localStorage.getItem('selectedLang') || 'uz';
+            document.querySelector('.lang-select').value = savedLang;
+            changeLanguage(savedLang);
+        }
+    </script>
+</body>
+</html>
