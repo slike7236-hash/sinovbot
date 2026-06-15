@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mavzular</title>
-    <link rel="stylesheet" href="chapters.css?v=3.0">
+    <link rel="stylesheet" href="chapters.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <div class="navbar-chapters">
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
-        <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
-        <a href="index.html" class="back-btn"><i class="fa-solid fa-house"></i></a>
+        <div style="width: 40px;"></div> <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
+        <a href="index.html" class="home-btn"><i class="fa-solid fa-house"></i></a>
     </div>
 
     <div class="slider-wrapper">
@@ -41,14 +40,20 @@
     </div>
 
     <div class="smart-footer-panel">
-        <div class="footer-widgets-row">
-            <div class="left-widgets">
+        
+        <div class="footer-top-row">
+            <div class="widgets-left-side">
                 <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">15.06.2026</span></span>
                 <span class="clock-device" id="digitalClock">00:00:00</span>
             </div>
             
-            <div class="pomodoro-neon-box" id="pmoDevice" onclick="handleTimerClick()" oncontextmenu="handleTimerReset(event)">
-                <i class="fa-solid fa-stopwatch"></i> <span id="pmoTime">25:00</span>
+            <div class="pomodoro-integrated-box">
+                <div class="pmo-display-neon" id="pmoTime">25:00</div>
+                <div class="pmo-controls-row">
+                    <button class="pmo-btn-style start" onclick="startPomodoro()">Start</button>
+                    <button class="pmo-btn-style pause" onclick="pausePomodoro()">Pause</button>
+                    <button class="pmo-btn-style reset" onclick="resetPomodoro()">Reset</button>
+                </div>
             </div>
         </div>
         
@@ -56,6 +61,7 @@
             <div class="progress-text">Progress: <span id="progressValue">0/0 (0%)</span></div>
             <div class="dots-container" id="dotsContainer"></div>
         </div>
+
     </div>
 
     <script>
@@ -83,7 +89,7 @@
         }
         let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
 
-        // JONLI SOAT MEXANIZMI
+        // JONLI SOAT
         function runLiveClockAndDate() {
             const now = new Date();
             let hrs = now.getHours().toString().padStart(2, '0');
@@ -97,7 +103,7 @@
             document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
         }
 
-        // SLIDER
+        // AUTO SLIDER BANNER
         let currentSlide = 0;
         function runAutoSlider() {
             currentSlide++;
@@ -106,57 +112,46 @@
             if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
         }
 
-        // ULTRA TOZA POMODORO LOGIKASI
+        // TAYMER MEXANIZMI
         let pomodoroInterval = null;
         let totalSeconds = 25 * 60;
         let isRunning = false;
 
-        function updateTimerDisplay() {
+        function updatePomodoroDisplay() {
             let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
             let secs = (totalSeconds % 60).toString().padStart(2, '0');
             document.getElementById("pmoTime").innerText = `${mins}:${secs}`;
         }
 
-        // Bir marta urganda Start yoki Pause bo'ladi
-        function handleTimerClick() {
-            const el = document.getElementById("pmoDevice");
-            if (isRunning) {
-                clearInterval(pomodoroInterval);
-                isRunning = false;
-                el.classList.remove("running");
-            } else {
-                isRunning = true;
-                el.classList.add("running");
-                pomodoroInterval = setInterval(() => {
-                    if (totalSeconds > 0) {
-                        totalSeconds--;
-                        updateTimerDisplay();
-                    } else {
-                        clearInterval(pomodoroInterval);
-                        isRunning = false;
-                        el.classList.remove("running");
-                        alert("Pomodoro tugadi! 5 daqiqa dam oling ☕");
-                        resetTimerSystem();
-                    }
-                }, 1000);
-            }
+        function startPomodoro() {
+            if (isRunning) return;
+            isRunning = true;
+            pomodoroInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updatePomodoroDisplay();
+                } else {
+                    clearInterval(pomodoroInterval);
+                    isRunning = false;
+                    alert("Pomodoro tugadi! Biroz dam oling ☕");
+                    resetPomodoro();
+                }
+            }, 1000);
         }
 
-        // Kompyuterda o'ng tugma bosilganda noldan boshlash (Reset)
-        function handleTimerReset(event) {
-            if (event) event.preventDefault();
-            resetTimerSystem();
+        function pausePomodoro() {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
         }
 
-        function resetTimerSystem() {
+        function resetPomodoro() {
             clearInterval(pomodoroInterval);
             isRunning = false;
             totalSeconds = 25 * 60;
-            updateTimerDisplay();
-            document.getElementById("pmoDevice").classList.remove("running");
+            updatePomodoroDisplay();
         }
 
-        // SAHIFANI YUKLASH
+        // SAHIFANI INICIALIZATSIYA QILISH
         function initChaptersPage() {
             const book = booksDatabase[currentBookCode];
             if (!book) return;
@@ -200,17 +195,7 @@
             runLiveClockAndDate();
             setInterval(runLiveClockAndDate, 1000);
             setInterval(runAutoSlider, 8000);
-            updateTimerDisplay();
-            
-            // Mobil telefonda uzoq bosib turganda (Long press) Reset bo'lishi uchun:
-            const pmoDevice = document.getElementById("pmoDevice");
-            let touchTimer;
-            pmoDevice.addEventListener('touchstart', function() {
-                touchTimer = setTimeout(resetTimerSystem, 900); // 0.9 soniya bosib tursa o'zi nollanadi
-            });
-            pmoDevice.addEventListener('touchend', function() {
-                clearTimeout(touchTimer);
-            });
+            updatePomodoroDisplay();
         };
     </script>
 </body>
