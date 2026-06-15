@@ -4,7 +4,7 @@
     --bg-color: #f7f5f0;
     --success-color: #2ecc71;
     --dark-grey: #2c3e50;
-    --pomodoro-color: #e74c3c;
+    --pomodoro-color: #ff4757;
 }
 
 body {
@@ -13,7 +13,7 @@ body {
     background-color: var(--bg-color);
     color: #333;
     box-sizing: border-box;
-    padding-bottom: 130px; /* Pastki panel uchun joy */
+    padding-bottom: 120px; /* Pastki panel darslarni to'smasligi uchun */
     overflow-x: hidden;
 }
 
@@ -74,22 +74,22 @@ body {
 .chapter-name { font-size: 14px; font-weight: 600; }
 .chapter-icon { color: var(--accent-color); font-size: 13px; background: #ecf0f1; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
 
-/* YAP-YANGI PASTKI INTEGRASIYALASHGAN PANEL */
+/* PASTKI CHANCHIDAN TOZA AQLLI PANEL */
 .smart-footer-panel {
     position: fixed; bottom: 0; left: 0; width: 100%;
     background-color: #ffffff; border-top: 1px solid #e2e8f0;
     padding: 10px 15px; box-sizing: border-box; z-index: 999;
-    box-shadow: 0 -4px 25px rgba(0,0,0,0.1);
-    display: flex; flex-direction: column; gap: 10px;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    display: flex; flex-direction: column; gap: 8px;
 }
 
-/* Yuqori qism: Soat, Sana (chapda) va Pomodoro (ongda) */
-.footer-top-row {
+/* Vidjetlar qatori */
+.footer-widgets-row {
     display: flex; justify-content: space-between; align-items: center; width: 100%;
 }
-.widgets-left-side {
-    display: flex; align-items: center; gap: 10px;
-}
+.left-widgets { display: flex; align-items: center; gap: 8px; }
+
+/* Sana va oddiy soat dizayni */
 .date-device { font-size: 12px; font-weight: bold; color: var(--dark-grey); display: flex; align-items: center; gap: 4px; }
 .clock-device {
     background: #0f172a; color: #00ff66; padding: 3px 8px;
@@ -97,36 +97,18 @@ body {
     font-size: 13px; font-weight: bold; border: 1px solid #334155;
 }
 
-/* O'ng tarafdagi integratsiyalashgan Pomodoro zonasi */
-.pomodoro-footer-zone { position: relative; }
-.pmo-trigger-inline-btn {
-    background-color: var(--pomodoro-color); color: white; border: none;
-    padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;
-    display: flex; align-items: center; gap: 6px; cursor: pointer;
-    box-shadow: 0 2px 6px rgba(231, 76, 60, 0.3);
+/* O'NG BURCHAKDAGI YAKKA POMODORO RAMKASI */
+.pomodoro-neon-device {
+    background: #0f172a; color: #ff4757; padding: 3px 8px;
+    border-radius: 6px; font-family: 'Courier New', monospace;
+    font-size: 13px; font-weight: bold; border: 1px solid #5c1d24;
+    display: flex; align-items: center; gap: 5px; cursor: pointer;
+    user-select: none; transition: background 0.2s;
 }
-.pmo-inline-box {
-    background: white; border: 2px solid #cbd5e1; border-radius: 12px; padding: 8px;
-    display: none; flex-direction: column; align-items: center; gap: 6px;
-    position: absolute; bottom: 40px; right: 0; width: 140px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15); z-index: 1000;
-}
-.pmo-inline-box.show { display: flex; }
-.pmo-display {
-    font-size: 20px; font-weight: bold; font-family: monospace;
-    color: var(--dark-grey); background: #f1f2f6; padding: 2px 8px;
-    border-radius: 6px; width: 100%; text-align: center; box-sizing: border-box;
-}
-.pmo-controls { display: flex; gap: 4px; width: 100%; }
-.pmo-btn {
-    flex: 1; border: none; padding: 5px; border-radius: 4px;
-    font-size: 10px; font-weight: bold; cursor: pointer; color: white;
-}
-.pmo-btn.start { background-color: var(--success-color); }
-.pmo-btn.pause { background-color: #f1c40f; color: #333; }
-.pmo-btn.reset { background-color: #95a5a6; }
+.pomodoro-neon-device:active { background: #1e293b; }
+.pomodoro-neon-device.working { color: #ff6b6b; border-color: #ff4757; box-shadow: 0 0 5px rgba(255, 71, 87, 0.4); }
 
-/* Pastki qism: Progress to'liq eniga */
+/* PROGRESS BAR */
 .progress-zone { display: flex; align-items: center; gap: 8px; width: 100%; border-top: 1px dashed #e2e8f0; padding-top: 6px; }
 .progress-text { font-size: 11px; font-weight: bold; color: var(--dark-grey); white-space: nowrap; }
 .dots-container { display: flex; gap: 4px; overflow-x: auto; width: 100%; }
