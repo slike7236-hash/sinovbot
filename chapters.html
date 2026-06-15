@@ -1,4 +1,49 @@
-// 1. 16 TA KITOBNING MAVZULAR BAZASI
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mavzular Ro'yxati</title>
+    
+    <link rel="stylesheet" href="chapters.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="navbar-chapters">
+        <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i></a>
+        <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
+        <button class="burger-btn-chapters"><i class="fa-solid fa-bars"></i></button>
+    </div>
+
+    <div class="hero-banner-chapters">
+        <div class="banner-overlay">
+            <h2 id="bannerMessage">Bilim olishdan to'xtamang!</h2>
+            <p>Har kuni kamida 1 ta mavzuni mukammal o'rganing.</p>
+        </div>
+    </div>
+
+    <div class="chapters-container">
+        <div class="chapters-list" id="chaptersContainer">
+            </div>
+    </div>
+
+    <div class="smart-footer-panel">
+        <div class="info-row">
+            <span class="live-clock"><i class="fa-regular fa-clock"></i> <span id="digitalClock">00:00:00</span></span>
+            <span class="subscription-days"><i class="fa-regular fa-calendar-check"></i> <span id="subDays">12</span> kundan buyon obunasiz</span>
+        </div>
+        
+        <div class="progress-zone">
+            <div class="progress-text">Progress: <span id="progressStatus">0-mavzuga keldingiz</span></div>
+            <div class="dots-container" id="dotsContainer">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 16 TA KITOBNING MAVZULAR BAZASI
 const booksDatabase = {
     "ess1": {
         title: "Essential English Words 1",
@@ -119,3 +164,6 @@ window.onload = function() {
     runLiveClock();
     setInterval(runLiveClock, 1000);
 };
+    </script>
+</body>
+</html>
