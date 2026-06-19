@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dars Mashg'uloti</title>
+    <link rel="stylesheet" href="training.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="header-training">
+        <a href="index.html" class="nav-icon-btn"><i class="fa-solid fa-house"></i></a>
+        <div class="main-lesson-title" id="lessonTitle">Mavzu yuklanmoqda...</div>
+        <a href="javascript:history.back()" class="nav-icon-btn"><i class="fa-solid fa-arrow-right-from-bracket fa-flip-horizontal"></i></a>
+    </div>
+
+    <div class="main-layout" id="mainLayout">
+        
+        <div class="display-window" id="displayWindow">
+            <button class="resize-btn" onclick="toggleFullscreen()" id="resizeBtn" title="Kattalashtirish">
+                <i class="fa-solid fa-expand"></i>
+            </button>
+            
+            <div id="textContainer" class="scrollable-text-content"></div>
+            
+            <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
+        </div>
+
+        <div class="sidebar-controls" id="sidebarControls">
+            <button class="control-btn active" onclick="loadContent('text')">
+                <i class="fa-solid fa-font"></i> <span>Text</span>
+            </button>
+            <button class="control-btn" onclick="loadContent('video')">
+                <i class="fa-solid fa-circle-play"></i> <span>Video</span>
+            </button>
+            <button class="control-btn" onclick="loadContent('keywords')">
+                <i class="fa-solid fa-key"></i> <span>Key words</span>
+            </button>
+            <button class="control-btn" onclick="loadContent('test')">
+                <i class="fa-solid fa-clipboard-question"></i> <span>Test</span>
+            </button>
+        </div>
+
+    </div>
+
+    <div class="games-divider-zone" id="gamesDivider">
+        <span>GAMELAR RO'YXATI</span>
+    </div>
+
+    <div class="games-grid" id="gamesGrid">
+        <button class="game-card-btn" onclick="loadContent('matchup')">
+            <div class="game-icon"><i class="fa-solid fa-puzzle-piece"></i></div>
+            <div class="game-info">Match up <i class="fa-solid fa-angle-right"></i></div>
+        </button>
+        
+        <button class="game-card-btn" onclick="loadContent('anagrama')">
+            <div class="game-icon"><i class="fa-solid fa-arrow-shuffle"></i></div>
+            <div class="game-info">Anagrama <i class="fa-solid fa-angle-right"></i></div>
+        </button>
+        
+        <button class="game-card-btn" onclick="loadContent('typeanswer')">
+            <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
+            <div class="game-info">Type the answer <i class="fa-solid fa-angle-right"></i></div>
+        </button>
+        
+        <button class="game-card-btn" onclick="loadContent('wordsearch')">
+            <div class="game-icon"><i class="fa-solid fa-table-cells"></i></div>
+            <div class="game-info">Word search <i class="fa-solid fa-angle-right"></i></div>
+        </button>
+        
+        <button class="game-card-btn" onclick="loadContent('pair')">
+            <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
+            <div class="game-info">Pair or nopair <i class="fa-solid fa-angle-right"></i></div>
+        </button>
+    </div>
+
+
+    <script>
+        // 30 ta darsni bitta shu yerda obyekt ichida saqlaymiz (Namuna sifatida ess1_1 darsi keltirilgan)
+        const lessonsDatabase = {
+            "ess1_1": {
+                title: "The Lion and the Mouse",
+                // Matn ichidagi kalit so'zlar <span data-tooltip="..."> shaklida yoziladi
+                textHtml: `<h3>The Lion and the Mouse</h3>
+                           <p>A great <span class="keyword-tooltip" data-tooltip="Sher — A large wild cat.">lion</span> was asleep in the forest. A little <span class="keyword-tooltip" data-tooltip="Sichqon — A small rodent.">mouse</span> ran up his tail and onto his back. The lion woke up, <span class="keyword-tooltip" data-tooltip="Ushladi — Caught something.">caught</span> the mouse in his large paw, and was about to kill him.</p>
+                           <p>"Please, king of the forest," cried the little mouse, "let me go! I will be <span class="keyword-tooltip" data-tooltip="Jasur / Sodiq — Brave and helpful.">brave</span> and help you one day." The lion laughed and let him go.</p>`,
+                videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", // YouTube embed link
+                keywordsUrl: "https://wordwall.net/play/12345/678/embed", // Namuna kalit so'zlar linki
+                testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true", // Google Forms yoki Test linki
+                
+                // O'yinlar linklari (Masalan Wordwall embed linklari)
+                games: {
+                    matchup: "https://wordwall.net/embed/play/73822/190/815",
+                    anagrama: "https://wordwall.net/embed/play/73822/190/220",
+                    typeanswer: "https://wordwall.net/embed/play/73822/190/340",
+                    wordsearch: "https://wordwall.net/embed/play/73822/190/450",
+                    pair: "https://wordwall.net/embed/play/73822/190/560"
+                }
+            }
+        };
+
+        // URL manzilidan darsni aniqlash (?book=ess1&unit=1)
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookCode = urlParams.get('book') || "ess1";
+        const unitId = urlParams.get('unit') || "1";
+        const lessonKey = `${bookCode}_${unitId}`;
+
+        // Agar ma'lumot topilmasa, standart birinchi dars yuklanadi
+        const currentLesson = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
+
+        // Sahifa yuklanganda sarlavha va matnni chiqarish
+        document.getElementById("lessonTitle").innerText = currentLesson.title;
+        
+        // Dastlabki holatda "Text" yuklanadi
+        window.onload = function() {
+            loadContent('text');
+        }
+
+        // Kontentlarni almashtirish funksiyasi
+        function loadContent(type) {
+            const textZone = document.getElementById("textContainer");
+            const iframeZone = document.getElementById("iframeViewer");
+            
+            // Faol tugma stilini yangilash
+            const allButtons = document.querySelectorAll(".control-btn, .game-card-btn");
+            allButtons.forEach(btn => btn.classList.remove("active"));
+
+            // Elementlarni tozalash/yashirish
+            textZone.style.display = "none";
+            iframeZone.style.display = "none";
+            iframeZone.src = "";
+
+            if (type === 'text') {
+                textZone.innerHTML = currentLesson.textHtml;
+                textZone.style.display = "block";
+                // Tooltip hodisalarini mobil qurilmalar uchun ulash
+                initMobileTooltips();
+            } else if (type === 'video') {
+                iframeZone.src = currentLesson.videoUrl;
+                iframeZone.style.display = "block";
+            } else if (type === 'keywords') {
+                iframeZone.src = currentLesson.keywordsUrl;
+                iframeZone.style.display = "block";
+            } else if (type === 'test') {
+                iframeZone.src = currentLesson.testUrl;
+                iframeZone.style.display = "block";
+            } else {
+                // Gamelar tanlanganda
+                if (currentLesson.games[type]) {
+                    iframeZone.src = currentLesson.games[type];
+                    iframeZone.style.display = "block";
+                }
+            }
+        }
+
+        // Telefonda tooltip bosilganda chiqishi uchun mantiq
+        function initMobileTooltips() {
+            const tooltips = document.querySelectorAll('.keyword-tooltip');
+            tooltips.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    alert(this.getAttribute('data-tooltip'));
+                });
+            });
+        }
+
+        // Oynani kattalashtirish va kichiklashtirish funksiyasi (Fullscreen)
+        let isFull = false;
+        function toggleFullscreen() {
+            const windowEl = document.getElementById("displayWindow");
+            const sidebar = document.getElementById("sidebarControls");
+            const divider = document.getElementById("gamesDivider");
+            const grid = document.getElementById("gamesGrid");
+            const layout = document.getElementById("mainLayout");
+            const btnIcon = document.getElementById("resizeBtn").querySelector("i");
+
+            if (!isFull) {
+                // Kattalashtirish holati
+                sidebar.style.display = "none";
+                divider.style.display = "none";
+                grid.style.display = "none";
+                layout.style.display = "block";
+                windowEl.classList.add("fullscreen-active");
+                btnIcon.className = "fa-solid fa-compress";
+                document.getElementById("resizeBtn").title = "Kichiklashtirish";
+                isFull = true;
+            } else {
+                // Oddiy holatga qaytish
+                sidebar.style.display = "flex";
+                divider.style.display = "flex";
+                grid.style.display = "grid";
+                layout.style.display = "flex";
+                windowEl.classList.remove("fullscreen-active");
+                btnIcon.className = "fa-solid fa-expand";
+                document.getElementById("resizeBtn").title = "Kattalashtirish";
+                isFull = false;
+            }
+        }
+    </script>
+</body>
+</html>
