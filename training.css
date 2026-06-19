@@ -1,0 +1,245 @@
+:root {
+    --primary-color: #0b1d33;
+    --accent-color: #3498db;
+    --bg-color: #f7f5f0;
+    --card-border: #000000;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0; padding: 0;
+    background-color: var(--bg-color);
+    color: #333;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* HEADER NAVIGATION */
+.header-training {
+    background-color: white;
+    color: black;
+    border-bottom: 2px solid var(--card-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    height: 60px;
+    box-sizing: border-box;
+}
+.main-lesson-title {
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.nav-icon-btn {
+    background: white;
+    border: 2px solid var(--card-border);
+    color: black;
+    font-size: 18px;
+    width: 40px; height: 40px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 2px 0 var(--card-border);
+    transition: 0.1s;
+}
+.nav-icon-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0px 0 var(--card-border);
+}
+
+/* MAIN LAYOUT SPLIT SYSTEM */
+.main-layout {
+    display: flex;
+    padding: 15px;
+    gap: 15px;
+    flex: 1;
+}
+
+/* CENTRAL DISPLAY WINDOW */
+.display-window {
+    flex: 1;
+    background: white;
+    border: 2px solid var(--card-border);
+    border-radius: 14px;
+    position: relative;
+    min-height: 320px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Kattalashgan oynaning maxsus klassi */
+.fullscreen-active {
+    height: calc(100vh - 110px) !important;
+    width: 100% !important;
+}
+
+.resize-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: white;
+    border: 2px solid var(--card-border);
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 0 var(--card-border);
+}
+.resize-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 var(--card-border);
+}
+
+/* SILLIQ SCROLL BO'LUVCHI MATN HUDUDI */
+.scrollable-text-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    max-height: 400px; /* Matn qutidan chiqmay ichida aylanishi uchun */
+    line-height: 1.6;
+    font-size: 15px;
+}
+.scrollable-text-content h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+
+/* IFRAME FORMATI */
+.iframe-display {
+    width: 100%;
+    height: 100%;
+    border: none;
+    flex: 1;
+    display: none;
+}
+
+/* SIDEBAR RIGHT BUTTONS */
+.sidebar-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 110px;
+}
+.control-btn {
+    background: white;
+    border: 2px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px 5px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 3px 0 var(--card-border);
+    transition: 0.1s;
+}
+.control-btn i { font-size: 16px; }
+.control-btn:active, .control-btn.active {
+    transform: translateY(3px);
+    box-shadow: 0 0px 0 var(--card-border);
+    background: #f1f5f9;
+}
+
+/* TOOLTIP EFFEKTI (Matn ichida tarjima chiqarish) */
+.keyword-tooltip {
+    color: #1e3a8a; /* To'q ko'k rang */
+    font-weight: 700;
+    border-bottom: 2px dashed #1e3a8a;
+    cursor: help;
+    position: relative;
+    display: inline-block;
+}
+
+/* Kompyuter uchun ustiga borganda chiqadigan oyna */
+.keyword-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%; left: 50%;
+    transform: translateX(-50%);
+    background-color: #1e293b;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 99;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    font-weight: normal;
+}
+.keyword-tooltip:hover::after {
+    opacity: 1;
+}
+
+/* GAMELAR AJRATUVCHI CHIZIQ */
+.games-divider-zone {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 10px 15px;
+}
+.games-divider-zone::before, .games-divider-zone::after {
+    content: '';
+    flex: 1;
+    border-bottom: 2px solid var(--card-border);
+}
+.games-divider-zone span {
+    padding: 0 15px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+/* INTERAKTIV O'YINLAR RO'YXATI PANELI */
+.games-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    justify-content: center;
+    gap: 12px;
+    padding: 0 15px 20px 15px;
+}
+.game-card-btn {
+    background: white;
+    border: 2px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 3px 0 var(--card-border);
+}
+.game-icon {
+    font-size: 20px;
+    color: #2c3e50;
+}
+.game-info {
+    font-size: 11px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+.game-card-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 0px 0 var(--card-border);
+}
+
+/* RESPONSIVE (MOBIL QURILMALAR UCHUN MOSLASHUVCHANLIK) */
+@media (max-width: 480px) {
+    .main-layout { flex-direction: column; }
+    .sidebar-controls { flex-direction: row; width: 100%; }
+    .control-btn { flex: 1; padding: 10px 2px; }
+    .games-grid { grid-template-columns: repeat(2, 1fr); }
+    .scrollable-text-content { max-height: 250px; }
+}
