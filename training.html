@@ -9,6 +9,7 @@
 </head>
 <body>
 
+    <!-- HEADER (Tepa qism: Ortga qaytish ikonka to'g'rilangan variant) -->
     <div class="header-training">
         <a href="index.html" class="nav-icon-btn home-btn"><i class="fa-solid fa-house"></i></a>
         <div class="main-lesson-title" id="lessonTitle">Mavzu...</div>
@@ -18,9 +19,11 @@
                 <option value="ru">RU</option>
             </select>
         </div>
-        <a href="javascript:history.back()" class="nav-icon-btn back-btn"><i class="fa-solid fa-arrow-right-from-bracket fa-flip-horizontal"></i></a>
+        <!-- Chiqish ikonkasini chapga ko'rsatuvchi strelkaga almashtirdik ✅ -->
+        <a href="javascript:history.back()" class="nav-icon-btn back-btn" title="Ortga qaytish">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
     </div>
-
     <div class="top-materials-bar">
         <button class="material-btn text-m-btn active" onclick="loadContent('text')">
             <i class="fa-solid fa-file-lines"></i> <span>Text</span>
