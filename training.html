@@ -80,173 +80,161 @@
     </div>
 
     <script>
-        // Har bitta darsning UZ va RU variantlari uchun ma'lumotlar bazasi
-        const lessonsDatabase = {
-    // 1-kitob, 1-dars uchun ma'lumotlar
-    "ess1_1": {
-        uz: {
-            title: "The Lion and the Mouse",
-            gamesTitle: "GAMELAR RO'YXATI",
-            textHtml: `...`, // Matnlar shu yerda bo'ladi
-            
-            // 1. VIDEOGA LINK QO'YISH (YouTube Embed formatida bo'lishi shart)
-            videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", 
-            
-            // 2. KEYWORDS TUGMASI UCHUN LINK (Masalan, Wordwall yoki boshqa lug'at)
-            keywordsUrl: "https://wordwall.net/embed/play/73822/190/815", 
-            
-            // 3. TEST TUGMASI UCHUN LINK (Google Forms yoki boshqa test)
-            testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true", 
-            
-            // 4. PASTGHI GAMELAR UCHUN WORDWALL LINKLARI
-            games: {
-                matchup: "https://wordwall.net/embed/play/73822/190/815",
-                anagrama: "https://wordwall.net/embed/play/73822/190/220",
-                typeanswer: "https://wordwall.net/embed/play/73822/190/340",
-                wordsearch: "https://wordwall.net/embed/play/73822/190/450",
-                pair: "https://wordwall.net/embed/play/73822/190/560"
-            }
-        },
-        ru: {
-            // Xuddi shu darsning ruscha linklari ham shu tartibda ketadi...
-        }
-    },
-
-    // 1-kitob, 2-darsni qo'shish uchun shunchaki vergul qo'yib davom ettirasiz:
-    "ess1_2": {
-        uz: {
-            title: "The Boy Who Cried Wolf",
-            // ... keyingi darsning linklari va matnlari shu yerga yoziladi
-        },
-        ru: { ... }
-    }
-};
-
-        // URL manzilidan dinamik ID ni olish (?book=ess1&unit=1)
-        const urlParams = new URLSearchParams(window.location.search);
-        const bookCode = urlParams.get('book') || "ess1";
-        const unitId = urlParams.get('unit') || "1";
-        const lessonKey = `${bookCode}_${unitId}`;
-
-        // Tanlangan tilni aniqlash (Asosiy sahifadagi localStorage bilan sinxron ishlaydi)
-        let currentLang = localStorage.getItem('selectedLang') || 'uz';
-        if(currentLang === 'en') currentLang = 'uz'; // Agar ingliz tili bo'lsa standart uz qilinadi
-        
-        // Bazadan darsni qidirish
-        const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
-        let currentLessonData = lessonDataFull[currentLang];
-
-        // Sahifa ilk bor ochilganda yuklash
-        window.onload = function() {
-            document.getElementById("langSelect").value = currentLang;
-            renderLessonContent();
-            loadContent('text');
-        }
-
-        // Til o'zgarganda dars ma'lumotlarini almashtirish funksiyasi
-        function toggleLessonLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('selectedLang', lang);
-            currentLessonData = lessonDataFull[lang];
-            renderLessonContent();
-            
-            // Faol bo'lib turgan bo'limni rasmga qarab qayta yuklash
-            const activeBtn = document.querySelector(".material-btn.active");
-            if(activeBtn) {
-                if(activeBtn.classList.contains("text-m-btn")) loadContent('text');
-                else if(activeBtn.classList.contains("video-m-btn")) loadContent('video');
-                else if(activeBtn.classList.contains("keywords-m-btn")) loadContent('keywords');
-                else if(activeBtn.classList.contains("test-m-btn")) loadContent('test');
+    // Har bitta darsning UZ va RU variantlari uchun ma'lumotlar bazasi
+    const lessonsDatabase = {
+        "ess1_1": {
+            uz: {
+                title: "The Lion and the Mouse",
+                gamesTitle: "GAMELAR RO'YXATI",
+                textHtml: `<h3>The Lion and the Mouse</h3>
+                           <p>A great <span class="keyword-tooltip" data-tooltip="Sher — Yirik yirtqich hayvon.">lion</span> was asleep in the forest. A little <span class="keyword-tooltip" data-tooltip="Sichqon — Kichik kemiruvchi.">mouse</span> ran up his tail and onto his back. The lion woke up, <span class="keyword-tooltip" data-tooltip="Ushladi — Tutib oldi.">caught</span> the mouse in his large paw, and was about to kill him.</p>
+                           <p>"Please, king of the forest," cried the little mouse, "let me go! I will be <span class="keyword-tooltip" data-tooltip="Jasur / Sodiq — Qo'rqmas va yordamga tayyor.">brave</span> and help you one day." The lion laughed and let him go.</p>`,
+                videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", 
+                keywordsUrl: "https://wordwall.net/embed/play/73822/190/815", 
+                testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true", 
+                games: {
+                    matchup: "https://wordwall.net/embed/play/73822/190/815",
+                    anagrama: "https://wordwall.net/embed/play/73822/190/220",
+                    typeanswer: "https://wordwall.net/embed/play/73822/190/340",
+                    wordsearch: "https://wordwall.net/embed/play/73822/190/450",
+                    pair: "https://wordwall.net/embed/play/73822/190/560"
+                }
+            },
+            ru: {
+                title: "Лев и Мышь",
+                gamesTitle: "СПИСОК ИГР",
+                textHtml: `<h3>Лев и Мышь</h3>
+                           <p>A great <span class="keyword-tooltip" data-tooltip="Лев — Крупное хищное животное.">lion</span> was asleep in the forest. A little <span class="keyword-tooltip" data-tooltip="Мышь — Маленький грызун.">mouse</span> ran up his tail and onto his back. The lion woke up, <span class="keyword-tooltip" data-tooltip="Поймал — Схватил мышь.">caught</span> the mouse in his large paw, and was about to kill him.</p>
+                           <p>"Please, king of the forest," cried the little mouse, "let me go! I will be <span class="keyword-tooltip" data-tooltip="Храбрый / Верный — Бесстрашный.">brave</span> and help you one day." The lion laughed and let him go.</p>`,
+                videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", 
+                keywordsUrl: "https://wordwall.net/embed/play/73822/190/815", 
+                testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true", 
+                games: {
+                    matchup: "https://wordwall.net/embed/play/73822/190/815",
+                    anagrama: "https://wordwall.net/embed/play/73822/190/220",
+                    typeanswer: "https://wordwall.net/embed/play/73822/190/340",
+                    wordsearch: "https://wordwall.net/embed/play/73822/190/450",
+                    pair: "https://wordwall.net/embed/play/73822/190/560"
+                }
             }
         }
+    };
 
-        // Matnlarni interfeysga chizish
-        function renderLessonContent() {
-            document.getElementById("lessonTitle").innerText = currentLessonData.title;
-            document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
-        }
+    // URL manzilidan dinamik ID ni olish (?book=ess1&unit=1)
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookCode = urlParams.get('book') || "ess1";
+    const unitId = urlParams.get('unit') || "1";
+    const lessonKey = `${bookCode}_${unitId}`;
 
-// Tugmalar bosilganda kontentni iframe yoki matn oynasiga yuklash (TUZATILGAN VARIANT)
-function loadContent(type) {
-    const textZone = document.getElementById("textContainer");
-    const iframeZone = document.getElementById("iframeViewer");
+    // Tanlangan tilni aniqlash
+    let currentLang = localStorage.getItem('selectedLang') || 'uz';
+    if(currentLang === 'en') currentLang = 'uz'; 
     
-    // Hamma material va o'yin tugmalaridan faollik (active) klassini o'chirish
-    const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
-    allBtns.forEach(btn => btn.classList.remove("active"));
+    // Bazadan darsni qidirish
+    const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
+    let currentLessonData = lessonDataFull[currentLang];
 
-    // Klass bo'yicha faollikni yoqish (Qo'shtirnoqlar bilan to'g'rilandi ✅)
-    if(['text','video','keywords','test'].includes(type)) {
-        const targetBtn = document.querySelector("." + type + "-m-btn");
-        if(targetBtn) targetBtn.classList.add("active");
-    } else {
-        const targetBtn = document.querySelector("." + type + "-g-btn");
-        if(targetBtn) targetBtn.classList.add("active");
+    // Sahifa ilk bor ochilganda yuklash
+    window.onload = function() {
+        document.getElementById("langSelect").value = currentLang;
+        renderLessonContent();
+        loadContent('text');
     }
 
-    // Oynalarni tozalash
-    textZone.style.display = "none";
-    iframeZone.style.display = "none";
-    iframeZone.src = "";
+    // Til o'zgarganda dars ma'lumotlarini almashtirish
+    function toggleLessonLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('selectedLang', lang);
+        currentLessonData = lessonDataFull[lang];
+        renderLessonContent();
+        loadContent('text'); // Til o'zgarganda matnni qayta yuklaydi
+    }
 
-    if (type === 'text') {
-        textZone.innerHTML = currentLessonData.textHtml;
-        textZone.style.display = "block";
-        initMobileTooltips(); // Mobil moslamalarda bosganda ko'rsatish
-    } else if (type === 'video') {
-        iframeZone.src = currentLessonData.videoUrl;
-        iframeZone.style.display = "block";
-    } else if (type === 'keywords') {
-        iframeZone.src = currentLessonData.keywordsUrl;
-        iframeZone.style.display = "block";
-    } else if (type === 'test') {
-        iframeZone.src = currentLessonData.testUrl;
-        iframeZone.style.display = "block";
-    } else {
-        // Gamelar uchun linklar
-        if (currentLessonData.games && currentLessonData.games[type]) {
-            iframeZone.src = currentLessonData.games[type];
+    // Sarlavhalarni interfeysga chizish
+    function renderLessonContent() {
+        document.getElementById("lessonTitle").innerText = currentLessonData.title;
+        document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
+    }
+
+    // Tugmalar bosilganda kontentni iframe yoki matn oynasiga yuklash
+    function loadContent(type) {
+        const textZone = document.getElementById("textContainer");
+        const iframeZone = document.getElementById("iframeViewer");
+        
+        // Hamma tugmalardan 'active' klassini o'chirish
+        const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
+        allBtns.forEach(btn => btn.classList.remove("active"));
+
+        // Bosilgan tugmaga 'active' klassini qo'shish (XATOLIK BUTUNLAY TUZATILDI ✅)
+        let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
+        if(targetBtn) {
+            targetBtn.classList.add("active");
+        }
+
+        // Oynalarni tozalash va yashirish
+        textZone.style.display = "none";
+        iframeZone.style.display = "none";
+        iframeZone.src = "";
+
+        // Tanlangan bo'lim bo'yicha kontentni chiqarish
+        if (type === 'text') {
+            textZone.innerHTML = currentLessonData.textHtml;
+            textZone.style.display = "block";
+            initMobileTooltips(); 
+        } else if (type === 'video') {
+            iframeZone.src = currentLessonData.videoUrl;
             iframeZone.style.display = "block";
-        }
-    }
-}
-
-        // Mobil qurilmalarda so'z ustiga bosganda tarjimani alertda chiqarish (Kafolatlangan usul)
-        function initMobileTooltips() {
-            const tooltips = document.querySelectorAll('.keyword-tooltip');
-            tooltips.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    alert(this.getAttribute('data-tooltip'));
-                });
-            });
-        }
-
-        // Ekran o'lchamini kattalashtirish/kichiklashtirish (Fullscreen)
-        let isFull = false;
-        function toggleFullscreen() {
-            const windowEl = document.getElementById("displayWindow");
-            const topBar = document.querySelector(".top-materials-bar");
-            const divider = document.getElementById("gamesDivider");
-            const grid = document.getElementById("gamesGrid");
-            const btnIcon = document.getElementById("resizeBtn").querySelector("i");
-
-            if (!isFull) {
-                topBar.style.display = "none";
-                divider.style.display = "none";
-                grid.style.display = "none";
-                windowEl.classList.add("fullscreen-active");
-                btnIcon.className = "fa-solid fa-compress";
-                isFull = true;
-            } else {
-                topBar.style.display = "flex";
-                divider.style.display = "flex";
-                grid.style.display = "grid";
-                windowEl.classList.remove("fullscreen-active");
-                btnIcon.className = "fa-solid fa-expand";
-                isFull = false;
+        } else if (type === 'keywords') {
+            iframeZone.src = currentLessonData.keywordsUrl;
+            iframeZone.style.display = "block";
+        } else if (type === 'test') {
+            iframeZone.src = currentLessonData.testUrl;
+            iframeZone.style.display = "block";
+        } else {
+            // Gamelar uchun linklar
+            if (currentLessonData.games && currentLessonData.games[type]) {
+                iframeZone.src = currentLessonData.games[type];
+                iframeZone.style.display = "block";
             }
         }
-    </script>
+    }
+
+    // Mobil qurilmalarda tooltip hodisasi
+    function initMobileTooltips() {
+        const tooltips = document.querySelectorAll('.keyword-tooltip');
+        tooltips.forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.stopPropagation();
+                alert(this.getAttribute('data-tooltip'));
+            });
+        });
+    }
+
+    // Ekran o'lchamini kattalashtirish/kichiklashtirish
+    let isFull = false;
+    function toggleFullscreen() {
+        const windowEl = document.getElementById("displayWindow");
+        const topBar = document.querySelector(".top-materials-bar");
+        const divider = document.getElementById("gamesDivider");
+        const grid = document.getElementById("gamesGrid");
+        const btnIcon = document.getElementById("resizeBtn").querySelector("i");
+
+        if (!isFull) {
+            topBar.style.display = "none";
+            divider.style.display = "none";
+            grid.style.display = "none";
+            windowEl.classList.add("fullscreen-active");
+            btnIcon.className = "fa-solid fa-compress";
+            isFull = true;
+        } else {
+            topBar.style.display = "flex";
+            divider.style.display = "flex";
+            grid.style.display = "grid";
+            windowEl.classList.remove("fullscreen-active");
+            btnIcon.className = "fa-solid fa-expand";
+            isFull = false;
+        }
+    }
+</script>
 </body>
 </html>
