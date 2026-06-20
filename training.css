@@ -1,19 +1,8 @@
 :root {
-    --primary-color: #0b1d33;   /* To'q ko'k (avvalgi sahifadagi kabi) */
-    --accent-color: #3498db;    /* Och ko'k liniya va elementlar */
-    --bg-color: #f7f5f0;        /* SIZ AYTGAN MUXIM FON RANGI (Krem/Qaymoqrang) */
-    --card-border: #000000;     /* Konturlar uchun qora rang */
-}
-
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    margin: 0; padding: 0;
-    background-color: var(--bg-color); /* Endi fon rangi to'liq moslashdi */
-    color: #333;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+    --primary-color: #0b1d33;   /* To'q ko'k */
+    --accent-color: #3498db;    /* Och ko'k liniya */
+    --bg-color: #f7f5f0;        /* SIZ AYTGAN ASOSIY SAHIFADAGI KREM/QAYMOQRANG FON */
+    --card-border: #000000;     /* Konturlar uchun keskin qora */
 }
 
 body {
@@ -25,9 +14,10 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
-/* HEADER NAVIGATION */
+/* NAVBAR HEADER */
 .header-training {
     background-color: white;
     color: black;
@@ -40,53 +30,106 @@ body {
     box-sizing: border-box;
 }
 .main-lesson-title {
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 15px;
+    font-weight: 900;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    text-align: center;
+    flex: 1;
+    padding: 0 10px;
 }
 .nav-icon-btn {
     background: white;
     border: 2px solid var(--card-border);
     color: black;
-    font-size: 18px;
-    width: 40px; height: 40px;
+    font-size: 16px;
+    width: 38px; height: 38px;
     border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     text-decoration: none;
     box-shadow: 0 2px 0 var(--card-border);
-    transition: 0.1s;
 }
 .nav-icon-btn:active {
     transform: translateY(2px);
     box-shadow: 0 0px 0 var(--card-border);
 }
 
-/* MAIN LAYOUT SPLIT SYSTEM */
-.main-layout {
-    display: flex;
-    padding: 15px;
-    gap: 15px;
-    flex: 1;
+/* DYNAMIC TIL TANLASH TUGMASI */
+.lang-select-training {
+    background: var(--primary-color);
+    color: white;
+    border: 2px solid var(--card-border);
+    padding: 5px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 0 var(--card-border);
 }
 
-/* CENTRAL DISPLAY WINDOW */
+/* YUQORI GORIZONTAL MATERIAL TUGMALARI PANEL (ASOSIY SAHIFAGA MOS RANGDOR) */
+.top-materials-bar {
+    display: flex;
+    padding: 12px 15px 5px 15px;
+    gap: 10px;
+    justify-content: space-between;
+}
+.material-btn {
+    flex: 1;
+    background: white;
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    padding: 10px 2px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    transition: 0.1s;
+}
+.material-btn i { font-size: 15px; }
+
+/* Har bir tugmaning o'ziga xos yorqin rangi (Neo-Brutalism) */
+.text-m-btn { color: #2c3e50; border-color: #2c3e50; box-shadow: 0 3px 0 #2c3e50; }
+.video-m-btn { color: #e74c3c; border-color: #e74c3c; box-shadow: 0 3px 0 #e74c3c; }
+.keywords-m-btn { color: #27ae60; border-color: #27ae60; box-shadow: 0 3px 0 #27ae60; }
+.test-m-btn { color: #8e44ad; border-color: #8e44ad; box-shadow: 0 3px 0 #8e44ad; }
+
+.material-btn:active, .material-btn.active {
+    transform: translateY(3px);
+    box-shadow: 0 0px 0 transparent !important;
+}
+
+/* ASOSIY DISPLAY INTERFEYSI */
+.main-layout {
+    display: flex;
+    padding: 10px 15px;
+    flex: 1;
+}
 .display-window {
     flex: 1;
     background: white;
     border: 2px solid var(--card-border);
-    border-radius: 14px;
+    border-radius: 12px;
     position: relative;
-    min-height: 320px;
+    min-height: 280px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.04);
 }
 
-/* Kattalashgan oynaning maxsus klassi */
+/* Kattalashganda butun ekranni to'ldirish klassi */
 .fullscreen-active {
-    height: calc(100vh - 110px) !important;
-    width: 100% !important;
+    position: fixed;
+    top: 60px; left: 0;
+    width: 100vw !important;
+    height: calc(100vh - 60px) !important;
+    z-index: 100;
+    border: none !important;
+    border-radius: 0 !important;
 }
 
 .resize-btn {
@@ -101,74 +144,29 @@ body {
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 2px 0 var(--card-border);
 }
-.resize-btn:active {
-    transform: translateY(1px);
-    box-shadow: 0 1px 0 var(--card-border);
-}
 
-/* SILLIQ SCROLL BO'LUVCHI MATN HUDUDI */
+/* TEXT SKROLLI VA TUZILISHI */
 .scrollable-text-content {
-    padding: 20px;
+    padding: 15px 20px;
     overflow-y: auto;
     flex: 1;
-    max-height: 400px; /* Matn qutidan chiqmay ichida aylanishi uchun */
+    max-height: 380px; /* Qutidan chiqmay silliq skroll bo'lishi uchun */
     line-height: 1.6;
     font-size: 15px;
 }
-.scrollable-text-content h3 {
-    margin-top: 0;
-    color: var(--primary-color);
-}
+.scrollable-text-content h3 { margin-top: 0; color: var(--primary-color); font-weight: 800;}
 
-/* IFRAME FORMATI */
-.iframe-display {
-    width: 100%;
-    height: 100%;
-    border: none;
-    flex: 1;
-    display: none;
-}
+.iframe-display { width: 100%; height: 100%; border: none; flex: 1; display: none; }
 
-/* SIDEBAR RIGHT BUTTONS */
-.sidebar-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    width: 110px;
-}
-.control-btn {
-    background: white;
-    border: 2px solid var(--card-border);
-    border-radius: 10px;
-    padding: 12px 5px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 3px 0 var(--card-border);
-    transition: 0.1s;
-}
-.control-btn i { font-size: 16px; }
-.control-btn:active, .control-btn.active {
-    transform: translateY(3px);
-    box-shadow: 0 0px 0 var(--card-border);
-    background: #f1f5f9;
-}
-
-/* TOOLTIP EFFEKTI (Matn ichida tarjima chiqarish) */
+/* TEXT ICHIDAGI SO'ZLAR USTIGA BORGANDA TARJIMA CHIQISHI (TOOLTIP) */
 .keyword-tooltip {
-    color: #1e3a8a; /* To'q ko'k rang */
+    color: #1a1f71;
     font-weight: 700;
-    border-bottom: 2px dashed #1e3a8a;
+    border-bottom: 2px dashed #1a1f71;
     cursor: help;
     position: relative;
     display: inline-block;
 }
-
-/* Kompyuter uchun ustiga borganda chiqadigan oyna */
 .keyword-tooltip::after {
     content: attr(data-tooltip);
     position: absolute;
@@ -176,27 +174,24 @@ body {
     transform: translateX(-50%);
     background-color: #1e293b;
     color: white;
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 6px;
     font-size: 12px;
     white-space: nowrap;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease;
+    transition: opacity 0.15s ease;
     z-index: 99;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
-    font-weight: normal;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
-.keyword-tooltip:hover::after {
-    opacity: 1;
-}
+.keyword-tooltip:hover::after { opacity: 1; }
 
-/* GAMELAR AJRATUVCHI CHIZIQ */
+/* AJRATUVCHI ZONE */
 .games-divider-zone {
     display: flex;
     align-items: center;
     text-align: center;
-    margin: 10px 15px;
+    margin: 10px 15px 5px 15px;
 }
 .games-divider-zone::before, .games-divider-zone::after {
     content: '';
@@ -204,53 +199,49 @@ body {
     border-bottom: 2px solid var(--card-border);
 }
 .games-divider-zone span {
-    padding: 0 15px;
+    padding: 0 12px;
     font-size: 12px;
     font-weight: 900;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
-/* INTERAKTIV O'YINLAR RO'YXATI PANELI */
+/* GAMELAR RO'YXATI PANELI (RANGDOR VA CHIROYLI GRID) */
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(3, 110px);
-    justify-content: center;
+    grid-template-columns: repeat(2, 1fr); /* Mobil qurilmalarda 2 tadan juda mos tushadi */
     gap: 12px;
-    padding: 0 15px 20px 15px;
+    padding: 5px 15px 25px 15px;
 }
 .game-card-btn {
     background: white;
     border: 2px solid var(--card-border);
-    border-radius: 12px;
-    padding: 10px 6px;
+    border-radius: 10px;
+    padding: 10px;
     cursor: pointer;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    box-shadow: 0 3px 0 var(--card-border);
+    gap: 10px;
+    transition: 0.1s;
 }
-.game-icon {
-    font-size: 20px;
-    color: #2c3e50;
-}
-.game-info {
-    font-size: 11px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-}
+.game-icon { font-size: 18px; }
+.game-info { font-size: 12px; font-weight: bold; flex: 1; text-align: left; display: flex; justify-content: space-between; align-items: center;}
+
+/* Gamelarning o'ziga xos neo-ranglari */
+.matchup-g-btn { color: #2980b9; border-color: #2980b9; box-shadow: 0 3px 0 #2980b9; }
+.anagrama-g-btn { color: #d35400; border-color: #d35400; box-shadow: 0 3px 0 #d35400; }
+.typeanswer-g-btn { color: #2c3e50; border-color: #2c3e50; box-shadow: 0 3px 0 #2c3e50; }
+.wordsearch-g-btn { color: #27ae60; border-color: #27ae60; box-shadow: 0 3px 0 #27ae60; }
+.pair-g-btn { color: #16a085; border-color: #16a085; box-shadow: 0 3px 0 #16a085; }
+
 .game-card-btn:active {
     transform: translateY(3px);
-    box-shadow: 0 0px 0 var(--card-border);
+    box-shadow: 0 0px 0 transparent !important;
 }
 
-/* RESPONSIVE (MOBIL QURILMALAR UCHUN MOSLASHUVCHANLIK) */
-@media (max-width: 480px) {
-    .main-layout { flex-direction: column; }
-    .sidebar-controls { flex-direction: row; width: 100%; }
-    .control-btn { flex: 1; padding: 10px 2px; }
-    .games-grid { grid-template-columns: repeat(2, 1fr); }
-    .scrollable-text-content { max-height: 250px; }
+/* KATTA EKRANLAR VA PLANSYETLAR UCHUN MOSLASHUV */
+@media (min-width: 600px) {
+    .top-materials-bar { max-width: 500px; margin: 0 auto; width: 100%; box-sizing: border-box;}
+    .main-layout { max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
+    .games-grid { grid-template-columns: repeat(3, 1fr); max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
+    .games-divider-zone { max-width: 600px; margin: 10px auto; width: 100%; }
 }
