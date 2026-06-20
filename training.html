@@ -82,45 +82,45 @@
     <script>
         // Har bitta darsning UZ va RU variantlari uchun ma'lumotlar bazasi
         const lessonsDatabase = {
-            "ess1_1": {
-                // O'ZBEK AUDITORIYASI UCHUN MA'LUMOTLAR
-                uz: {
-                    title: "The Lion and the Mouse",
-                    gamesTitle: "GAMELAR RO'YXATI",
-                    textHtml: `<h3>The Lion and the Mouse</h3>
-                               <p>A great <span class="keyword-tooltip" data-tooltip="Sher — Yirik yirtqich hayvon.">lion</span> was asleep in the forest. A little <span class="keyword-tooltip" data-tooltip="Sichqon — Kichik kemiruvchi.">mouse</span> ran up his tail and onto his back. The lion woke up, <span class="keyword-tooltip" data-tooltip="Ushladi — Tutib oldi.">caught</span> the mouse in his large paw, and was about to kill him.</p>
-                               <p>"Please, king of the forest," cried the little mouse, "let me go! I will be <span class="keyword-tooltip" data-tooltip="Jasur / Sodiq — Qo'rqmas va yordamga tayyor.">brave</span> and help you one day." The lion laughed and let him go.</p>`,
-                    videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", // O'zbekcha tushuntirilgan video yoki umumiy dars linki
-                    keywordsUrl: "https://wordwall.net/embed/play/73822/190/815", // O'zbekcha lug'at mashqi
-                    testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true", // O'zbekcha test linki
-                    games: {
-                        matchup: "https://wordwall.net/embed/play/73822/190/815",
-                        anagrama: "https://wordwall.net/embed/play/73822/190/220",
-                        typeanswer: "https://wordwall.net/embed/play/73822/190/340",
-                        wordsearch: "https://wordwall.net/embed/play/73822/190/450",
-                        pair: "https://wordwall.net/embed/play/73822/190/560"
-                    }
-                },
-                // RUS AUDITORIYASI UCHUN MA'LUMOTLAR
-                ru: {
-                    title: "Лев и Мышь",
-                    gamesTitle: "СПИСОК ИГР",
-                    textHtml: `<h3>Лев и Мышь</h3>
-                               <p>A great <span class="keyword-tooltip" data-tooltip="Лев — Крупное хищное животное.">lion</span> was asleep in the forest. A little <span class="keyword-tooltip" data-tooltip="Мышь — Маленький грызун.">mouse</span> ran up his tail and onto his back. The lion woke up, <span class="keyword-tooltip" data-tooltip="Поймал — Схватил мышь.">caught</span> the mouse in his large paw, and was about to kill him.</p>
-                               <p>"Please, king of the forest," cried the little mouse, "let me go! I will be <span class="keyword-tooltip" data-tooltip="Храбрый / Верный — Бесстрашный.">brave</span> and help you one day." The lion laughed and let him go.</p>`,
-                    videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", // Ruscha tushuntirilgan video dars linki
-                    keywordsUrl: "https://wordwall.net/embed/play/11111/222/embed", // Ruscha lug'at mashqi linki
-                    testUrl: "https://docs.google.com/forms/d/e/22222.../viewform?embedded=true", // Ruscha test linki
-                    games: {
-                        matchup: "https://wordwall.net/embed/play/55555/111/111", // Ruscha o'yin linklari
-                        anagrama: "https://wordwall.net/embed/play/55555/111/222",
-                        typeanswer: "https://wordwall.net/embed/play/55555/111/333",
-                        wordsearch: "https://wordwall.net/embed/play/55555/111/444",
-                        pair: "https://wordwall.net/embed/play/55555/111/555"
-                    }
-                }
+    // 1-kitob, 1-dars uchun ma'lumotlar
+    "ess1_1": {
+        uz: {
+            title: "The Lion and the Mouse",
+            gamesTitle: "GAMELAR RO'YXATI",
+            textHtml: `...`, // Matnlar shu yerda bo'ladi
+            
+            // 1. VIDEOGA LINK QO'YISH (YouTube Embed formatida bo'lishi shart)
+            videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", 
+            
+            // 2. KEYWORDS TUGMASI UCHUN LINK (Masalan, Wordwall yoki boshqa lug'at)
+            keywordsUrl: "https://wordwall.net/embed/play/73822/190/815", 
+            
+            // 3. TEST TUGMASI UCHUN LINK (Google Forms yoki boshqa test)
+            testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true", 
+            
+            // 4. PASTGHI GAMELAR UCHUN WORDWALL LINKLARI
+            games: {
+                matchup: "https://wordwall.net/embed/play/73822/190/815",
+                anagrama: "https://wordwall.net/embed/play/73822/190/220",
+                typeanswer: "https://wordwall.net/embed/play/73822/190/340",
+                wordsearch: "https://wordwall.net/embed/play/73822/190/450",
+                pair: "https://wordwall.net/embed/play/73822/190/560"
             }
-        };
+        },
+        ru: {
+            // Xuddi shu darsning ruscha linklari ham shu tartibda ketadi...
+        }
+    },
+
+    // 1-kitob, 2-darsni qo'shish uchun shunchaki vergul qo'yib davom ettirasiz:
+    "ess1_2": {
+        uz: {
+            title: "The Boy Who Cried Wolf",
+            // ... keyingi darsning linklari va matnlari shu yerga yoziladi
+        },
+        ru: { ... }
+    }
+};
 
         // URL manzilidan dinamik ID ni olish (?book=ess1&unit=1)
         const urlParams = new URLSearchParams(window.location.search);
