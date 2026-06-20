@@ -166,48 +166,50 @@
             document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
         }
 
-        // Tugmalar bosilganda kontentni iframe yoki matn oynasiga yuklash
-        function loadContent(type) {
-            const textZone = document.getElementById("textContainer");
-            const iframeZone = document.getElementById("iframeViewer");
-            
-            // Hamma material va o'yin tugmalaridan faollik (active) klassini o'chirish
-            const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
-            allBtns.forEach(btn => btn.classList.remove("active"));
+// Tugmalar bosilganda kontentni iframe yoki matn oynasiga yuklash (TUZATILGAN VARIANT)
+function loadContent(type) {
+    const textZone = document.getElementById("textContainer");
+    const iframeZone = document.getElementById("iframeViewer");
+    
+    // Hamma material va o'yin tugmalaridan faollik (active) klassini o'chirish
+    const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
+    allBtns.forEach(btn => btn.classList.remove("active"));
 
-            // Klass bo'yicha faollikni yoqish
-            if(['text','video','keywords','test'].includes(type)) {
-                document.querySelector(`.${type-m-btn}`).classList.add("active");
-            } else {
-                document.querySelector(`.${type-g-btn}`).classList.add("active");
-            }
+    // Klass bo'yicha faollikni yoqish (Qo'shtirnoqlar bilan to'g'rilandi ✅)
+    if(['text','video','keywords','test'].includes(type)) {
+        const targetBtn = document.querySelector("." + type + "-m-btn");
+        if(targetBtn) targetBtn.classList.add("active");
+    } else {
+        const targetBtn = document.querySelector("." + type + "-g-btn");
+        if(targetBtn) targetBtn.classList.add("active");
+    }
 
-            // Oynalarni tozalash
-            textZone.style.display = "none";
-            iframeZone.style.display = "none";
-            iframeZone.src = "";
+    // Oynalarni tozalash
+    textZone.style.display = "none";
+    iframeZone.style.display = "none";
+    iframeZone.src = "";
 
-            if (type === 'text') {
-                textZone.innerHTML = currentLessonData.textHtml;
-                textZone.style.display = "block";
-                initMobileTooltips(); // Mobil moslamalarda bosganda ko'rsatish
-            } else if (type === 'video') {
-                iframeZone.src = currentLessonData.videoUrl;
-                iframeZone.style.display = "block";
-            } else if (type === 'keywords') {
-                iframeZone.src = currentLessonData.keywordsUrl;
-                iframeZone.style.display = "block";
-            } else if (type === 'test') {
-                iframeZone.src = currentLessonData.testUrl;
-                iframeZone.style.display = "block";
-            } else {
-                // Gamelar uchun linklar
-                if (currentLessonData.games[type]) {
-                    iframeZone.src = currentLessonData.games[type];
-                    iframeZone.style.display = "block";
-                }
-            }
+    if (type === 'text') {
+        textZone.innerHTML = currentLessonData.textHtml;
+        textZone.style.display = "block";
+        initMobileTooltips(); // Mobil moslamalarda bosganda ko'rsatish
+    } else if (type === 'video') {
+        iframeZone.src = currentLessonData.videoUrl;
+        iframeZone.style.display = "block";
+    } else if (type === 'keywords') {
+        iframeZone.src = currentLessonData.keywordsUrl;
+        iframeZone.style.display = "block";
+    } else if (type === 'test') {
+        iframeZone.src = currentLessonData.testUrl;
+        iframeZone.style.display = "block";
+    } else {
+        // Gamelar uchun linklar
+        if (currentLessonData.games && currentLessonData.games[type]) {
+            iframeZone.src = currentLessonData.games[type];
+            iframeZone.style.display = "block";
         }
+    }
+}
 
         // Mobil qurilmalarda so'z ustiga bosganda tarjimani alertda chiqarish (Kafolatlangan usul)
         function initMobileTooltips() {
