@@ -6,6 +6,7 @@
     <title>Dars Mashg'uloti</title>
     <link rel="stylesheet" href="training.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="database.js"></script>
 </head>
 <body>
 
@@ -83,46 +84,6 @@
     </div>
 
     <script>
-    // Har bitta darsning UZ va RU variantlari uchun ma'lumotlar bazasi
-    const lessonsDatabase = {
-        "ess1_1": {
-            uz: {
-                title: "The Lion and the Mouse",
-                gamesTitle: "GAMELAR RO'YXATI",
-                textHtml: `<h3>The Lion and the Mouse</h3>
-                           <p>A great <span class="keyword-tooltip" data-tooltip="Sher — Yirik yirtqich hayvon.">lion</span> was asleep in the forest. A little <span class="keyword-tooltip" data-tooltip="Sichqon — Kichik kemiruvchi.">mouse</span> ran up his tail and onto his back. The lion woke up, <span class="keyword-tooltip" data-tooltip="Ushladi — Tutib oldi.">caught</span> the mouse in his large paw, and was about to kill him.</p>
-                           <p>"Please, king of the forest," cried the little mouse, "let me go! I will be <span class="keyword-tooltip" data-tooltip="Jasur / Sodiq — Qo'rqmas va yordamga tayyor.">brave</span> and help you one day." The lion laughed and let him go.</p>`,
-                videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", 
-                keywordsUrl: "https://wordwall.net/embed/play/73822/190/815", 
-                testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true", 
-                games: {
-                    matchup: "https://wordwall.net/embed/play/73822/190/815",
-                    anagrama: "https://wordwall.net/embed/play/73822/190/220",
-                    typeanswer: "https://wordwall.net/embed/play/73822/190/340",
-                    wordsearch: "https://wordwall.net/embed/play/73822/190/450",
-                    pair: "https://wordwall.net/embed/play/73822/190/560"
-                }
-            },
-            ru: {
-                title: "Лев и Мышь",
-                gamesTitle: "СПИСОК ИГР",
-                textHtml: `<h3>Лев и Мышь</h3>
-                           <p>A great <span class="keyword-tooltip" data-tooltip="Лев — Крупное хищное животное.">lion</span> was asleep in the forest. A little <span class="keyword-tooltip" data-tooltip="Мышь — Маленький грызун.">mouse</span> ran up his tail and onto his back. The lion woke up, <span class="keyword-tooltip" data-tooltip="Поймал — Схватил мышь.">caught</span> the mouse in his large paw, and was about to kill him.</p>
-                           <p>"Please, king of the forest," cried the little mouse, "let me go! I will be <span class="keyword-tooltip" data-tooltip="Храбрый / Верный — Бесстрашный.">brave</span> and help you one day." The lion laughed and let him go.</p>`,
-                videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY", 
-                keywordsUrl: "https://wordwall.net/embed/play/73822/190/815", 
-                testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true", 
-                games: {
-                    matchup: "https://wordwall.net/embed/play/73822/190/815",
-                    anagrama: "https://wordwall.net/embed/play/73822/190/220",
-                    typeanswer: "https://wordwall.net/embed/play/73822/190/340",
-                    wordsearch: "https://wordwall.net/embed/play/73822/190/450",
-                    pair: "https://wordwall.net/embed/play/73822/190/560"
-                }
-            }
-        }
-    };
-
     // URL manzilidan dinamik ID ni olish (?book=ess1&unit=1)
     const urlParams = new URLSearchParams(window.location.search);
     const bookCode = urlParams.get('book') || "ess1";
@@ -133,7 +94,8 @@
     let currentLang = localStorage.getItem('selectedLang') || 'uz';
     if(currentLang === 'en') currentLang = 'uz'; 
     
-    // Bazadan darsni qidirish
+    // database.js faylidagi bazadan darsni qidirish
+    // Agar dars bazada topilmasa, xato bermasligi uchun 1-darsni standart qilib qo'yamiz
     const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
     let currentLessonData = lessonDataFull[currentLang];
 
@@ -150,7 +112,7 @@
         localStorage.setItem('selectedLang', lang);
         currentLessonData = lessonDataFull[lang];
         renderLessonContent();
-        loadContent('text'); // Til o'zgarganda matnni qayta yuklaydi
+        loadContent('text'); 
     }
 
     // Sarlavhalarni interfeysga chizish
@@ -164,22 +126,18 @@
         const textZone = document.getElementById("textContainer");
         const iframeZone = document.getElementById("iframeViewer");
         
-        // Hamma tugmalardan 'active' klassini o'chirish
         const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
         allBtns.forEach(btn => btn.classList.remove("active"));
 
-        // Bosilgan tugmaga 'active' klassini qo'shish (XATOLIK BUTUNLAY TUZATILDI ✅)
         let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
         if(targetBtn) {
             targetBtn.classList.add("active");
         }
 
-        // Oynalarni tozalash va yashirish
         textZone.style.display = "none";
         iframeZone.style.display = "none";
         iframeZone.src = "";
 
-        // Tanlangan bo'lim bo'yicha kontentni chiqarish
         if (type === 'text') {
             textZone.innerHTML = currentLessonData.textHtml;
             textZone.style.display = "block";
@@ -194,7 +152,6 @@
             iframeZone.src = currentLessonData.testUrl;
             iframeZone.style.display = "block";
         } else {
-            // Gamelar uchun linklar
             if (currentLessonData.games && currentLessonData.games[type]) {
                 iframeZone.src = currentLessonData.games[type];
                 iframeZone.style.display = "block";
@@ -202,7 +159,6 @@
         }
     }
 
-    // Mobil qurilmalarda tooltip hodisasi
     function initMobileTooltips() {
         const tooltips = document.querySelectorAll('.keyword-tooltip');
         tooltips.forEach(item => {
@@ -213,7 +169,6 @@
         });
     }
 
-    // Ekran o'lchamini kattalashtirish/kichiklashtirish
     let isFull = false;
     function toggleFullscreen() {
         const windowEl = document.getElementById("displayWindow");
