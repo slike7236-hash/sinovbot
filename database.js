@@ -8,7 +8,14 @@ const lessonsDatabase = {
             textHtml: `<h3>The Lion and the Mouse</h3>
                        <p>A great <span class="keyword-tooltip" data-tooltip="Sher — Yirik yirtqich.">lion</span> was asleep...</p>`,
             videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY",
-            keywordsUrl: "https://wordwall.net/embed/play/73822/190/815",
+             // MANA SIZ AYTGAN SO'ZLAR RO'YXATI (JADVAL UCHUN) ✅
+            keywordsList: [
+                { word: "Book", translation: "Kitob" },
+                { word: "Pen", translation: "Ruchka" },
+                { word: "Pencil", translation: "Qalam" },
+                { word: "Cup", translation: "Chashka" },
+                { word: "Wind", translation: "Shamol" }
+            ],
             testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true",
             games: {
                 matchup: "https://wordwall.net/embed/play/73822/190/815",
@@ -24,7 +31,10 @@ const lessonsDatabase = {
             textHtml: `<h3>Лев и Мышь</h3>
                        <p>A great <span class="keyword-tooltip" data-tooltip="Лев — Крупный хищник.">lion</span> was asleep...</p>`,
             videoUrl: "https://www.youtube.com/embed/tgbNymZ7vqY",
-            keywordsUrl: "https://wordwall.net/embed/play/73822/190/815",
+             keywordsList: [
+                { word: "Book", translation: "Книга" },
+                { word: "Pen", translation: "Ручка" }
+            ],
             testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true",
             games: {
                 matchup: "https://wordwall.net/embed/play/55555/111/111",
