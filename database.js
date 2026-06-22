@@ -43,7 +43,14 @@ const lessonsDatabase = {
             gamesTitle: "GAMELAR RO'YXATI",
             textHtml: `<h3>The Boy Who Cried Wolf</h3><p>Matn shu yerda...</p>`,
             videoUrl: "https://www.youtube.com/embed/YEVO_Xw6wco",
-            keywordsUrl: "https://wordwall.net/embed/play/00000",
+            // MANA SIZ AYTGAN SO'ZLAR RO'YXATI (JADVAL UCHUN) ✅
+            keywordsList: [
+                { word: "Book", translation: "Kitob" },
+                { word: "Pen", translation: "Ruchka" },
+                { word: "Pencil", translation: "Qalam" },
+                { word: "Cup", translation: "Chashka" },
+                { word: "Wind", translation: "Shamol" }
+            ],
             testUrl: "https://docs.google.com/forms/...",
             games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
         },
@@ -52,7 +59,11 @@ const lessonsDatabase = {
             gamesTitle: "СПИСОК ИГР",
             textHtml: `<h3>Мальчик, который...</h3><p>Текст здесь...</p>`,
             videoUrl: "https://www.youtube.com/embed/YEVO_Xw6wco",
-            keywordsUrl: "https://wordwall.net/embed/play/00000",
+            // Rus tili uchun ruscha tarjimalari
+            keywordsList: [
+                { word: "Book", translation: "Книга" },
+                { word: "Pen", translation: "Ручка" }
+            ],
             testUrl: "https://docs.google.com/forms/...",
             games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
         }
