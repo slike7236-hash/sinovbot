@@ -123,41 +123,66 @@
 
     // Tugmalar bosilganda kontentni iframe yoki matn oynasiga yuklash
     function loadContent(type) {
-        const textZone = document.getElementById("textContainer");
-        const iframeZone = document.getElementById("iframeViewer");
-        
-        const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
-        allBtns.forEach(btn => btn.classList.remove("active"));
+    const textZone = document.getElementById("textContainer");
+    const iframeZone = document.getElementById("iframeViewer");
+    
+    const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
+    allBtns.forEach(btn => btn.classList.remove("active"));
 
-        let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
-        if(targetBtn) {
-            targetBtn.classList.add("active");
-        }
+    let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
+    if(targetBtn) {
+        targetBtn.classList.add("active");
+    }
 
-        textZone.style.display = "none";
-        iframeZone.style.display = "none";
-        iframeZone.src = "";
+    textZone.style.display = "none";
+    iframeZone.style.display = "none";
+    iframeZone.src = "";
 
-        if (type === 'text') {
-            textZone.innerHTML = currentLessonData.textHtml;
-            textZone.style.display = "block";
-            initMobileTooltips(); 
-        } else if (type === 'video') {
-            iframeZone.src = currentLessonData.videoUrl;
-            iframeZone.style.display = "block";
-        } else if (type === 'keywords') {
-            iframeZone.src = currentLessonData.keywordsUrl;
-            iframeZone.style.display = "block";
-        } else if (type === 'test') {
-            iframeZone.src = currentLessonData.testUrl;
-            iframeZone.style.display = "block";
+    if (type === 'text') {
+        textZone.innerHTML = currentLessonData.textHtml;
+        textZone.style.display = "block";
+        initMobileTooltips(); 
+    } 
+    // NEW: KEYWORDS TUGMASI BOSILGANDA JADVAL YASASH PRO-METODI ✅
+    else if (type === 'keywords') {
+        if (currentLessonData.keywordsList && currentLessonData.keywordsList.length > 0) {
+            let tableHtml = `<div class="keywords-table-wrapper">
+                                <table class="keywords-custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Translation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+            
+            currentLessonData.keywordsList.forEach(item => {
+                tableHtml += `<tr>
+                                <td class="kw-bold-word">${item.word}</td>
+                                <td class="kw-translation">${item.translation}</td>
+                              </tr>`;
+            });
+            
+            tableHtml += `</tbody></table></div>`;
+            textZone.innerHTML = tableHtml;
         } else {
-            if (currentLessonData.games && currentLessonData.games[type]) {
-                iframeZone.src = currentLessonData.games[type];
-                iframeZone.style.display = "block";
-            }
+            textZone.innerHTML = `<p style="padding:20px; text-align:center;">Keywords topilmadi.</p>`;
+        }
+        textZone.style.display = "block";
+    } 
+    else if (type === 'video') {
+        iframeZone.src = currentLessonData.videoUrl;
+        iframeZone.style.display = "block";
+    } else if (type === 'test') {
+        iframeZone.src = currentLessonData.testUrl;
+        iframeZone.style.display = "block";
+    } else {
+        if (currentLessonData.games && currentLessonData.games[type]) {
+            iframeZone.src = currentLessonData.games[type];
+            iframeZone.style.display = "block";
         }
     }
+}
 
     function initMobileTooltips() {
         const tooltips = document.querySelectorAll('.keyword-tooltip');
