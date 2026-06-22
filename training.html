@@ -223,6 +223,20 @@
             isFull = false;
         }
     }
+        // So'zlarni inglizcha talaffuz qilish funksiyasi (Text-to-Speech)
+function speakWord(word) {
+    // Agar so'z ichida [ yoki yoki belgi bo'lsa, toza so'zni ajratib olish (masalan [allPen -> allPen)
+    let cleanWord = word.replace(/[\[\]]/g, ''); 
+    
+    // Brauzerning ovoz berish tizimini ishga tushiramiz
+    const utterance = new SpeechSynthesisUtterance(cleanWord);
+    utterance.lang = 'en-US'; // Ingliz tili (Amerika aksenti)
+    utterance.rate = 0.85;    // O'qish tezligi (o'quvchilarga tushunarli bo'lishi uchun sal sekinlashtirildi)
+    
+    // Agar hozir biror ovoz gapirayotgan bo'lsa, uni to'xtatib keyingisini boshlaydi
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+}
 </script>
 </body>
 </html>
