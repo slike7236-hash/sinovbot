@@ -15,12 +15,12 @@ const lessonsDatabase = {
                 { word: "Pencil", translation: "Qalam" },
                 { word: "Cup", translation: "Chashka" },
                 { word: "Pencil", translation: "Qalam" },
-                { word: "Book", translation: "Kitob" },
-                { word: "Pen", translation: "Ruchka" },
-                { word: "Pencil", translation: "Qalam" },
-                { word: "Cup", translation: "Chashka" },
-                { word: "Pencil", translation: "Qalam" },
-                { word: "Wind", translation: "Shamol" }
+                { word: "copyBook", translation: "daftar" },
+                { word: "[allPen", translation: "Ruchka" },
+                { word: "Pencicasel", translation: "Qalam" },
+                { word: "Cupboard", translation: "Chashka" },
+                { word: "Penciline", translation: "Qalam" },
+                { word: "Wind surfing", translation: "Shamol" }
             ],
             testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true",
             games: {
