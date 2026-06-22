@@ -144,6 +144,7 @@
         initMobileTooltips(); 
     } 
     // KEYWORDS BO'LIMI: OVOZLI JADVAL YASASH 🔊
+    // KEYWORDS BO'LIMI: BIR TEKIS VA TARTIBLI AUDIO JADVAL 🔊
     else if (type === 'keywords') {
         if (currentLessonData.keywordsList && currentLessonData.keywordsList.length > 0) {
             let tableHtml = `<div class="keywords-table-wrapper">
@@ -159,10 +160,12 @@
             currentLessonData.keywordsList.forEach(item => {
                 tableHtml += `<tr>
                                 <td class="kw-bold-word">
-                                    <span>${item.word}</span>
-                                    <button class="speak-btn" onclick="speakWord('${item.word.replace(/'/g, "\\'")}')">
-                                        <i class="fa-solid fa-volume-high"></i>
-                                    </button>
+                                    <div class="word-with-audio">
+                                        <button class="speak-btn" onclick="speakWord('${item.word.replace(/'/g, "\\'")}')">
+                                            <i class="fa-solid fa-volume-high"></i>
+                                        </button>
+                                        <span class="actual-word">${item.word}</span>
+                                    </div>
                                 </td>
                                 <td class="kw-translation">${item.translation}</td>
                               </tr>`;
@@ -174,7 +177,7 @@
             textZone.innerHTML = `<p style="padding:20px; text-align:center;">Keywords topilmadi.</p>`;
         }
         textZone.style.display = "block";
-    } 
+    }
     else if (type === 'video') {
         iframeZone.src = currentLessonData.videoUrl;
         iframeZone.style.display = "block";
@@ -224,18 +227,27 @@
         }
     }
         // So'zlarni inglizcha talaffuz qilish funksiyasi (Text-to-Speech)
+// Har qanday qurilmada ovoz chiqishini ta'minlovchi yangi funksiya
 function speakWord(word) {
-    // Agar so'z ichida [ yoki yoki belgi bo'lsa, toza so'zni ajratib olish (masalan [allPen -> allPen)
-    let cleanWord = word.replace(/[\[\]]/g, ''); 
-    
-    // Brauzerning ovoz berish tizimini ishga tushiramiz
-    const utterance = new SpeechSynthesisUtterance(cleanWord);
-    utterance.lang = 'en-US'; // Ingliz tili (Amerika aksenti)
-    utterance.rate = 0.85;    // O'qish tezligi (o'quvchilarga tushunarli bo'lishi uchun sal sekinlashtirildi)
-    
-    // Agar hozir biror ovoz gapirayotgan bo'lsa, uni to'xtatib keyingisini boshlaydi
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    try {
+        // [ ] kabi ortiqcha belgilarni tozalash
+        let cleanWord = word.replace(/[\[\]]/g, ''); 
+        
+        // Agar tizim band bo'lsa, avvalgisini majburlab o'chiramiz
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
+
+        const utterance = new SpeechSynthesisUtterance(cleanWord);
+        utterance.lang = 'en-US'; 
+        utterance.rate = 0.85; // Bir oz sekinroq va aniqroq talaffuz
+        utterance.volume = 1.0; // Maksimal ovoz balandligi
+        
+        // Telefonlar uchun maxsus: nutq dvigatelini qayta yuklash
+        window.speechSynthesis.speak(utterance);
+    } catch (error) {
+        console.error("Audio xatolik:", error);
+    }
 }
 </script>
 </body>
