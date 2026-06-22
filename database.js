@@ -14,6 +14,12 @@ const lessonsDatabase = {
                 { word: "Pen", translation: "Ruchka" },
                 { word: "Pencil", translation: "Qalam" },
                 { word: "Cup", translation: "Chashka" },
+                { word: "Pencil", translation: "Qalam" },
+                { word: "Book", translation: "Kitob" },
+                { word: "Pen", translation: "Ruchka" },
+                { word: "Pencil", translation: "Qalam" },
+                { word: "Cup", translation: "Chashka" },
+                { word: "Pencil", translation: "Qalam" },
                 { word: "Wind", translation: "Shamol" }
             ],
             testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true",
