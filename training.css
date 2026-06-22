@@ -298,32 +298,55 @@ body {
     background-color: #f8fafc;
 }
 /* LUG'AT ICHIDAGI AUDIO TUGMA */
-.kw-bold-word {
+/* LUG'AT ICHIDAGI AUDIO TUGMA VA SO'ZNI TEKISLASH */
+.word-with-audio {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* So'z chapda, karnay o'ngda turadi */
-    gap: 10px;
+    gap: 12px; /* Tugma va so'z orasidagi masofa */
+    width: 100%;
 }
+
 .speak-btn {
     background: #f1f5f9;
     border: 1.5px solid var(--card-border);
     color: var(--primary-color);
     border-radius: 6px;
-    width: 28px;
-    height: 28px;
+    width: 32px;  /* Bir oz kattalashtirildi, bosishga oson bo'lishi uchun */
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 1.5px 0 var(--card-border);
+    box-shadow: 0 2px 0 var(--card-border);
     transition: 0.1s;
     padding: 0;
+    flex-shrink: 0; /* Tugma siqilib qolmasligi uchun */
 }
+
 .speak-btn i {
-    font-size: 12px;
+    font-size: 13px;
 }
+
 .speak-btn:active {
-    transform: translateY(1.5px);
+    transform: translateY(2px);
     box-shadow: 0 0px 0 transparent;
     background: #e2e8f0;
+}
+
+.actual-word {
+    font-weight: 800;
+    color: #1a202c;
+    font-size: 15px;
+}
+
+.kw-bold-word {
+    width: 50%;
+    padding: 8px 12px !important;
+}
+
+.kw-translation {
+    color: #4a5568;
+    font-weight: 600;
+    vertical-align: middle;
+    padding: 8px 12px !important;
 }
