@@ -253,3 +253,47 @@ body {
 .lang-select-training {
     margin-right: 8px !important; 
 }
+/* KEYWORDS JADVALI DIZAYNI */
+.keywords-table-wrapper {
+    padding: 10px;
+}
+.keywords-custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+    background: white;
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.keywords-custom-table th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 12px 15px;
+    font-weight: 900;
+    text-align: left;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+.keywords-custom-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 15px;
+}
+.keywords-custom-table tr:last-child td {
+    border-bottom: none;
+}
+/* So'zlarni jirniy va rangdor qilish */
+.kw-bold-word {
+    font-weight: 800; /* Qalin harflar */
+    color: var(--primary-color);
+    width: 45%;
+}
+.kw-translation {
+    color: #4a5568;
+    font-weight: 600;
+}
+/* Qatorlar almashganda fon o'zgarishi (zebra effekti) */
+.keywords-custom-table tr:nth-child(even) {
+    background-color: #f8fafc;
+}
