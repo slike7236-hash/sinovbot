@@ -143,7 +143,7 @@
         textZone.style.display = "block";
         initMobileTooltips(); 
     } 
-    // NEW: KEYWORDS TUGMASI BOSILGANDA JADVAL YASASH PRO-METODI ✅
+    // KEYWORDS BO'LIMI: OVOZLI JADVAL YASASH 🔊
     else if (type === 'keywords') {
         if (currentLessonData.keywordsList && currentLessonData.keywordsList.length > 0) {
             let tableHtml = `<div class="keywords-table-wrapper">
@@ -158,7 +158,12 @@
             
             currentLessonData.keywordsList.forEach(item => {
                 tableHtml += `<tr>
-                                <td class="kw-bold-word">${item.word}</td>
+                                <td class="kw-bold-word">
+                                    <span>${item.word}</span>
+                                    <button class="speak-btn" onclick="speakWord('${item.word.replace(/'/g, "\\'")}')">
+                                        <i class="fa-solid fa-volume-high"></i>
+                                    </button>
+                                </td>
                                 <td class="kw-translation">${item.translation}</td>
                               </tr>`;
             });
