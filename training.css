@@ -297,3 +297,33 @@ body {
 .keywords-custom-table tr:nth-child(even) {
     background-color: #f8fafc;
 }
+/* LUG'AT ICHIDAGI AUDIO TUGMA */
+.kw-bold-word {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* So'z chapda, karnay o'ngda turadi */
+    gap: 10px;
+}
+.speak-btn {
+    background: #f1f5f9;
+    border: 1.5px solid var(--card-border);
+    color: var(--primary-color);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 1.5px 0 var(--card-border);
+    transition: 0.1s;
+    padding: 0;
+}
+.speak-btn i {
+    font-size: 12px;
+}
+.speak-btn:active {
+    transform: translateY(1.5px);
+    box-shadow: 0 0px 0 transparent;
+    background: #e2e8f0;
+}
