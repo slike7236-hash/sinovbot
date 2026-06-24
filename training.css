@@ -344,23 +344,31 @@ body {
     padding: 8px 12px !important;
 }
 /* MATN TEPASIDAGI AUDIO PLEYER DIZAYNI */
+/* IXCHAM VA EKRANGA YOPISHIB TURUVCHI AUDIO PLEYER */
 .audio-player-container {
     background: #f8fafc;
     border: 2px solid var(--card-border);
     border-radius: 12px;
-    padding: 12px 15px;
-    margin-bottom: 15px;
-    box-shadow: 0 4px 0 var(--card-border);
+    padding: 6px 12px; /* Bo'shliqlar ixchamlashtirildi (Kichraydi) */
+    margin-bottom: 12px;
+    box-shadow: 0 3px 0 var(--card-border);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px; /* Elementlar orasidagi masofa qisqardi */
+    
+    /* EKRANDA QALQIB TURISH SEHRI (STICKY) */
+    position: -webkit-sticky; /* Safari brauzeri uchun */
+    position: sticky;
+    top: 0; /* Matn oynasining eng tepasiga yopishadi */
+    z-index: 10; /* Matn tagida qolib ketmasligi uchun */
 }
 
+/* Tugmalarni ham bir oz ixchamlashtiramiz */
 .player-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
 }
 
 .p-btn {
@@ -368,42 +376,38 @@ body {
     border: 2px solid var(--card-border);
     color: black;
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 32px;  /* 36px dan 32px ga kichraytirildi */
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 2px 0 var(--card-border);
     transition: 0.1s;
+    font-size: 11px;
 }
 
 .p-btn.main-play {
     background: var(--primary-color);
     color: white;
-    width: 44px;
-    height: 44px;
-    font-size: 16px;
-}
-
-.p-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 0px 0 transparent;
+    width: 38px;  /* 44px dan 38px ga ixchamlashtirildi */
+    height: 38px;
+    font-size: 14px;
 }
 
 .speed-select {
     background: white;
     border: 2px solid var(--card-border);
     border-radius: 6px;
-    padding: 4px 6px;
+    padding: 2px 4px;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
-    box-shadow: 0 2px 0 var(--card-border);
-    margin-left: 10px;
+    box-shadow: 0 1.5px 0 var(--card-border);
+    margin-left: 5px;
 }
 
-/* Vaqt chizig'i (Progress bar) */
+/* Chiziq (Progress bar) qismini ham ingichka va chiroyli qilamiz */
 .progress-wrapper {
     width: 100%;
     display: flex;
@@ -414,10 +418,6 @@ body {
     width: 100%;
     accent-color: var(--primary-color);
     cursor: pointer;
-}
-.kw-translation {
-    color: #4a5568;
-    font-weight: 600;
-    vertical-align: middle;
-    padding: 8px 12px !important;
+    height: 4px; /* Chiziq yupqalashtirildi */
+    margin: 2px 0;
 }
