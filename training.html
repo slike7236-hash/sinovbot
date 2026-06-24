@@ -249,6 +249,56 @@ function speakWord(word) {
         console.error("Audio xatolik:", error);
     }
 }
+       // AUDIO PLEYER FUNKSIYALARI
+function toggleAudio() {
+    const audio = document.getElementById("lessonAudio");
+    const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
+    
+    if (audio.paused) {
+        audio.play();
+        btnIcon.className = "fa-solid fa-pause";
+    } else {
+        audio.pause();
+        btnIcon.className = "fa-solid fa-play";
+    }
+}
+
+function rewindAudio(seconds) {
+    const audio = document.getElementById("lessonAudio");
+    audio.currentTime += seconds;
+}
+
+function changeAudioSpeed(speed) {
+    const audio = document.getElementById("lessonAudio");
+    audio.playbackRate = parseFloat(speed);
+}
+
+function seekAudio(value) {
+    const audio = document.getElementById("lessonAudio");
+    const seekTo = audio.duration * (value / 100);
+    audio.currentTime = seekTo;
+}
+
+function initAudioPlayerListeners() {
+    const audio = document.getElementById("lessonAudio");
+    const progressBar = document.getElementById("audioProgress");
+    if(!audio || !progressBar) return;
+
+    // Audio vaqti o'zgarganda chiziqni surish
+    audio.addEventListener("timeupdate", () => {
+        if(audio.duration) {
+            const percentage = (audio.currentTime / audio.duration) * 100;
+            progressBar.value = percentage;
+        }
+    });
+
+    // Audio tugaganda pauza belgisini qaytarish
+    audio.addEventListener("ended", () => {
+        const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
+        btnIcon.className = "fa-solid fa-play";
+        progressBar.value = 0;
+    });
+} 
 </script>
 </body>
 </html>
