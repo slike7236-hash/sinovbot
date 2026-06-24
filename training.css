@@ -344,30 +344,28 @@ body {
     padding: 8px 12px !important;
 }
 /* MATN TEPASIDAGI AUDIO PLEYER DIZAYNI */
-/* TO'LIQ QALQIB TURUVCHI MINI-AUDIO PLEYER (MUKAMMAL TEKISLANGAN) */
-.audio-player-fixed-wrapper {
+/* ASOSIY OYNA TEPASIDA QALQIB TURUVCHI PLEYER BLOKI */
+#fixedAudioPlayerPlace {
     position: absolute;
-    top: 8px;           /* Balandligi fullscreen tugmasi bilan bir chiziqqa ko'tarildi */
-    left: 10px;         /* Chap tomondan chiroyli chekinish */
-    right: 52px;        /* Fullscreen tugmasining chap tarafida aniq to'xtaydi */
-    z-index: 999;
-    pointer-events: none;
+    top: 12px;          /* Fullscreen tugmasi bilan bir xil daraja */
+    left: 12px;         /* Chap chetdan masofa */
+    right: 54px;        /* Fullscreen tugmasining chap chetida aniq to'xtaydi (ustini yopmaydi) */
+    z-index: 100;       /* Tugmalar ustida toza turishi uchun */
 }
 
 .audio-player-container {
     background: #f8fafc;
     border: 2px solid var(--card-border);
-    border-radius: 8px; /* Burchaklari fullscreen tugmasi kabi o'xshash qilindi */
-    padding: 3px 8px;   /* Balandligi maksimal darajada ingichka qilindi */
+    border-radius: 8px;
+    padding: 3px 8px;
     box-shadow: 0 2px 0 var(--card-border);
     display: flex;
     flex-direction: column;
-    gap: 1px;           /* Ichki elementlar orasidagi masofa minimal qilindi */
-    pointer-events: auto;
+    gap: 1px;
     width: 100%;
 }
 
-/* Ichki boshqaruv tugmalari */
+/* Ichki boshqaruv elementlari */
 .player-controls {
     display: flex;
     align-items: center;
@@ -380,7 +378,7 @@ body {
     border: 1.5px solid var(--card-border);
     color: black;
     border-radius: 50%;
-    width: 24px;        /* Tugmalar yanada ixcham bo'ldi */
+    width: 24px;
     height: 24px;
     display: flex;
     align-items: center;
@@ -395,9 +393,9 @@ body {
 .p-btn.main-play {
     background: var(--primary-color);
     color: white;
-    width: 28px;        /* Play tugmasi balandlikni buzmasligi uchun ixcham qilindi */
-    height: 28px;
-    font-size: 11px;
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
 }
 
 .p-btn:active {
@@ -415,10 +413,9 @@ body {
     cursor: pointer;
     box-shadow: 0 1px 0 var(--card-border);
     margin-left: 2px;
-    height: 20px;
+    height: 18px;
 }
 
-/* Progress bar (Vaqt chizig'i) */
 .progress-wrapper {
     width: 100%;
     display: flex;
@@ -429,6 +426,6 @@ body {
     width: 100%;
     accent-color: var(--primary-color);
     cursor: pointer;
-    height: 2px;       /* Chiziq maksimal darajada ingichka */
+    height: 2px;
     margin: 0;
 }
