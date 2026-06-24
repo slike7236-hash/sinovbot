@@ -138,11 +138,37 @@
     iframeZone.style.display = "none";
     iframeZone.src = "";
 
-    if (type === 'text') {
-        textZone.innerHTML = currentLessonData.textHtml;
+   if (type === 'text') {
+        // Agar darsda audio link bo'lsa, pleyer interfeysini matn tepasiga qo'shamiz
+        let audioHtml = '';
+        if (currentLessonData.audioUrl) {
+            audioHtml = `
+                <div class="audio-player-container">
+                    <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
+                    <div class="player-controls">
+                        <button onclick="rewindAudio(-10)" class="p-btn" title="10s orqaga"><i class="fa-solid fa-backward"></i></button>
+                        <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
+                        <button onclick="rewindAudio(10)" class="p-btn" title="10s oldinga"><i class="fa-solid fa-forward"></i></button>
+                        
+                        <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
+                            <option value="0.75">0.75x</option>
+                            <option value="1.0" selected>1.0x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                        </select>
+                    </div>
+                    <div class="progress-wrapper">
+                        <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
+                    </div>
+                </div>
+            `;
+        }
+
+        textZone.innerHTML = audioHtml + currentLessonData.textHtml;
         textZone.style.display = "block";
+        initAudioPlayerListeners(); // Pleyer ishlashi uchun tinglovchini yoqamiz
         initMobileTooltips(); 
-    } 
+    }
     // KEYWORDS BO'LIMI: OVOZLI JADVAL YASASH 🔊
     // KEYWORDS BO'LIMI: BIR TEKIS VA TARTIBLI AUDIO JADVAL 🔊
     else if (type === 'keywords') {
