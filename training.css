@@ -344,12 +344,12 @@ body {
     padding: 8px 12px !important;
 }
 /* MATN TEPASIDAGI AUDIO PLEYER DIZAYNI */
-/* TO'LIQ QALQIB TURUVCHI MINI-AUDIO PLEYER */
+/* TO'LIQ QALQIB TURUVCHI MINI-AUDIO PLEYER (MUKAMMAL TEKISLANGAN) */
 .audio-player-fixed-wrapper {
     position: absolute;
-    top: 15px;          /* Katta ekran tugmasi bilan bir xil tepalik darajasi */
-    left: 15px;
-    right: 65px;        /* O'ng tomondan 65px joy tashlaydi - tugmani to'sib qo'ymaydi! */
+    top: 8px;           /* Balandligi fullscreen tugmasi bilan bir chiziqqa ko'tarildi */
+    left: 10px;         /* Chap tomondan chiroyli chekinish */
+    right: 52px;        /* Fullscreen tugmasining chap tarafida aniq to'xtaydi */
     z-index: 999;
     pointer-events: none;
 }
@@ -357,46 +357,47 @@ body {
 .audio-player-container {
     background: #f8fafc;
     border: 2px solid var(--card-border);
-    border-radius: 12px;
-    padding: 4px 10px;  /* Balandligi yana-da ixchamlashtirildi */
-    box-shadow: 0 3px 0 var(--card-border);
+    border-radius: 8px; /* Burchaklari fullscreen tugmasi kabi o'xshash qilindi */
+    padding: 3px 8px;   /* Balandligi maksimal darajada ingichka qilindi */
+    box-shadow: 0 2px 0 var(--card-border);
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;           /* Ichki elementlar orasidagi masofa minimal qilindi */
     pointer-events: auto;
-    width: 100%;        /* Ajratilgan joyni to'liq egallaydi */
+    width: 100%;
 }
 
-/* Ichki elementlar dizayni */
+/* Ichki boshqaruv tugmalari */
 .player-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .p-btn {
     background: white;
-    border: 2px solid var(--card-border);
+    border: 1.5px solid var(--card-border);
     color: black;
     border-radius: 50%;
-    width: 28px;        /* Tugmalar o'lchami biroz kichraytirildi */
-    height: 28px;
+    width: 24px;        /* Tugmalar yanada ixcham bo'ldi */
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 1.5px 0 var(--card-border);
     transition: 0.1s;
-    font-size: 10px;
+    font-size: 9px;
+    padding: 0;
 }
 
 .p-btn.main-play {
     background: var(--primary-color);
     color: white;
-    width: 32px;        /* Play tugmasi ham ixchamlashtirildi */
-    height: 32px;
-    font-size: 12px;
+    width: 28px;        /* Play tugmasi balandlikni buzmasligi uchun ixcham qilindi */
+    height: 28px;
+    font-size: 11px;
 }
 
 .p-btn:active {
@@ -406,18 +407,18 @@ body {
 
 .speed-select {
     background: white;
-    border: 2px solid var(--card-border);
-    border-radius: 6px;
-    padding: 1px 4px;
+    border: 1.5px solid var(--card-border);
+    border-radius: 4px;
+    padding: 0 2px;
     font-weight: bold;
-    font-size: 10px;
+    font-size: 9px;
     cursor: pointer;
     box-shadow: 0 1px 0 var(--card-border);
-    margin-left: 3px;
-    height: 24px;
+    margin-left: 2px;
+    height: 20px;
 }
 
-/* Vaqt chizig'i (Progress bar) */
+/* Progress bar (Vaqt chizig'i) */
 .progress-wrapper {
     width: 100%;
     display: flex;
@@ -428,6 +429,6 @@ body {
     width: 100%;
     accent-color: var(--primary-color);
     cursor: pointer;
-    height: 3px;
-    margin: 1px 0;
+    height: 2px;       /* Chiziq maksimal darajada ingichka */
+    margin: 0;
 }
