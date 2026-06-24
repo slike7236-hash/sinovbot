@@ -344,26 +344,31 @@ body {
     padding: 8px 12px !important;
 }
 /* MATN TEPASIDAGI AUDIO PLEYER DIZAYNI */
-/* IXCHAM VA EKRANGA YOPISHIB TURUVCHI AUDIO PLEYER */
+/* TO'LIQ QALQIB TURUVCHI (FIXED) AUDIO PLEYER */
+.audio-player-fixed-wrapper {
+    position: absolute; /* Oq qutining ichiga nisbatan qotadi */
+    top: 55px;          /* Tepadagi "Katta ekran" tugmasidan sal pastroqda joylashadi */
+    left: 15px;
+    right: 15px;
+    z-index: 999;       /* Doim hamma narsadan tepada turadi */
+    pointer-events: none; /* Tagidagi elementlarga xalaqit bermasligi uchun */
+}
+
 .audio-player-container {
     background: #f8fafc;
     border: 2px solid var(--card-border);
     border-radius: 12px;
-    padding: 6px 12px; /* Bo'shliqlar ixchamlashtirildi (Kichraydi) */
-    margin-bottom: 12px;
-    box-shadow: 0 3px 0 var(--card-border);
+    padding: 6px 12px;
+    box-shadow: 0 4px 0 var(--card-border);
     display: flex;
     flex-direction: column;
-    gap: 4px; /* Elementlar orasidagi masofa qisqardi */
-    
-    /* EKRANDA QALQIB TURISH SEHRI (STICKY) */
-    position: -webkit-sticky; /* Safari brauzeri uchun */
-    position: sticky;
-    top: 0; /* Matn oynasining eng tepasiga yopishadi */
-    z-index: 10; /* Matn tagida qolib ketmasligi uchun */
+    gap: 4px;
+    pointer-events: auto; /* Pleyer tugmalari bosilishi uchun */
+    max-width: 400px;     /* Telefon ekrani uchun optimal o'lcham */
+    margin: 0 auto;       /* Markazga tekislash */
 }
 
-/* Tugmalarni ham bir oz ixchamlashtiramiz */
+/* Elementlar va tugmalar dizayni */
 .player-controls {
     display: flex;
     align-items: center;
@@ -376,7 +381,7 @@ body {
     border: 2px solid var(--card-border);
     color: black;
     border-radius: 50%;
-    width: 32px;  /* 36px dan 32px ga kichraytirildi */
+    width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
@@ -390,9 +395,14 @@ body {
 .p-btn.main-play {
     background: var(--primary-color);
     color: white;
-    width: 38px;  /* 44px dan 38px ga ixchamlashtirildi */
+    width: 38px;
     height: 38px;
     font-size: 14px;
+}
+
+.p-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 0px 0 transparent;
 }
 
 .speed-select {
@@ -407,7 +417,6 @@ body {
     margin-left: 5px;
 }
 
-/* Chiziq (Progress bar) qismini ham ingichka va chiroyli qilamiz */
 .progress-wrapper {
     width: 100%;
     display: flex;
@@ -418,6 +427,6 @@ body {
     width: 100%;
     accent-color: var(--primary-color);
     cursor: pointer;
-    height: 4px; /* Chiziq yupqalashtirildi */
+    height: 4px;
     margin: 2px 0;
 }
