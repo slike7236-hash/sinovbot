@@ -4,6 +4,8 @@ const lessonsDatabase = {
     "ess1_1": {
         uz: {
             title: "The Lion and the Mouse",
+            // DARSNING TO'LIQ AUDIO MATNI LINKI (.mp3 bo'lishi shart) ✅
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
             gamesTitle: "GAMELAR RO'YXATI",
             textHtml: `<h3>The Lion and the Mouse</h3>
                        <p>A great <span class="keyword-tooltip" data-tooltip="Sher — Yirik yirtqich.">lion</span> was asleep The Lost Village in the Mountains
@@ -51,6 +53,8 @@ The story of the lost village spread far and wide. Some people believed it was o
         },
         ru: {
             title: "Лев и Мышь",
+            // DARSNING TO'LIQ AUDIO MATNI LINKI (.mp3 bo'lishi shart) ✅
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
             gamesTitle: "СПИСОК ИГР",
             textHtml: `<h3>Лев и Мышь</h3>
                        <p>A great <span class="keyword-tooltip" data-tooltip="Лев — Крупный хищник.">lion</span> was asleep...</p>`,
