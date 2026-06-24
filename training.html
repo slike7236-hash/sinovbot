@@ -40,10 +40,14 @@
         </button>
     </div>
 
-    <div class="main-layout" id="mainLayout">
-        <div class="display-window" id="displayWindow">
-            <button class="resize-btn" onclick="toggleFullscreen()" id="resizeBtn" title="Kattalashtirish">
-                <i class="fa-solid fa-expand"></i>
+    <div id="displayWindow" class="material-window" style="position: relative;">
+    <button id="resizeBtn" onclick="toggleFullscreen()" ...> ... </button>
+    
+    <div id="fixedAudioPlayerPlace"></div>
+
+    <div id="textContainer" class="window-content-zone"></div>
+    <iframe id="iframeViewer" ...></iframe>
+</div>
             </button>
             
             <div id="textContainer" class="scrollable-text-content"></div>
