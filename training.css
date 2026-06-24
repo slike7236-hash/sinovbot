@@ -344,36 +344,35 @@ body {
     padding: 8px 12px !important;
 }
 /* MATN TEPASIDAGI AUDIO PLEYER DIZAYNI */
-/* TO'LIQ QALQIB TURUVCHI (FIXED) AUDIO PLEYER */
+/* TO'LIQ QALQIB TURUVCHI MINI-AUDIO PLEYER */
 .audio-player-fixed-wrapper {
-    position: absolute; /* Oq qutining ichiga nisbatan qotadi */
-    top: 55px;          /* Tepadagi "Katta ekran" tugmasidan sal pastroqda joylashadi */
+    position: absolute;
+    top: 15px;          /* Katta ekran tugmasi bilan bir xil tepalik darajasi */
     left: 15px;
-    right: 15px;
-    z-index: 999;       /* Doim hamma narsadan tepada turadi */
-    pointer-events: none; /* Tagidagi elementlarga xalaqit bermasligi uchun */
+    right: 65px;        /* O'ng tomondan 65px joy tashlaydi - tugmani to'sib qo'ymaydi! */
+    z-index: 999;
+    pointer-events: none;
 }
 
 .audio-player-container {
     background: #f8fafc;
     border: 2px solid var(--card-border);
     border-radius: 12px;
-    padding: 6px 12px;
-    box-shadow: 0 4px 0 var(--card-border);
+    padding: 4px 10px;  /* Balandligi yana-da ixchamlashtirildi */
+    box-shadow: 0 3px 0 var(--card-border);
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    pointer-events: auto; /* Pleyer tugmalari bosilishi uchun */
-    max-width: 400px;     /* Telefon ekrani uchun optimal o'lcham */
-    margin: 0 auto;       /* Markazga tekislash */
+    gap: 2px;
+    pointer-events: auto;
+    width: 100%;        /* Ajratilgan joyni to'liq egallaydi */
 }
 
-/* Elementlar va tugmalar dizayni */
+/* Ichki elementlar dizayni */
 .player-controls {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
 }
 
 .p-btn {
@@ -381,27 +380,27 @@ body {
     border: 2px solid var(--card-border);
     color: black;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 28px;        /* Tugmalar o'lchami biroz kichraytirildi */
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 0 var(--card-border);
+    box-shadow: 0 1.5px 0 var(--card-border);
     transition: 0.1s;
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .p-btn.main-play {
     background: var(--primary-color);
     color: white;
-    width: 38px;
-    height: 38px;
-    font-size: 14px;
+    width: 32px;        /* Play tugmasi ham ixchamlashtirildi */
+    height: 32px;
+    font-size: 12px;
 }
 
 .p-btn:active {
-    transform: translateY(2px);
+    transform: translateY(1.5px);
     box-shadow: 0 0px 0 transparent;
 }
 
@@ -409,14 +408,16 @@ body {
     background: white;
     border: 2px solid var(--card-border);
     border-radius: 6px;
-    padding: 2px 4px;
+    padding: 1px 4px;
     font-weight: bold;
-    font-size: 11px;
+    font-size: 10px;
     cursor: pointer;
-    box-shadow: 0 1.5px 0 var(--card-border);
-    margin-left: 5px;
+    box-shadow: 0 1px 0 var(--card-border);
+    margin-left: 3px;
+    height: 24px;
 }
 
+/* Vaqt chizig'i (Progress bar) */
 .progress-wrapper {
     width: 100%;
     display: flex;
@@ -427,6 +428,6 @@ body {
     width: 100%;
     accent-color: var(--primary-color);
     cursor: pointer;
-    height: 4px;
-    margin: 2px 0;
+    height: 3px;
+    margin: 1px 0;
 }
