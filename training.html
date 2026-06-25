@@ -2,132 +2,121 @@
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dars Mashg'uloti</title>
-    <link rel="stylesheet" href="training.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="training.css">
     <script src="database.js"></script>
 </head>
 <body>
 
-    <!-- HEADER (Tepa qism: Ortga qaytish ikonka to'g'rilangan variant) -->
-    <div class="header-training">
-        <a href="index.html" class="nav-icon-btn home-btn"><i class="fa-solid fa-house"></i></a>
-        <div class="main-lesson-title" id="lessonTitle">Mavzu...</div>
-        <div>
-            <select class="lang-select-training" id="langSelect" onchange="toggleLessonLanguage(this.value)">
-                <option value="uz">O'Z</option>
-                <option value="ru">RU</option>
-            </select>
-        </div>
-        <!-- Chiqish ikonkasini chapga ko'rsatuvchi strelkaga almashtirdik ✅ -->
-        <a href="javascript:history.back()" class="nav-icon-btn back-btn" title="Ortga qaytish">
-            <i class="fa-solid fa-arrow-left"></i>
-        </a>
+<div class="header-training">
+    <a href="index.html" class="nav-icon-btn home-btn"><i class="fa-solid fa-house"></i></a>
+    <div class="main-lesson-title" id="lessonTitle">Mavzu...</div>
+    <div>
+        <select class="lang-select-training" id="langSelect" onchange="toggleLessonLanguage(this.value)">
+            <option value="uz">O'Z</option>
+            <option value="ru">RU</option>
+        </select>
     </div>
-    <div class="top-materials-bar">
-        <button class="material-btn text-m-btn active" onclick="loadContent('text')">
-            <i class="fa-solid fa-file-lines"></i> <span>Text</span>
-        </button>
-        <button class="material-btn video-m-btn" onclick="loadContent('video')">
-            <i class="fa-solid fa-play"></i> <span>Video</span>
-        </button>
-        <button class="material-btn keywords-m-btn" onclick="loadContent('keywords')">
-            <i class="fa-solid fa-key"></i> <span>Keywords</span>
-        </button>
-        <button class="material-btn test-m-btn" onclick="loadContent('test')">
-            <i class="fa-solid fa-square-check"></i> <span>Test</span>
-        </button>
-    </div>
-
-    <div id="displayWindow" class="material-window">
-    <button id="resizeBtn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i></button>
-    
-    <div id="textContainer" class="window-content-zone"></div>
-    <iframe id="iframeViewer" style="display:none;"></iframe>
+    <a href="javascript:history.back()" class="nav-icon-btn back-btn" title="Ortga qaytish">
+        <i class="fa-solid fa-arrow-left"></i>
+    </a>
 </div>
-            </button>
-            
-            <div id="textContainer" class="scrollable-text-content"></div>
-            
-            <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
-        </div>
+
+<div class="top-materials-bar">
+    <button class="material-btn text-m-btn active" onclick="loadContent('text')">
+        <i class="fa-solid fa-file-lines"></i> <span>Text</span>
+    </button>
+    <button class="material-btn video-m-btn" onclick="loadContent('video')">
+        <i class="fa-solid fa-play"></i> <span>Video</span>
+    </button>
+    <button class="material-btn keywords-m-btn" onclick="loadContent('keywords')">
+        <i class="fa-solid fa-key"></i> <span>Keywords</span>
+    </button>
+    <button class="material-btn test-m-btn" onclick="loadContent('test')">
+        <i class="fa-solid fa-square-check"></i> <span>Test</span>
+    </button>
+</div>
+
+<div class="main-layout">
+    <div id="displayWindow" class="display-window">
+        <button id="resizeBtn" class="resize-btn" onclick="toggleFullscreen()">
+            <i class="fa-solid fa-expand"></i>
+        </button>
+
+        <div id="textContainer" class="scrollable-text-content"></div>
+        
+        <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
     </div>
+</div>
 
-    <div class="games-divider-zone" id="gamesDivider">
-        <span id="gamesTitleText">GAMELAR RO'YXATI</span>
-    </div>
+<div class="games-divider-zone" id="gamesDivider">
+    <span id="gamesTitleText">GAMELAR RO'YXATI</span>
+</div>
 
-    <div class="games-grid" id="gamesGrid">
-        <button class="game-card-btn matchup-g-btn" onclick="loadContent('matchup')">
-            <div class="game-icon"><i class="fa-solid fa-puzzle-piece"></i></div>
-            <div class="game-info">Match up <i class="fa-solid fa-angle-right"></i></div>
-        </button>
-        
-        <button class="game-card-btn anagrama-g-btn" onclick="loadContent('anagrama')">
-            <div class="game-icon"><i class="fa-solid fa-arrow-shuffle"></i></div>
-            <div class="game-info">Anagrama <i class="fa-solid fa-angle-right"></i></div>
-        </button>
-        
-        <button class="game-card-btn typeanswer-g-btn" onclick="loadContent('typeanswer')">
-            <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
-            <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
-        </button>
-        
-        <button class="game-card-btn wordsearch-g-btn" onclick="loadContent('wordsearch')">
-            <div class="game-icon"><i class="fa-solid fa-table-cells"></i></div>
-            <div class="game-info">Word search <i class="fa-solid fa-angle-right"></i></div>
-        </button>
-        
-        <button class="game-card-btn pair-g-btn" onclick="loadContent('pair')">
-            <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
-            <div class="game-info">Pair / Nopair <i class="fa-solid fa-angle-right"></i></div>
-        </button>
-    </div>
-
-    <script>
-    // URL manzilidan dinamik ID ni olish (?book=ess1&unit=1)
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookCode = urlParams.get('book') || "ess1";
-    const unitId = urlParams.get('unit') || "1";
-    const lessonKey = `${bookCode}_${unitId}`;
-
-    // Tanlangan tilni aniqlash
-    let currentLang = localStorage.getItem('selectedLang') || 'uz';
-    if(currentLang === 'en') currentLang = 'uz'; 
+<div class="games-grid" id="gamesGrid">
+    <button class="game-card-btn matchup-g-btn" onclick="loadContent('matchup')">
+        <div class="game-icon"><i class="fa-solid fa-puzzle-piece"></i></div>
+        <div class="game-info">Match up <i class="fa-solid fa-angle-right"></i></div>
+    </button>
     
-    // database.js faylidagi bazadan darsni qidirish
-    // Agar dars bazada topilmasa, xato bermasligi uchun 1-darsni standart qilib qo'yamiz
-    const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
-    let currentLessonData = lessonDataFull[currentLang];
+    <button class="game-card-btn anagrama-g-btn" onclick="loadContent('anagrama')">
+        <div class="game-icon"><i class="fa-solid fa-shuffle"></i></div>
+        <div class="game-info">Anagrama <i class="fa-solid fa-angle-right"></i></div>
+    </button>
+    
+    <button class="game-card-btn typeanswer-g-btn" onclick="loadContent('typeanswer')">
+        <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
+        <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
+    </button>
+    
+    <button class="game-card-btn wordsearch-g-btn" onclick="loadContent('wordsearch')">
+        <div class="game-icon"><i class="fa-solid fa-table-cells"></i></div>
+        <div class="game-info">Word search <i class="fa-solid fa-angle-right"></i></div>
+    </button>
+    
+    <button class="game-card-btn pair-g-btn" onclick="loadContent('pair')">
+        <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
+        <div class="game-info">Pair / Nopair <i class="fa-solid fa-angle-right"></i></div>
+    </button>
+</div>
 
-    // Sahifa ilk bor ochilganda yuklash
-    window.onload = function() {
-        document.getElementById("langSelect").value = currentLang;
-        renderLessonContent();
-        loadContent('text');
-    }
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+const bookCode = urlParams.get('book') || "ess1";
+const unitId = urlParams.get('unit') || "1";
+const lessonKey = `${bookCode}_${unitId}`;
 
-    // Til o'zgarganda dars ma'lumotlarini almashtirish
-    function toggleLessonLanguage(lang) {
-        currentLang = lang;
-        localStorage.setItem('selectedLang', lang);
-        currentLessonData = lessonDataFull[lang];
-        renderLessonContent();
-        loadContent('text'); 
-    }
+let currentLang = localStorage.getItem('selectedLang') || 'uz';
+if(currentLang === 'en') currentLang = 'uz'; 
 
-    // Sarlavhalarni interfeysga chizish
-    function renderLessonContent() {
-        document.getElementById("lessonTitle").innerText = currentLessonData.title;
-        document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
-    }
+const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
+let currentLessonData = lessonDataFull[currentLang];
 
-    // Tugmalar bosilganda kontentni iframe yoki matn oynasiga yuklash
-    function loadContent(type) {
+window.onload = function() {
+    document.getElementById("langSelect").value = currentLang;
+    renderLessonContent();
+    loadContent('text');
+}
+
+function toggleLessonLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('selectedLang', lang);
+    currentLessonData = lessonDataFull[lang];
+    renderLessonContent();
+    loadContent('text'); 
+}
+
+function renderLessonContent() {
+    document.getElementById("lessonTitle").innerText = currentLessonData.title;
+    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
+}
+
+function loadContent(type) {
     const textZone = document.getElementById("textContainer");
     const iframeZone = document.getElementById("iframeViewer");
-    
+
     const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
     allBtns.forEach(btn => btn.classList.remove("active"));
 
@@ -140,14 +129,39 @@
     iframeZone.style.display = "none";
     iframeZone.src = "";
 
-<div id="displayWindow" class="material-window">
-    <button id="resizeBtn" onclick="toggleFullscreen()"><i class="fa-solid fa-expand"></i></button>
-    
-    <div id="textContainer" class="window-content-zone"></div>
-    <iframe id="iframeViewer" style="display:none;"></iframe>
-</div>
-    // KEYWORDS BO'LIMI: OVOZLI JADVAL YASASH 🔊
-    // KEYWORDS BO'LIMI: BIR TEKIS VA TARTIBLI AUDIO JADVAL 🔊
+    // 1. TEXT JONLASHTIRISH (AUDIO PLEYER SHU YERDA)
+    if (type === 'text') {
+        let audioHtml = '';
+        if (currentLessonData.audioUrl) {
+            audioHtml = `
+                <div class="sticky-player-wrapper">
+                    <div class="audio-player-container">
+                        <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
+                        <div class="player-controls">
+                            <button onclick="rewindAudio(-10)" class="p-btn"><i class="fa-solid fa-backward"></i></button>
+                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
+                            <button onclick="rewindAudio(10)" class="p-btn"><i class="fa-solid fa-forward"></i></button>
+                            
+                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
+                                <option value="0.75">0.75x</option>
+                                <option value="1.0" selected>1.0x</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                            </select>
+                        </div>
+                        <div class="progress-wrapper">
+                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        textZone.innerHTML = audioHtml + currentLessonData.textHtml;
+        textZone.style.display = "block";
+        initAudioPlayerListeners(); 
+        initMobileTooltips(); 
+    } 
+    // 2. KEYWORDS JONLASHTIRISH
     else if (type === 'keywords') {
         if (currentLessonData.keywordsList && currentLessonData.keywordsList.length > 0) {
             let tableHtml = `<div class="keywords-table-wrapper">
@@ -159,7 +173,6 @@
                                         </tr>
                                     </thead>
                                     <tbody>`;
-            
             currentLessonData.keywordsList.forEach(item => {
                 tableHtml += `<tr>
                                 <td class="kw-bold-word">
@@ -173,7 +186,6 @@
                                 <td class="kw-translation">${item.translation}</td>
                               </tr>`;
             });
-            
             tableHtml += `</tbody></table></div>`;
             textZone.innerHTML = tableHtml;
         } else {
@@ -181,13 +193,18 @@
         }
         textZone.style.display = "block";
     }
+    // 3. VIDEO JONLASHTIRISH
     else if (type === 'video') {
         iframeZone.src = currentLessonData.videoUrl;
         iframeZone.style.display = "block";
-    } else if (type === 'test') {
+    } 
+    // 4. TEST JONLASHTIRISH
+    else if (type === 'test') {
         iframeZone.src = currentLessonData.testUrl;
         iframeZone.style.display = "block";
-    } else {
+    } 
+    // 5. GAMELAR JONLASHTIRISH
+    else {
         if (currentLessonData.games && currentLessonData.games[type]) {
             iframeZone.src = currentLessonData.games[type];
             iframeZone.style.display = "block";
@@ -195,68 +212,60 @@
     }
 }
 
-    function initMobileTooltips() {
-        const tooltips = document.querySelectorAll('.keyword-tooltip');
-        tooltips.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.stopPropagation();
-                alert(this.getAttribute('data-tooltip'));
-            });
+function initMobileTooltips() {
+    const tooltips = document.querySelectorAll('.keyword-tooltip');
+    tooltips.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            alert(this.getAttribute('data-tooltip'));
         });
-    }
+    });
+}
 
-    let isFull = false;
-    function toggleFullscreen() {
-        const windowEl = document.getElementById("displayWindow");
-        const topBar = document.querySelector(".top-materials-bar");
-        const divider = document.getElementById("gamesDivider");
-        const grid = document.getElementById("gamesGrid");
-        const btnIcon = document.getElementById("resizeBtn").querySelector("i");
+let isFull = false;
+function toggleFullscreen() {
+    const windowEl = document.getElementById("displayWindow");
+    const topBar = document.querySelector(".top-materials-bar");
+    const divider = document.getElementById("gamesDivider");
+    const grid = document.getElementById("gamesGrid");
+    const btnIcon = document.getElementById("resizeBtn").querySelector("i");
 
-        if (!isFull) {
-            topBar.style.display = "none";
-            divider.style.display = "none";
-            grid.style.display = "none";
-            windowEl.classList.add("fullscreen-active");
-            btnIcon.className = "fa-solid fa-compress";
-            isFull = true;
-        } else {
-            topBar.style.display = "flex";
-            divider.style.display = "flex";
-            grid.style.display = "grid";
-            windowEl.classList.remove("fullscreen-active");
-            btnIcon.className = "fa-solid fa-expand";
-            isFull = false;
-        }
+    if (!isFull) {
+        topBar.style.display = "none";
+        divider.style.display = "none";
+        grid.style.display = "none";
+        windowEl.classList.add("fullscreen-active");
+        btnIcon.className = "fa-solid fa-compress";
+        isFull = true;
+    } else {
+        topBar.style.display = "flex";
+        divider.style.display = "flex";
+        grid.style.display = "grid";
+        windowEl.classList.remove("fullscreen-active");
+        btnIcon.className = "fa-solid fa-expand";
+        isFull = false;
     }
-        // So'zlarni inglizcha talaffuz qilish funksiyasi (Text-to-Speech)
-// Har qanday qurilmada ovoz chiqishini ta'minlovchi yangi funksiya
+}
+
 function speakWord(word) {
     try {
-        // [ ] kabi ortiqcha belgilarni tozalash
-        let cleanWord = word.replace(/[\[\]]/g, ''); 
-        
-        // Agar tizim band bo'lsa, avvalgisini majburlab o'chiramiz
+        let cleanWord = word.replace(/[\[\]]/g, '');
         if (window.speechSynthesis.speaking) {
             window.speechSynthesis.cancel();
         }
-
         const utterance = new SpeechSynthesisUtterance(cleanWord);
         utterance.lang = 'en-US'; 
-        utterance.rate = 0.85; // Bir oz sekinroq va aniqroq talaffuz
-        utterance.volume = 1.0; // Maksimal ovoz balandligi
-        
-        // Telefonlar uchun maxsus: nutq dvigatelini qayta yuklash
+        utterance.rate = 0.85; 
+        utterance.volume = 1.0; 
         window.speechSynthesis.speak(utterance);
     } catch (error) {
         console.error("Audio xatolik:", error);
     }
 }
-       // AUDIO PLEYER FUNKSIYALARI
+
 function toggleAudio() {
     const audio = document.getElementById("lessonAudio");
     const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
-    
     if (audio.paused) {
         audio.play();
         btnIcon.className = "fa-solid fa-pause";
@@ -287,7 +296,6 @@ function initAudioPlayerListeners() {
     const progressBar = document.getElementById("audioProgress");
     if(!audio || !progressBar) return;
 
-    // Audio vaqti o'zgarganda chiziqni surish
     audio.addEventListener("timeupdate", () => {
         if(audio.duration) {
             const percentage = (audio.currentTime / audio.duration) * 100;
@@ -295,13 +303,12 @@ function initAudioPlayerListeners() {
         }
     });
 
-    // Audio tugaganda pauza belgisini qaytarish
     audio.addEventListener("ended", () => {
         const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
         btnIcon.className = "fa-solid fa-play";
         progressBar.value = 0;
     });
-} 
+}
 </script>
 </body>
 </html>
