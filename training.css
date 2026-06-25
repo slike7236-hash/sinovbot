@@ -344,18 +344,19 @@ body {
     padding: 8px 12px !important;
 }
 /* MATN TEPASIDAGI AUDIO PLEYER DIZAYNI */
-/* PLEYERNI OQ QUTI TEPASIGA YOPISHTIRISH (STICKY) */
-.sticky-audio-wrapper {
-    position: -webkit-sticky; /* Safari uchun */
+/* MATN PLAYERINGING YOPISHQOQ QOBIG'I */
+.sticky-player-wrapper {
+    position: -webkit-sticky; /* Safari */
     position: sticky;
-    top: 0;                /* Oq qutining eng yuqori nuqtasiga qotadi */
-    background: white;     /* Skroll bo'lganda matnlar pleyer tagidan o'tishi uchun orqa fon oq */
-    padding: 10px 50px 10px 0; /* O'ng tomondan 50px joy ochadi - Fullscreen tugmasi ochiq qoladi! */
-    margin-bottom: 10px;
-    z-index: 99;           /* Matnlar pleyer ustiga chiqib ketmasligi uchun */
-    border-bottom: 1px dashed #e2e8f0; /* Matn va pleyer orasida chiroyli ajratuvchi chiziq */
+    top: -15px;            /* Oq quti ichki paddingini kompensatsiya qilish uchun */
+    background: #ffffff;   /* Skroll paytida ostidan matn o'tsa ko'rinmasligi uchun */
+    padding: 10px 45px 10px 0; /* O'NG TOMONDAN 45px JOY - Katta qilish tugmasini mutloqo toza ochib qo'yadi! */
+    margin-bottom: 15px;
+    z-index: 10;           /* Matnlardan doim ustun turishi shart */
+    border-bottom: 2px solid var(--card-border); /* Sayt uslubidagi chiroyli pastki ajratgich ramka */
 }
 
+/* MINI-PLEYER KONTEYNERI */
 .audio-player-container {
     background: #f8fafc;
     border: 2px solid var(--card-border);
@@ -368,7 +369,7 @@ body {
     width: 100%;
 }
 
-/* Tugmalar va boshqaruv pultlari */
+/* Pleyer boshqaruv tugmalari */
 .player-controls {
     display: flex;
     align-items: center;
@@ -419,6 +420,7 @@ body {
     height: 20px;
 }
 
+/* Progress bar liniyasi */
 .progress-wrapper {
     width: 100%;
     display: flex;
