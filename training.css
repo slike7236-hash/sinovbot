@@ -1,8 +1,8 @@
 :root {
-    --primary-color: #0b1d33;   /* To'q ko'k */
-    --accent-color: #3498db;    /* Och ko'k liniya */
-    --bg-color: #f7f5f0;        /* Krem/Qaymoqrang fon */
-    --card-border: #000000;     /* Konturlar uchun keskin qora */
+    --primary-color: #0b1d33;   
+    --accent-color: #3498db;    
+    --bg-color: #f7f5f0;        
+    --card-border: #000000;     
 }
 
 body {
@@ -58,7 +58,6 @@ body {
     box-shadow: 0 0px 0 var(--card-border);
 }
 
-/* DYNAMIC TIL TANLASH TUGMASI */
 .lang-select-training {
     background: var(--primary-color);
     color: white;
@@ -72,7 +71,7 @@ body {
     margin-right: 8px !important;
 }
 
-/* MATERIAL TUGMALARI PANELI */
+/* TOP MATERIALS BAR */
 .top-materials-bar {
     display: flex;
     padding: 12px 15px 5px 15px;
@@ -151,7 +150,7 @@ body {
     box-shadow: 0 2px 0 var(--card-border);
 }
 
-/* TEXT SKROLLI VA TUZILISHI */
+/* TEXT BOX SKROLL */
 .scrollable-text-content {
     padding: 15px 20px;
     overflow-y: auto;
@@ -215,7 +214,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* GAMELAR RO'YXATI */
+/* GAMELAR RO'YXATI PANELI */
 .games-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -249,7 +248,7 @@ body {
     box-shadow: 0 0px 0 transparent !important;
 }
 
-/* KEYWORDS JADVALI */
+/* KEYWORDS JADVALI DIZAYNI */
 .keywords-table-wrapper { padding: 10px; }
 .keywords-custom-table {
     width: 100%;
@@ -299,15 +298,15 @@ body {
 .kw-bold-word { width: 50%; padding: 8px 12px !important; }
 .kw-translation { color: #4a5568; font-weight: 600; }
 
-/* 🌟 STICKY AUDIO PLEYERNING ENG TOZA VA XAVFSIZ VARIANTI 🌟 */
+/* MUKAMMAL VA STRUKTURAVIY STICKY AUDIO PLEYER STILI */
 .sticky-player-wrapper {
     position: -webkit-sticky;
     position: sticky;
-    top: -15px;            /* Tepadagi ichki bo'shliqni to'g'rilaydi */
-    background: #ffffff;   /* Ostidan matn o'tganda ko'rinmasligi uchun */
-    padding: 5px 45px 12px 0; /* ⚠️ O'NG TOMONDAN 45px JOY - Katta qilish tugmasini ochib qo'yadi! */
+    top: -15px;            
+    background: #ffffff;   
+    padding: 5px 45px 12px 0; /* ⚠️ O'NG TOMONDAN TUGMA UCHUN 45px BO'SH JOY CO'YILDI */
     margin-bottom: 15px;
-    z-index: 15;           /* Matnlardan doim ustun turadi */
+    z-index: 15;           
     border-bottom: 2px solid var(--card-border);
 }
 
