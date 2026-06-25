@@ -1,7 +1,7 @@
 :root {
     --primary-color: #0b1d33;   /* To'q ko'k */
     --accent-color: #3498db;    /* Och ko'k liniya */
-    --bg-color: #f7f5f0;        /* SIZ AYTGAN ASOSIY SAHIFADAGI KREM/QAYMOQRANG FON */
+    --bg-color: #f7f5f0;        /* Krem/Qaymoqrang fon */
     --card-border: #000000;     /* Konturlar uchun keskin qora */
 }
 
@@ -28,7 +28,9 @@ body {
     padding: 10px 15px;
     height: 60px;
     box-sizing: border-box;
+    gap: 8px !important;
 }
+
 .main-lesson-title {
     font-size: 15px;
     font-weight: 900;
@@ -38,6 +40,7 @@ body {
     flex: 1;
     padding: 0 10px;
 }
+
 .nav-icon-btn {
     background: white;
     border: 2px solid var(--card-border);
@@ -49,6 +52,7 @@ body {
     text-decoration: none;
     box-shadow: 0 2px 0 var(--card-border);
 }
+
 .nav-icon-btn:active {
     transform: translateY(2px);
     box-shadow: 0 0px 0 var(--card-border);
@@ -65,15 +69,17 @@ body {
     border-radius: 6px;
     cursor: pointer;
     box-shadow: 0 2px 0 var(--card-border);
+    margin-right: 8px !important;
 }
 
-/* YUQORI GORIZONTAL MATERIAL TUGMALARI PANEL (ASOSIY SAHIFAGA MOS RANGDOR) */
+/* MATERIAL TUGMALARI PANELI */
 .top-materials-bar {
     display: flex;
     padding: 12px 15px 5px 15px;
     gap: 10px;
     justify-content: space-between;
 }
+
 .material-btn {
     flex: 1;
     background: white;
@@ -89,9 +95,9 @@ body {
     gap: 4px;
     transition: 0.1s;
 }
+
 .material-btn i { font-size: 15px; }
 
-/* Har bir tugmaning o'ziga xos yorqin rangi (Neo-Brutalism) */
 .text-m-btn { color: #2c3e50; border-color: #2c3e50; box-shadow: 0 3px 0 #2c3e50; }
 .video-m-btn { color: #e74c3c; border-color: #e74c3c; box-shadow: 0 3px 0 #e74c3c; }
 .keywords-m-btn { color: #27ae60; border-color: #27ae60; box-shadow: 0 3px 0 #27ae60; }
@@ -108,6 +114,7 @@ body {
     padding: 10px 15px;
     flex: 1;
 }
+
 .display-window {
     flex: 1;
     background: white;
@@ -121,7 +128,6 @@ body {
     box-shadow: 0 4px 10px rgba(0,0,0,0.04);
 }
 
-/* Kattalashganda butun ekranni to'ldirish klassi */
 .fullscreen-active {
     position: fixed;
     top: 60px; left: 0;
@@ -140,7 +146,7 @@ body {
     width: 32px; height: 32px;
     border-radius: 6px;
     cursor: pointer;
-    z-index: 10;
+    z-index: 20;
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 2px 0 var(--card-border);
 }
@@ -150,15 +156,15 @@ body {
     padding: 15px 20px;
     overflow-y: auto;
     flex: 1;
-    max-height: 380px; /* Qutidan chiqmay silliq skroll bo'lishi uchun */
+    max-height: 380px;
     line-height: 1.6;
     font-size: 15px;
 }
-.scrollable-text-content h3 { margin-top: 0; color: var(--primary-color); font-weight: 800;}
 
+.scrollable-text-content h3 { margin-top: 0; color: var(--primary-color); font-weight: 800;}
 .iframe-display { width: 100%; height: 100%; border: none; flex: 1; display: none; }
 
-/* TEXT ICHIDAGI SO'ZLAR USTIGA BORGANDA TARJIMA CHIQISHI (TOOLTIP) */
+/* TOOLTIP */
 .keyword-tooltip {
     color: #1a1f71;
     font-weight: 700;
@@ -167,6 +173,7 @@ body {
     position: relative;
     display: inline-block;
 }
+
 .keyword-tooltip::after {
     content: attr(data-tooltip);
     position: absolute;
@@ -184,6 +191,7 @@ body {
     z-index: 99;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
+
 .keyword-tooltip:hover::after { opacity: 1; }
 
 /* AJRATUVCHI ZONE */
@@ -193,11 +201,13 @@ body {
     text-align: center;
     margin: 10px 15px 5px 15px;
 }
+
 .games-divider-zone::before, .games-divider-zone::after {
     content: '';
     flex: 1;
     border-bottom: 2px solid var(--card-border);
 }
+
 .games-divider-zone span {
     padding: 0 12px;
     font-size: 12px;
@@ -205,13 +215,14 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* GAMELAR RO'YXATI PANELI (RANGDOR VA CHIROYLI GRID) */
+/* GAMELAR RO'YXATI */
 .games-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Mobil qurilmalarda 2 tadan juda mos tushadi */
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     padding: 5px 15px 25px 15px;
 }
+
 .game-card-btn {
     background: white;
     border: 2px solid var(--card-border);
@@ -223,10 +234,10 @@ body {
     gap: 10px;
     transition: 0.1s;
 }
+
 .game-icon { font-size: 18px; }
 .game-info { font-size: 12px; font-weight: bold; flex: 1; text-align: left; display: flex; justify-content: space-between; align-items: center;}
 
-/* Gamelarning o'ziga xos neo-ranglari */
 .matchup-g-btn { color: #2980b9; border-color: #2980b9; box-shadow: 0 3px 0 #2980b9; }
 .anagrama-g-btn { color: #d35400; border-color: #d35400; box-shadow: 0 3px 0 #d35400; }
 .typeanswer-g-btn { color: #2c3e50; border-color: #2c3e50; box-shadow: 0 3px 0 #2c3e50; }
@@ -238,25 +249,8 @@ body {
     box-shadow: 0 0px 0 transparent !important;
 }
 
-/* KATTA EKRANLAR VA PLANSYETLAR UCHUN MOSLASHUV */
-@media (min-width: 600px) {
-    .top-materials-bar { max-width: 500px; margin: 0 auto; width: 100%; box-sizing: border-box;}
-    .main-layout { max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
-    .games-grid { grid-template-columns: repeat(3, 1fr); max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
-    .games-divider-zone { max-width: 600px; margin: 10px auto; width: 100%; }
-}
-/* TIL VA BACK TUGMASI ORASINI OCHISH VA TO'G'RILASH */
-.header-training {
-    gap: 8px !important; 
-}
-
-.lang-select-training {
-    margin-right: 8px !important; 
-}
-/* KEYWORDS JADVALI DIZAYNI */
-.keywords-table-wrapper {
-    padding: 10px;
-}
+/* KEYWORDS JADVALI */
+.keywords-table-wrapper { padding: 10px; }
 .keywords-custom-table {
     width: 100%;
     border-collapse: collapse;
@@ -266,6 +260,7 @@ body {
     border-radius: 8px;
     overflow: hidden;
 }
+
 .keywords-custom-table th {
     background-color: var(--primary-color);
     color: white;
@@ -275,56 +270,23 @@ body {
     font-size: 14px;
     text-transform: uppercase;
 }
-.keywords-custom-table td {
-    padding: 12px 15px;
-    border-bottom: 1px solid #e2e8f0;
-    font-size: 15px;
-}
-.keywords-custom-table tr:last-child td {
-    border-bottom: none;
-}
-/* So'zlarni jirniy va rangdor qilish */
-.kw-bold-word {
-    font-weight: 800; /* Qalin harflar */
-    color: var(--primary-color);
-    width: 45%;
-}
-.kw-translation {
-    color: #4a5568;
-    font-weight: 600;
-}
-/* Qatorlar almashganda fon o'zgarishi (zebra effekti) */
-.keywords-custom-table tr:nth-child(even) {
-    background-color: #f8fafc;
-}
-/* LUG'AT ICHIDAGI AUDIO TUGMA */
-/* LUG'AT ICHIDAGI AUDIO TUGMA VA SO'ZNI TEKISLASH */
-.word-with-audio {
-    display: flex;
-    align-items: center;
-    gap: 12px; /* Tugma va so'z orasidagi masofa */
-    width: 100%;
-}
 
+.keywords-custom-table td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
+.keywords-custom-table tr:last-child td { border-bottom: none; }
+.keywords-custom-table tr:nth-child(even) { background-color: #f8fafc; }
+
+.word-with-audio { display: flex; align-items: center; gap: 12px; width: 100%; }
 .speak-btn {
     background: #f1f5f9;
     border: 1.5px solid var(--card-border);
     color: var(--primary-color);
     border-radius: 6px;
-    width: 32px;  /* Bir oz kattalashtirildi, bosishga oson bo'lishi uchun */
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     box-shadow: 0 2px 0 var(--card-border);
     transition: 0.1s;
-    padding: 0;
-    flex-shrink: 0; /* Tugma siqilib qolmasligi uchun */
-}
-
-.speak-btn i {
-    font-size: 13px;
+    padding: 0; flex-shrink: 0;
 }
 
 .speak-btn:active {
@@ -333,30 +295,22 @@ body {
     background: #e2e8f0;
 }
 
-.actual-word {
-    font-weight: 800;
-    color: #1a202c;
-    font-size: 15px;
-}
+.actual-word { font-weight: 800; color: #1a202c; font-size: 15px; }
+.kw-bold-word { width: 50%; padding: 8px 12px !important; }
+.kw-translation { color: #4a5568; font-weight: 600; }
 
-.kw-bold-word {
-    width: 50%;
-    padding: 8px 12px !important;
-}
-/* MATN TEPASIDAGI AUDIO PLEYER DIZAYNI */
-/* MATN PLAYERINGING YOPISHQOQ QOBIG'I */
+/* 🌟 STICKY AUDIO PLEYERNING ENG TOZA VA XAVFSIZ VARIANTI 🌟 */
 .sticky-player-wrapper {
-    position: -webkit-sticky; /* Safari */
+    position: -webkit-sticky;
     position: sticky;
-    top: -15px;            /* Oq quti ichki paddingini kompensatsiya qilish uchun */
-    background: #ffffff;   /* Skroll paytida ostidan matn o'tsa ko'rinmasligi uchun */
-    padding: 10px 45px 10px 0; /* O'NG TOMONDAN 45px JOY - Katta qilish tugmasini mutloqo toza ochib qo'yadi! */
+    top: -15px;            /* Tepadagi ichki bo'shliqni to'g'rilaydi */
+    background: #ffffff;   /* Ostidan matn o'tganda ko'rinmasligi uchun */
+    padding: 5px 45px 12px 0; /* ⚠️ O'NG TOMONDAN 45px JOY - Katta qilish tugmasini ochib qo'yadi! */
     margin-bottom: 15px;
-    z-index: 10;           /* Matnlardan doim ustun turishi shart */
-    border-bottom: 2px solid var(--card-border); /* Sayt uslubidagi chiroyli pastki ajratgich ramka */
+    z-index: 15;           /* Matnlardan doim ustun turadi */
+    border-bottom: 2px solid var(--card-border);
 }
 
-/* MINI-PLEYER KONTEYNERI */
 .audio-player-container {
     background: #f8fafc;
     border: 2px solid var(--card-border);
@@ -367,26 +321,18 @@ body {
     flex-direction: column;
     gap: 2px;
     width: 100%;
+    box-sizing: border-box;
 }
 
-/* Pleyer boshqaruv tugmalari */
-.player-controls {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
+.player-controls { display: flex; align-items: center; justify-content: center; gap: 8px; }
 
 .p-btn {
     background: white;
     border: 1.5px solid var(--card-border);
     color: black;
     border-radius: 50%;
-    width: 26px;
-    height: 26px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
     box-shadow: 0 1.5px 0 var(--card-border);
     transition: 0.1s;
@@ -397,8 +343,7 @@ body {
 .p-btn.main-play {
     background: var(--primary-color);
     color: white;
-    width: 30px;
-    height: 30px;
+    width: 30px; height: 30px;
     font-size: 11px;
 }
 
@@ -420,17 +365,19 @@ body {
     height: 20px;
 }
 
-/* Progress bar liniyasi */
-.progress-wrapper {
-    width: 100%;
-    display: flex;
-    align-items: center;
-}
-
+.progress-wrapper { width: 100%; display: flex; align-items: center; }
 .progress-wrapper input[type="range"] {
     width: 100%;
     accent-color: var(--primary-color);
     cursor: pointer;
     height: 3px;
     margin: 0;
+}
+
+/* RESPONSIVE */
+@media (min-width: 600px) {
+    .top-materials-bar { max-width: 500px; margin: 0 auto; width: 100%; box-sizing: border-box;}
+    .main-layout { max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
+    .games-grid { grid-template-columns: repeat(3, 1fr); max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
+    .games-divider-zone { max-width: 600px; margin: 10px auto; width: 100%; }
 }
