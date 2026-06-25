@@ -344,28 +344,31 @@ body {
     padding: 8px 12px !important;
 }
 /* MATN TEPASIDAGI AUDIO PLEYER DIZAYNI */
-/* ASOSIY OYNA TEPASIDA QALQIB TURUVCHI PLEYER BLOKI */
-#fixedAudioPlayerPlace {
-    position: absolute;
-    top: 12px;          /* Fullscreen tugmasi bilan bir xil daraja */
-    left: 12px;         /* Chap chetdan masofa */
-    right: 54px;        /* Fullscreen tugmasining chap chetida aniq to'xtaydi (ustini yopmaydi) */
-    z-index: 100;       /* Tugmalar ustida toza turishi uchun */
+/* PLEYERNI OQ QUTI TEPASIGA YOPISHTIRISH (STICKY) */
+.sticky-audio-wrapper {
+    position: -webkit-sticky; /* Safari uchun */
+    position: sticky;
+    top: 0;                /* Oq qutining eng yuqori nuqtasiga qotadi */
+    background: white;     /* Skroll bo'lganda matnlar pleyer tagidan o'tishi uchun orqa fon oq */
+    padding: 10px 50px 10px 0; /* O'ng tomondan 50px joy ochadi - Fullscreen tugmasi ochiq qoladi! */
+    margin-bottom: 10px;
+    z-index: 99;           /* Matnlar pleyer ustiga chiqib ketmasligi uchun */
+    border-bottom: 1px dashed #e2e8f0; /* Matn va pleyer orasida chiroyli ajratuvchi chiziq */
 }
 
 .audio-player-container {
     background: #f8fafc;
     border: 2px solid var(--card-border);
     border-radius: 8px;
-    padding: 3px 8px;
+    padding: 4px 8px;
     box-shadow: 0 2px 0 var(--card-border);
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
     width: 100%;
 }
 
-/* Ichki boshqaruv elementlari */
+/* Tugmalar va boshqaruv pultlari */
 .player-controls {
     display: flex;
     align-items: center;
@@ -378,8 +381,8 @@ body {
     border: 1.5px solid var(--card-border);
     color: black;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -393,9 +396,9 @@ body {
 .p-btn.main-play {
     background: var(--primary-color);
     color: white;
-    width: 26px;
-    height: 26px;
-    font-size: 10px;
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
 }
 
 .p-btn:active {
@@ -413,7 +416,7 @@ body {
     cursor: pointer;
     box-shadow: 0 1px 0 var(--card-border);
     margin-left: 2px;
-    height: 18px;
+    height: 20px;
 }
 
 .progress-wrapper {
@@ -426,6 +429,6 @@ body {
     width: 100%;
     accent-color: var(--primary-color);
     cursor: pointer;
-    height: 2px;
+    height: 3px;
     margin: 0;
 }
