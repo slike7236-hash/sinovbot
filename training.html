@@ -40,13 +40,11 @@
         </button>
     </div>
 
-    <div id="displayWindow" class="material-window" style="position: relative;">
-    <button id="resizeBtn" onclick="toggleFullscreen()" ...> ... </button>
+    <div id="displayWindow" class="material-window">
+    <button id="resizeBtn" onclick="toggleFullscreen()">...</button>
     
-    <div id="fixedAudioPlayerPlace"></div>
-
     <div id="textContainer" class="window-content-zone"></div>
-    <iframe id="iframeViewer" ...></iframe>
+    <iframe id="iframeViewer" style="display:none;"></iframe>
 </div>
             </button>
             
@@ -143,43 +141,36 @@
     iframeZone.src = "";
 
 if (type === 'text') {
-        const playerPlace = document.getElementById("fixedAudioPlayerPlace");
-        
+        let audioHtml = '';
         if (currentLessonData.audioUrl) {
-            // Pleyerni tepadagi maxsus joyga chiqaramiz
-            playerPlace.innerHTML = `
-                <div class="audio-player-container">
-                    <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
-                    <div class="player-controls">
-                        <button onclick="rewindAudio(-10)" class="p-btn"><i class="fa-solid fa-backward"></i></button>
-                        <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
-                        <button onclick="rewindAudio(10)" class="p-btn"><i class="fa-solid fa-forward"></i></button>
-                        
-                        <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
-                            <option value="0.75">0.75x</option>
-                            <option value="1.0" selected>1.0x</option>
-                            <option value="1.25">1.25x</option>
-                            <option value="1.5">1.5x</option>
-                        </select>
-                    </div>
-                    <div class="progress-wrapper">
-                        <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
+            audioHtml = `
+                <div class="sticky-audio-wrapper">
+                    <div class="audio-player-container">
+                        <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
+                        <div class="player-controls">
+                            <button onclick="rewindAudio(-10)" class="p-btn"><i class="fa-solid fa-backward"></i></button>
+                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
+                            <button onclick="rewindAudio(10)" class="p-btn"><i class="fa-solid fa-forward"></i></button>
+                            
+                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
+                                <option value="0.75">0.75x</option>
+                                <option value="1.0" selected>1.0x</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                            </select>
+                        </div>
+                        <div class="progress-wrapper">
+                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
+                        </div>
                     </div>
                 </div>
             `;
-        } else {
-            playerPlace.innerHTML = ''; // Agar audio bo'lmasa pleyerni o'chirish
         }
 
-        // Matn oynasiga faqat matnning o'zi yoziladi, pleyer endi uning ichida EMAS!
-        textZone.innerHTML = currentLessonData.textHtml;
+        textZone.innerHTML = audioHtml + currentLessonData.textHtml;
         textZone.style.display = "block";
-        
         initAudioPlayerListeners(); 
         initMobileTooltips(); 
-    } else {
-        // Agar boshqa bo'limga (Video, Keywords) o'tilsa pleyerni ekrandan yo'qotish
-        document.getElementById("fixedAudioPlayerPlace").innerHTML = '';
     }
     // KEYWORDS BO'LIMI: OVOZLI JADVAL YASASH 🔊
     // KEYWORDS BO'LIMI: BIR TEKIS VA TARTIBLI AUDIO JADVAL 🔊
