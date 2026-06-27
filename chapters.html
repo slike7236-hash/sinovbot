@@ -65,126 +65,59 @@
     </div>
 
     <script>
+    // 1. 180 ta unit uchun xatosiz aqlli baza
     const booksDatabase = {
-        // ==========================================
-        // ESSENTIAL ENGLISH WORDS 1
-        // ==========================================
         "ess1": {
             title: "4000 Essential English Words 1",
             units: [
-                { id: 1, name: "The Lion and the Mouse" },
+                { id: 1, name: "The Lion and the Mouse" }, 
                 { id: 2, name: "The Birthday Party" },
-                { id: 3, name: "The First Day of School" },
+                { id: 3, name: "The First Day of School" }, 
                 { id: 4, name: "The Clever Fox" },
-                { id: 5, name: "The Magic Pot" },
+                { id: 5, name: "The Magic Pot" }, 
                 { id: 6, name: "A Day at the Zoo" },
-                { id: 7, name: "The Brave Little Tailor" },
-                { id: 8, name: "Unit 8" }, { id: 9, name: "Unit 9" }, { id: 10, name: "Unit 10" },
-                { id: 11, name: "Unit 11" }, { id: 12, name: "Unit 12" }, { id: 13, name: "Unit 13" },
-                { id: 14, name: "Unit 14" }, { id: 15, name: "Unit 15" }, { id: 16, name: "Unit 16" },
-                { id: 17, name: "Unit 17" }, { id: 18, name: "Unit 18" }, { id: 19, name: "Unit 19" },
-                { id: 20, name: "Unit 20" }, { id: 21, name: "Unit 21" }, { id: 22, name: "Unit 22" },
-                { id: 23, name: "Unit 23" }, { id: 24, name: "Unit 24" }, { id: 25, name: "Unit 25" },
-                { id: 26, name: "Unit 26" }, { id: 27, name: "Unit 27" }, { id: 28, name: "Unit 28" },
-                { id: 29, name: "Unit 29" }, { id: 30, name: "Unit 30" }
+                { id: 7, name: "The Brave Little Tailor" }, 
+                // Qolgan darslar toza raqamda chiqadi:
+                ...Array.from({length: 23}, (_, i) => ({ id: i + 8, name: `Unit ${i + 8}` }))
             ]
         },
-
-        // ==========================================
-        // ESSENTIAL ENGLISH WORDS 2
-        // ==========================================
-        "ess2": {
-            title: "4000 Essential English Words 2",
-            units: [
-                { id: 1, name: "Unit 1" }, { id: 2, name: "Unit 2" }, { id: 3, name: "Unit 3" },
-                { id: 4, name: "Unit 4" }, { id: 5, name: "Unit 5" }, { id: 6, name: "Unit 6" },
-                { id: 7, name: "Unit 7" }, { id: 8, name: "Unit 8" }, { id: 9, name: "Unit 9" },
-                { id: 10, name: "Unit 10" }, { id: 11, name: "Unit 11" }, { id: 12, name: "Unit 12" },
-                { id: 13, name: "Unit 13" }, { id: 14, name: "Unit 14" }, { id: 15, name: "Unit 15" },
-                { id: 16, name: "Unit 16" }, { id: 17, name: "Unit 17" }, { id: 18, name: "Unit 18" },
-                { id: 19, name: "Unit 19" }, { id: 20, name: "Unit 20" }, { id: 21, name: "Unit 21" },
-                { id: 22, name: "Unit 22" }, { id: 23, name: "Unit 23" }, { id: 24, name: "Unit 24" },
-                { id: 25, name: "Unit 25" }, { id: 26, name: "Unit 26" }, { id: 27, name: "Unit 27" },
-                { id: 28, name: "Unit 28" }, { id: 29, name: "Unit 29" }, { id: 30, name: "Unit 30" }
-            ]
-        },
-
-        // ==========================================
-        // ESSENTIAL ENGLISH WORDS 3
-        // ==========================================
-        "ess3": {
-            title: "4000 Essential English Words 3",
-            units: [
-                { id: 1, name: "Unit 1" }, { id: 2, name: "Unit 2" }, { id: 3, name: "Unit 3" },
-                { id: 4, name: "Unit 4" }, { id: 5, name: "Unit 5" }, { id: 6, name: "Unit 6" },
-                { id: 7, name: "Unit 7" }, { id: 8, name: "Unit 8" }, { id: 9, name: "Unit 9" },
-                { id: 10, name: "Unit 10" }, { id: 11, name: "Unit 11" }, { id: 12, name: "Unit 12" },
-                { id: 13, name: "Unit 13" }, { id: 14, name: "Unit 14" }, { id: 15, name: "Unit 15" },
-                { id: 16, name: "Unit 16" }, { id: 17, name: "Unit 17" }, { id: 18, name: "Unit 18" },
-                { id: 19, name: "Unit 19" }, { id: 20, name: "Unit 20" }, { id: 21, name: "Unit 21" },
-                { id: 22, name: "Unit 22" }, { id: 23, name: "Unit 23" }, { id: 24, name: "Unit 24" },
-                { id: 25, name: "Unit 25" }, { id: 26, name: "Unit 26" }, { id: 27, name: "Unit 27" },
-                { id: 28, name: "Unit 28" }, { id: 29, name: "Unit 29" }, { id: 30, name: "Unit 30" }
-            ]
-        },
-
-        // ==========================================
-        // ESSENTIAL ENGLISH WORDS 4
-        // ==========================================
-        "ess4": {
-            title: "4000 Essential English Words 4",
-            units: [
-                { id: 1, name: "Unit 1" }, { id: 2, name: "Unit 2" }, { id: 3, name: "Unit 3" },
-                { id: 4, name: "Unit 4" }, { id: 5, name: "Unit 5" }, { id: 6, name: "Unit 6" },
-                { id: 7, name: "Unit 7" }, { id: 8, name: "Unit 8" }, { id: 9, name: "Unit 9" },
-                { id: 10, name: "Unit 10" }, { id: 11, name: "Unit 11" }, { id: 12, name: "Unit 12" },
-                { id: 13, name: "Unit 13" }, { id: 14, name: "Unit 14" }, { id: 15, name: "Unit 15" },
-                { id: 16, name: "Unit 16" }, { id: 17, name: "Unit 17" }, { id: 18, name: "Unit 18" },
-                { id: 19, name: "Unit 19" }, { id: 20, name: "Unit 20" }, { id: 21, name: "Unit 21" },
-                { id: 22, name: "Unit 22" }, { id: 23, name: "Unit 23" }, { id: 24, name: "Unit 24" },
-                { id: 25, name: "Unit 25" }, { id: 26, name: "Unit 26" }, { id: 27, name: "Unit 27" },
-                { id: 28, name: "Unit 28" }, { id: 29, name: "Unit 29" }, { id: 30, name: "Unit 30" }
-            ]
-        },
-
-        // ==========================================
-        // ESSENTIAL ENGLISH WORDS 5
-        // ==========================================
-        "ess5": {
-            title: "4000 Essential English Words 5",
-            units: [
-                { id: 1, name: "Unit 1" }, { id: 2, name: "Unit 2" }, { id: 3, name: "Unit 3" },
-                { id: 4, name: "Unit 4" }, { id: 5, name: "Unit 5" }, { id: 6, name: "Unit 6" },
-                { id: 7, name: "Unit 7" }, { id: 8, name: "Unit 8" }, { id: 9, name: "Unit 9" },
-                { id: 10, name: "Unit 10" }, { id: 11, name: "Unit 11" }, { id: 12, name: "Unit 12" },
-                { id: 13, name: "Unit 13" }, { id: 14, name: "Unit 14" }, { id: 15, name: "Unit 15" },
-                { id: 16, name: "Unit 16" }, { id: 17, name: "Unit 17" }, { id: 18, name: "Unit 18" },
-                { id: 19, name: "Unit 19" }, { id: 20, name: "Unit 20" }, { id: 21, name: "Unit 21" },
-                { id: 22, name: "Unit 22" }, { id: 23, name: "Unit 23" }, { id: 24, name: "Unit 24" },
-                { id: 25, name: "Unit 25" }, { id: 26, name: "Unit 26" }, { id: 27, name: "Unit 27" },
-                { id: 28, name: "Unit 28" }, { id: 29, name: "Unit 29" }, { id: 30, name: "Unit 30" }
-            ]
-        },
-
-        // ==========================================
-        // ESSENTIAL ENGLISH WORDS 6
-        // ==========================================
-        "ess6": {
-            title: "4000 Essential English Words 6",
-            units: [
-                { id: 1, name: "Unit 1" }, { id: 2, name: "Unit 2" }, { id: 3, name: "Unit 3" },
-                { id: 4, name: "Unit 4" }, { id: 5, name: "Unit 5" }, { id: 6, name: "Unit 6" },
-                { id: 7, name: "Unit 7" }, { id: 8, name: "Unit 8" }, { id: 9, name: "Unit 9" },
-                { id: 10, name: "Unit 10" }, { id: 11, name: "Unit 11" }, { id: 12, name: "Unit 12" },
-                { id: 13, name: "Unit 13" }, { id: 14, name: "Unit 14" }, { id: 15, name: "Unit 15" },
-                { id: 16, name: "Unit 16" }, { id: 17, name: "Unit 17" }, { id: 18, name: "Unit 18" },
-                { id: 19, name: "Unit 19" }, { id: 20, name: "Unit 20" }, { id: 21, name: "Unit 21" },
-                { id: 22, name: "Unit 22" }, { id: 23, name: "Unit 23" }, { id: 24, name: "Unit 24" },
-                { id: 25, name: "Unit 25" }, { id: 26, name: "Unit 26" }, { id: 27, name: "Unit 27" },
-                { id: 28, name: "Unit 28" }, { id: 29, name: "Unit 29" }, { id: 30, name: "Unit 30" }
-            ]
-        }
+        // 2-kitobdan 6-kitobgacha avtomat 30 tadan unit yaratish
+        "ess2": { title: "4000 Essential English Words 2", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+        "ess3": { title: "4000 Essential English Words 3", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+        "ess4": { title: "4000 Essential English Words 4", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+        "ess5": { title: "4000 Essential English Words 5", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+        "ess6": { title: "4000 Essential English Words 6", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) }
     };
+
+    // 2. URL'dan kitob kodini olish
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookCode = urlParams.get('book') || "ess1";
+
+    // 3. Sahifa yuklanganda tugmalarni chiroyli joylashtirish
+    window.addEventListener('DOMContentLoaded', () => {
+        const bookData = booksDatabase[bookCode];
+        
+        if (bookData) {
+            // Sarlavhani o'zgartirish
+            const titleEl = document.getElementById("bookTitle") || document.querySelector(".main-title");
+            if (titleEl) titleEl.innerText = bookData.title;
+            
+            // Tugmalarni grid ichiga joylash
+            const gridEl = document.getElementById("unitsGrid") || document.querySelector(".units-grid");
+            if (gridEl) {
+                let gridHtml = "";
+                bookData.units.forEach(unit => {
+                    gridHtml += `
+                        <a href="training.html?book=${bookCode}&unit=${unit.id}" class="unit-card">
+                            <span class="unit-number">${unit.id < 10 ? '0' + unit.id : unit.id}</span>
+                            <span class="unit-title">${unit.name}</span>
+                        </a>
+                    `;
+                });
+                gridEl.innerHTML = gridHtml;
+            }
+        }
+    });
 </script>
 
         const urlParams = new URLSearchParams(window.location.search);
