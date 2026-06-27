@@ -66,30 +66,35 @@
 
     <script>
     // 1. 180 ta unit uchun xatosiz aqlli baza
-    const booksDatabase = {
-        "ess1": {
-            title: "4000 Essential English Words 1",
-            units: [
-                { id: 1, name: "The Lion and the Mouse" }, 
-                { id: 2, name: "The Birthday Party" },
-                { id: 3, name: "The First Day of School" }, 
-                { id: 4, name: "The Clever Fox" },
-                { id: 5, name: "The Magic Pot" }, 
-                { id: 6, name: "A Day at the Zoo" },
-                { id: 7, name: "The Brave Little Tailor" }, 
-                // Qolgan darslar toza raqamda chiqadi:
-                ...Array.from({length: 23}, (_, i) => ({ id: i + 8, name: `Unit ${i + 8}` }))
-            ]
-        },
-        // 2-kitobdan 6-kitobgacha avtomat 30 tadan unit yaratish
-        "ess2": { title: "4000 Essential English Words 2", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
-        "ess3": { title: "4000 Essential English Words 3", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
-        "ess4": { title: "4000 Essential English Words 4", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
-        "ess5": { title: "4000 Essential English Words 5", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
-        "ess6": { title: "4000 Essential English Words 6", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) }
-    };
-
-</script>
+   const booksDatabase = {
+    // 1-kitob: Dastlabki 7 tasining nomi o'zingizniki, qolgani raqamli
+    "ess1": {
+        title: "4000 Essential English Words 1",
+        units: [
+            { id: 1, name: "The Lion and the Mouse" },
+            { id: 2, name: "The Birthday Party" },
+            { id: 3, name: "The First Day of School" },
+            { id: 4, name: "The Clever Fox" },
+            { id: 5, name: "The Magic Pot" },
+            { id: 6, name: "A Day at the Zoo" },
+            { id: 7, name: "The Brave Little Tailor" },
+            { id: 8, name: "Unit 8" }, { id: 9, name: "Unit 9" }, { id: 10, name: "Unit 10" },
+            { id: 11, name: "Unit 11" }, { id: 12, name: "Unit 12" }, { id: 13, name: "Unit 13" },
+            { id: 14, name: "Unit 14" }, { id: 15, name: "Unit 15" }, { id: 16, name: "Unit 16" },
+            { id: 17, name: "Unit 17" }, { id: 18, name: "Unit 18" }, { id: 19, name: "Unit 19" },
+            { id: 20, name: "Unit 20" }, { id: 21, name: "Unit 21" }, { id: 22, name: "Unit 22" },
+            { id: 23, name: "Unit 23" }, { id: 24, name: "Unit 24" }, { id: 25, name: "Unit 25" },
+            { id: 26, name: "Unit 26" }, { id: 27, name: "Unit 27" }, { id: 28, name: "Unit 28" },
+            { id: 29, name: "Unit 29" }, { id: 30, name: "Unit 30" }
+        ]
+    },
+    // 2-kitobdan 6-kitobgacha avtomatik 1 dan 30 gacha yaratish (Hech qanday xatosiz usul)
+    "ess2": { title: "4000 Essential English Words 2", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess3": { title: "4000 Essential English Words 3", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess4": { title: "4000 Essential English Words 4", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess5": { title: "4000 Essential English Words 5", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess6": { title: "4000 Essential English Words 6", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) }
+};
 
         const urlParams = new URLSearchParams(window.location.search);
         const currentBookCode = urlParams.get('book') || "ess1";
