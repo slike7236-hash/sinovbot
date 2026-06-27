@@ -89,35 +89,6 @@
         "ess6": { title: "4000 Essential English Words 6", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) }
     };
 
-    // 2. URL'dan kitob kodini olish
-    const urlParams = new URLSearchParams(window.location.search);
-    const bookCode = urlParams.get('book') || "ess1";
-
-    // 3. Sahifa yuklanganda tugmalarni chiroyli joylashtirish
-    window.addEventListener('DOMContentLoaded', () => {
-        const bookData = booksDatabase[bookCode];
-        
-        if (bookData) {
-            // Sarlavhani o'zgartirish
-            const titleEl = document.getElementById("bookTitle") || document.querySelector(".main-title");
-            if (titleEl) titleEl.innerText = bookData.title;
-            
-            // Tugmalarni grid ichiga joylash
-            const gridEl = document.getElementById("unitsGrid") || document.querySelector(".units-grid");
-            if (gridEl) {
-                let gridHtml = "";
-                bookData.units.forEach(unit => {
-                    gridHtml += `
-                        <a href="training.html?book=${bookCode}&unit=${unit.id}" class="unit-card">
-                            <span class="unit-number">${unit.id < 10 ? '0' + unit.id : unit.id}</span>
-                            <span class="unit-title">${unit.name}</span>
-                        </a>
-                    `;
-                });
-                gridEl.innerHTML = gridHtml;
-            }
-        }
-    });
 </script>
 
         const urlParams = new URLSearchParams(window.location.search);
