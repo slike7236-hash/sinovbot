@@ -1,314 +1,96 @@
-<!DOCTYPE html>
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dars Mashg'uloti</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="training.css">
-    <script src="database.js"></script>
-</head>
-<body>
-
-<div class="header-training">
-    <a href="index.html" class="nav-icon-btn home-btn"><i class="fa-solid fa-house"></i></a>
-    <div class="main-lesson-title" id="lessonTitle">Mavzu...</div>
-    <div>
-        <select class="lang-select-training" id="langSelect" onchange="toggleLessonLanguage(this.value)">
-            <option value="uz">O'Z</option>
-            <option value="ru">RU</option>
-        </select>
-    </div>
-    <a href="javascript:history.back()" class="nav-icon-btn back-btn" title="Ortga qaytish">
-        <i class="fa-solid fa-arrow-left"></i>
-    </a>
-</div>
-
-<div class="top-materials-bar">
-    <button class="material-btn text-m-btn active" onclick="loadContent('text')">
-        <i class="fa-solid fa-file-lines"></i> <span>Text</span>
-    </button>
-    <button class="material-btn video-m-btn" onclick="loadContent('video')">
-        <i class="fa-solid fa-play"></i> <span>Video</span>
-    </button>
-    <button class="material-btn keywords-m-btn" onclick="loadContent('keywords')">
-        <i class="fa-solid fa-key"></i> <span>Keywords</span>
-    </button>
-    <button class="material-btn test-m-btn" onclick="loadContent('test')">
-        <i class="fa-solid fa-square-check"></i> <span>Test</span>
-    </button>
-</div>
-
-<div class="main-layout">
-    <div id="displayWindow" class="display-window">
-        <button id="resizeBtn" class="resize-btn" onclick="toggleFullscreen()">
-            <i class="fa-solid fa-expand"></i>
-        </button>
-
-        <div id="textContainer" class="scrollable-text-content"></div>
-        
-        <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
-    </div>
-</div>
-
-<div class="games-divider-zone" id="gamesDivider">
-    <span id="gamesTitleText">GAMELAR RO'YXATI</span>
-</div>
-
-<div class="games-grid" id="gamesGrid">
-    <button class="game-card-btn matchup-g-btn" onclick="loadContent('matchup')">
-        <div class="game-icon"><i class="fa-solid fa-puzzle-piece"></i></div>
-        <div class="game-info">Match up <i class="fa-solid fa-angle-right"></i></div>
-    </button>
-    
-    <button class="game-card-btn anagrama-g-btn" onclick="loadContent('anagrama')">
-        <div class="game-icon"><i class="fa-solid fa-shuffle"></i></div>
-        <div class="game-info">Anagrama <i class="fa-solid fa-angle-right"></i></div>
-    </button>
-    
-    <button class="game-card-btn typeanswer-g-btn" onclick="loadContent('typeanswer')">
-        <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
-        <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
-    </button>
-    
-    <button class="game-card-btn wordsearch-g-btn" onclick="loadContent('wordsearch')">
-        <div class="game-icon"><i class="fa-solid fa-table-cells"></i></div>
-        <div class="game-info">Word search <i class="fa-solid fa-angle-right"></i></div>
-    </button>
-    
-    <button class="game-card-btn pair-g-btn" onclick="loadContent('pair')">
-        <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
-        <div class="game-info">Pair / Nopair <i class="fa-solid fa-angle-right"></i></div>
-    </button>
-</div>
-
 <script>
-const urlParams = new URLSearchParams(window.location.search);
-const bookCode = urlParams.get('book') || "ess1";
-const unitId = urlParams.get('unit') || "1";
-const lessonKey = `${bookCode}_${unitId}`;
+    // 1. URL tarkibidagi ?book=essX&unit=Y parametrlarni aniqlab olish
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentBookCode = urlParams.get('book') || "ess1"; // Agar bo'sh bo'lsa, ess1
+    const currentUnitNumber = urlParams.get('unit') || "1";   // Agar bo'sh bo'lsa, 1
 
-let currentLang = localStorage.getItem('selectedLang') || 'uz';
-if(currentLang === 'en') currentLang = 'uz'; 
+    // 2. database.js faylidan qidiriladigan kalit so'zni yasaymiz (Masalan: "ess1_1")
+    const lessonKey = `${currentBookCode}_${currentUnitNumber}`;
 
-const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
-let currentLessonData = lessonDataFull[currentLang];
+    // 3. Sahifa yuklanganda aynan shu unitga tegishli ma'lumotlarni ekranga chiqarish
+    window.addEventListener('DOMContentLoaded', () => {
+        // lessonsDatabase - database.js faylingizdan kelayotgan global obyekt
+        const lessonData = lessonsDatabase[lessonKey];
 
-window.onload = function() {
-    document.getElementById("langSelect").value = currentLang;
-    renderLessonContent();
-    loadContent('text');
-}
+        if (lessonData) {
+            // Hozirgi tanlangan til (uz yoki ru). Agar belgilanmagan bo'lsa, 'uz'
+            const currentLang = localStorage.getItem('selectedLang') || 'uz';
+            const langData = lessonData[currentLang];
 
-function toggleLessonLanguage(lang) {
-    currentLang = lang;
-    localStorage.setItem('selectedLang', lang);
-    currentLessonData = lessonDataFull[lang];
-    renderLessonContent();
-    loadContent('text'); 
-}
+            if (langData) {
+                // A. Sarlavhani o'zgartirish (Masalan: Unit 1: The Lion and the Mouse)
+                const titleEl = document.getElementById("lessonTitle") || document.querySelector(".main-title");
+                if (titleEl) titleEl.innerText = langData.title;
 
-function renderLessonContent() {
-    document.getElementById("lessonTitle").innerText = currentLessonData.title;
-    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
-}
+                // B. Audio pleyer linkini o'rnatish
+                const audioEl = document.getElementById("audioSource") || document.querySelector("audio");
+                if (audioEl) {
+                    if (langData.audioUrl) {
+                        audioEl.src = langData.audioUrl;
+                        audioEl.closest('.audio-player-container').style.display = "block"; // Audioni ko'rsatish
+                        audioEl.load(); // Yangi audioni yuklash
+                    } else {
+                        // Agar darsda audio bo'lmasa, pleyerni yashirib turadi
+                        const container = audioEl.closest('.audio-player-container');
+                        if (container) container.style.display = "none";
+                    }
+                }
 
-function loadContent(type) {
-    const textZone = document.getElementById("textContainer");
-    const iframeZone = document.getElementById("iframeViewer");
+                // C. Matn (Text) qismini HTML shaklida joylashtirish
+                const textContainer = document.getElementById("textTabContent") || document.querySelector(".text-content");
+                if (textContainer) textContainer.innerHTML = langData.textHtml;
 
-    const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
-    allBtns.forEach(btn => btn.classList.remove("active"));
+                // D. Video (YouTube) linkini yangilash
+                const videoIframe = document.getElementById("videoIframe") || document.querySelector(".video-container iframe");
+                if (videoIframe) {
+                    if (langData.videoUrl) {
+                        videoIframe.src = langData.videoUrl;
+                        videoIframe.style.display = "block";
+                    } else {
+                        videoIframe.style.display = "none";
+                    }
+                }
 
-    let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
-    if(targetBtn) {
-        targetBtn.classList.add("active");
-    }
+                // E. Test (Google Forms va h.k.) linkini yangilash
+                const testIframe = document.getElementById("testIframe") || document.querySelector(".test-container iframe");
+                if (testIframe) {
+                    if (langData.testUrl) {
+                        testIframe.src = langData.testUrl;
+                    }
+                }
 
-    textZone.style.display = "none";
-    iframeZone.style.display = "none";
-    iframeZone.src = "";
+                // F. Wordwall O'yinlarini yangilash (Tugmalarga linklarni biriktirish)
+                // O'yin tugmalari o'ziga tegishli iframe linkini data-src orqali ushlab turadi
+                setupGameButtons(langData.games);
 
-    // 1. TEXT JONLASHTIRISH (AUDIO PLEYER SHU YERDA)
-    if (type === 'text') {
-        let audioHtml = '';
-        if (currentLessonData.audioUrl) {
-            audioHtml = `
-                <div class="sticky-player-wrapper">
-                    <div class="audio-player-container">
-                        <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
-                        <div class="player-controls">
-                            <button onclick="rewindAudio(-10)" class="p-btn"><i class="fa-solid fa-backward"></i></button>
-                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
-                            <button onclick="rewindAudio(10)" class="p-btn"><i class="fa-solid fa-forward"></i></button>
-                            
-                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
-                                <option value="0.75">0.75x</option>
-                                <option value="1.0" selected>1.0x</option>
-                                <option value="1.25">1.25x</option>
-                                <option value="1.5">1.5x</option>
-                            </select>
-                        </div>
-                        <div class="progress-wrapper">
-                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        textZone.innerHTML = audioHtml + currentLessonData.textHtml;
-        textZone.style.display = "block";
-        initAudioPlayerListeners(); 
-        initMobileTooltips(); 
-    } 
-    // 2. KEYWORDS JONLASHTIRISH
-    else if (type === 'keywords') {
-        if (currentLessonData.keywordsList && currentLessonData.keywordsList.length > 0) {
-            let tableHtml = `<div class="keywords-table-wrapper">
-                                <table class="keywords-custom-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Word</th>
-                                            <th>Translation</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
-            currentLessonData.keywordsList.forEach(item => {
-                tableHtml += `<tr>
-                                <td class="kw-bold-word">
-                                    <div class="word-with-audio">
-                                        <button class="speak-btn" onclick="speakWord('${item.word.replace(/'/g, "\\'")}')">
-                                            <i class="fa-solid fa-volume-high"></i>
-                                        </button>
-                                        <span class="actual-word">${item.word}</span>
-                                    </div>
-                                </td>
-                                <td class="kw-translation">${item.translation}</td>
-                              </tr>`;
-            });
-            tableHtml += `</tbody></table></div>`;
-            textZone.innerHTML = tableHtml;
+                // G. Keywords (Lug'at) ro'yxatini yaratish
+                renderKeywords(langData.keywordsList);
+
+            }
         } else {
-            textZone.innerHTML = `<p style="padding:20px; text-align:center;">Keywords topilmadi.</p>`;
-        }
-        textZone.style.display = "block";
-    }
-    // 3. VIDEO JONLASHTIRISH
-    else if (type === 'video') {
-        iframeZone.src = currentLessonData.videoUrl;
-        iframeZone.style.display = "block";
-    } 
-    // 4. TEST JONLASHTIRISH
-    else if (type === 'test') {
-        iframeZone.src = currentLessonData.testUrl;
-        iframeZone.style.display = "block";
-    } 
-    // 5. GAMELAR JONLASHTIRISH
-    else {
-        if (currentLessonData.games && currentLessonData.games[type]) {
-            iframeZone.src = currentLessonData.games[type];
-            iframeZone.style.display = "block";
-        }
-    }
-}
-
-function initMobileTooltips() {
-    const tooltips = document.querySelectorAll('.keyword-tooltip');
-    tooltips.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation();
-            alert(this.getAttribute('data-tooltip'));
-        });
-    });
-}
-
-let isFull = false;
-function toggleFullscreen() {
-    const windowEl = document.getElementById("displayWindow");
-    const topBar = document.querySelector(".top-materials-bar");
-    const divider = document.getElementById("gamesDivider");
-    const grid = document.getElementById("gamesGrid");
-    const btnIcon = document.getElementById("resizeBtn").querySelector("i");
-
-    if (!isFull) {
-        topBar.style.display = "none";
-        divider.style.display = "none";
-        grid.style.display = "none";
-        windowEl.classList.add("fullscreen-active");
-        btnIcon.className = "fa-solid fa-compress";
-        isFull = true;
-    } else {
-        topBar.style.display = "flex";
-        divider.style.display = "flex";
-        grid.style.display = "grid";
-        windowEl.classList.remove("fullscreen-active");
-        btnIcon.className = "fa-solid fa-expand";
-        isFull = false;
-    }
-}
-
-function speakWord(word) {
-    try {
-        let cleanWord = word.replace(/[\[\]]/g, '');
-        if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.cancel();
-        }
-        const utterance = new SpeechSynthesisUtterance(cleanWord);
-        utterance.lang = 'en-US'; 
-        utterance.rate = 0.85; 
-        utterance.volume = 1.0; 
-        window.speechSynthesis.speak(utterance);
-    } catch (error) {
-        console.error("Audio xatolik:", error);
-    }
-}
-
-function toggleAudio() {
-    const audio = document.getElementById("lessonAudio");
-    const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
-    if (audio.paused) {
-        audio.play();
-        btnIcon.className = "fa-solid fa-pause";
-    } else {
-        audio.pause();
-        btnIcon.className = "fa-solid fa-play";
-    }
-}
-
-function rewindAudio(seconds) {
-    const audio = document.getElementById("lessonAudio");
-    audio.currentTime += seconds;
-}
-
-function changeAudioSpeed(speed) {
-    const audio = document.getElementById("lessonAudio");
-    audio.playbackRate = parseFloat(speed);
-}
-
-function seekAudio(value) {
-    const audio = document.getElementById("lessonAudio");
-    const seekTo = audio.duration * (value / 100);
-    audio.currentTime = seekTo;
-}
-
-function initAudioPlayerListeners() {
-    const audio = document.getElementById("lessonAudio");
-    const progressBar = document.getElementById("audioProgress");
-    if(!audio || !progressBar) return;
-
-    audio.addEventListener("timeupdate", () => {
-        if(audio.duration) {
-            const percentage = (audio.currentTime / audio.duration) * 100;
-            progressBar.value = percentage;
+            console.error("Dars topilmadi: " + lessonKey);
+            alert("Ushbu unit uchun hozircha database.js faylida ma'lumot mavjud emas!");
         }
     });
 
-    audio.addEventListener("ended", () => {
-        const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
-        btnIcon.className = "fa-solid fa-play";
-        progressBar.value = 0;
-    });
-}
+    // Wordwall o'yin tugmalariga dinamik linklarni ulash funksiyasi
+    function setupGameButtons(gamesData) {
+        if (!gamesData) return;
+        
+        // Har bir o'yin tugmasini ID si bo'yicha topib, linkini o'rnatamiz
+        const matchupBtn = document.getElementById("matchupBtn");
+        if (matchupBtn) matchupBtn.setAttribute("data-src", gamesData.matchup || "");
+
+        const anagramaBtn = document.getElementById("anagramaBtn");
+        if (anagramaBtn) anagramaBtn.setAttribute("data-src", gamesData.anagrama || "");
+
+        const typeanswerBtn = document.getElementById("typeanswerBtn");
+        if (typeanswerBtn) typeanswerBtn.setAttribute("data-src", gamesData.typeanswer || "");
+
+        const wordsearchBtn = document.getElementById("wordsearchBtn");
+        if (wordsearchBtn) wordsearchBtn.setAttribute("data-src", gamesData.wordsearch || "");
+
+        const pairBtn = document.getElementById("pairBtn");
+        if (pairBtn) pairBtn.setAttribute("data-src", gamesData.pair || "");
+    }
 </script>
-</body>
-</html>
