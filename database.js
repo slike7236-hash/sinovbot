@@ -106,4 +106,35 @@ The story of the lost village spread far and wide. Some people believed it was o
             games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
         }
     }
+   // 1-kitob, 2-dars (Yangi darslarni shu tariqa vergul qo'shib kiritasiz)
+    "ess1_3": {
+        uz: {
+            title: "Muhsina qizim haqida",
+            gamesTitle: "GAMELAR RO'YXATI",
+            textHtml: `<h3>Qizim 2023-yil tugilgan</h3><p>Otasi haqida...</p>`,
+            videoUrl: "https://www.youtube.com/embed/YEVO_Xw6wco",
+            // MANA SIZ AYTGAN SO'ZLAR RO'YXATI (JADVAL UCHUN) ✅
+            keywordsList: [
+                { word: "Book", translation: "Kitob" },
+                { word: "Pen", translation: "Ruchka" },
+                { word: "Pencil", translation: "Qalam" },
+                { word: "Cup", translation: "Chashka" },
+                { word: "Wind", translation: "Shamol" }
+            ],
+            testUrl: "https://docs.google.com/forms/...",
+            games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+        },
+        ru: {
+            title: "Мальчик, который кричал: Волк!",
+            gamesTitle: "СПИСОК ИГР",
+            textHtml: `<h3>Мальчик, который...</h3><p>Текст здесь...</p>`,
+            videoUrl: "https://www.youtube.com/embed/YEVO_Xw6wco",
+            // Rus tili uchun ruscha tarjimalari
+            keywordsList: [
+                { word: "Book", translation: "Книга" },
+                { word: "Pen", translation: "Ручка" }
+            ],
+            testUrl: "https://docs.google.com/forms/...",
+            games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+        } 
 };
