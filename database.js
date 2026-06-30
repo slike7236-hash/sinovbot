@@ -106,7 +106,7 @@ The story of the lost village spread far and wide. Some people believed it was o
             games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
         }
     }
-   // 1-kitob, 2-dars (Yangi darslarni shu tariqa vergul qo'shib kiritasiz)
+   // 1-kitob, 3-dars (Yangi darslarni shu tariqa vergul qo'shib kiritasiz)
     "ess1_3": {
         uz: {
             title: "Muhsina qizim haqida",
@@ -136,5 +136,7 @@ The story of the lost village spread far and wide. Some people believed it was o
             ],
             testUrl: "https://docs.google.com/forms/...",
             games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+        }
         } 
+    
 };
