@@ -82,5 +82,35 @@ const lessonsDatabase = {
             testUrl: "https://docs.google.com/forms/...",
             games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
         }
+    },
+    // 1-kitob, 3-dars
+    "ess1_3": {
+        uz: {
+            title: "Muhsinaxonim",
+            gamesTitle: "GAMELAR RO'YXATI",
+            textHtml: `<h3>My doughter</h3><p>Matn shu yerda...</p>`,
+            videoUrl: "https://www.youtube.com/embed/YEVO_Xw6wco",
+            keywordsList: [
+                { word: "Book", translation: "Kitob" },
+                { word: "Pen", translation: "Ruchka" },
+                { word: "Pencil", translation: "Qalam" },
+                { word: "Cup", translation: "Chashka" },
+                { word: "Wind", translation: "Shamol" }
+            ],
+            testUrl: "https://docs.google.com/forms/...",
+            games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+        },
+        ru: {
+            title: "Мальчик, который кричал: Волк!",
+            gamesTitle: "СПИСОК ИГР",
+            textHtml: `<h3>Мальчик, который...</h3><p>Текст здесь...</p>`,
+            videoUrl: "https://www.youtube.com/embed/YEVO_Xw6wco",
+            keywordsList: [
+                { word: "Book", translation: "Книга" },
+                { word: "Pen", translation: "Ручка" }
+            ],
+            testUrl: "https://docs.google.com/forms/...",
+            games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+        }
     }
 };
