@@ -25,7 +25,7 @@ const lessonsDatabase = {
             testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true",
             games: {
                 matchup: "https://wordwall.net/embed/play/73822/190/815",
-                anagrama: "<iframe style="max-width:100%" src="https://wordwall.net/embed/e81cc7a0b7464816a93fbe8c913711fc?themeId=1&templateId=38&fontStackId=0" width="500" height="380" frameborder="0" allowfullscreen></iframe>",
+                anagrama: "https://wordwall.net/embed/e81cc7a0b7464816a93fbe8c913711fc?themeId=1&templateId=38&fontStackId=0" width="500" height="380" frameborder="0" allowfullscreen></iframe>",
                 typeanswer: "https://wordwall.net/embed/play/73822/190/340",
                 wordsearch: "https://wordwall.net/embed/play/73822/190/450",
                 pair: "https://wordwall.net/embed/play/73822/190/560"
