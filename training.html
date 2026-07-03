@@ -97,6 +97,9 @@ let currentLessonData = lessonDataFull[currentLang];
 let localGameData = [];
 let selectedCards = { eng: null, uz: null };
 
+// O'yinlar uchun progress indekslari
+let currentGameIndex = 0;
+
 window.onload = function() {
     document.getElementById("langSelect").value = currentLang;
     renderLessonContent();
@@ -196,6 +199,12 @@ function loadContent(type) {
         
         injectGameStyles();
 
+        // Har safar o'yin tugmasi bosilganda indeksni boshiga qaytaramiz (agar toza yuklanish bo'lsa)
+        if (!window.gameTypeState || window.gameTypeState !== type) {
+            window.gameTypeState = type;
+            currentGameIndex = 0;
+        }
+
         if (type === 'matchup') buildMatchupGame(textZone);
         else if (type === 'anagrama') buildAnagramaGame(textZone);
         else if (type === 'typeanswer') buildTypeAnswerGame(textZone);
@@ -209,8 +218,9 @@ function injectGameStyles() {
     const style = document.createElement("style");
     style.id = "localGameStyles";
     style.innerHTML = `
-        .game-wrapper { background:#ffffff; padding:15px; border-radius:15px; text-align:center; margin-top:5px; }
-        .game-title { font-size:22px; color:#2c3e50; margin-bottom:20px; font-weight:bold; letter-spacing:0.5px; }
+        .game-wrapper { background:#ffffff; padding:15px; border-radius:15px; text-align:center; margin-top:5px; position:relative; }
+        .game-progress { font-size:14px; font-weight:bold; color:#7f8c8d; background:#f1f3f5; padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:10px; }
+        .game-title { font-size:22px; color:#2c3e50; margin-bottom:15px; font-weight:bold; letter-spacing:0.5px; }
         .game-cols { display:flex; justify-content:space-between; gap:15px; }
         .game-col { width:50%; display:flex; flex-direction:column; gap:10px; }
         .g-card { background:#f8f9fa; padding:14px; border:2px solid #e2e8f0; border-radius:12px; cursor:pointer; font-weight:600; font-size:16px; transition:0.2s; user-select:none; color:#2d3748; }
@@ -218,9 +228,14 @@ function injectGameStyles() {
         .g-card.selected { background:#3498db !important; color:white !important; border-color:#2980b9 !important; }
         .g-card.correct { background:#2ecc71 !important; color:white !important; border-color:#27ae60 !important; opacity:0.5; cursor:default; }
         .g-card.wrong { background:#e74c3c !important; color:white !important; border-color:#c0392b !important; }
-        .game-btn { background:#3498db; color:white; border:none; padding:12px 25px; font-size:16px; border-radius:8px; cursor:pointer; margin-top:20px; font-weight:bold; }
+        .game-btn-group { display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap; }
+        .game-btn { background:#3498db; color:white; border:none; padding:12px 22px; font-size:15px; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.2s; }
+        .game-btn.btn-clear { background:#e67e22; }
+        .game-btn.btn-skip { background:#95a5a6; }
+        .game-btn.btn-next { background:#2ecc71; }
+        .game-btn:hover { opacity:0.9; }
         
-        .letters-container { display:flex; justify-content:center; gap:10px; margin:25px 0; flex-wrap:wrap; }
+        .letters-container { display:flex; justify-content:center; gap:10px; margin:20px 0; flex-wrap:wrap; }
         .letter-box { width:48px; height:48px; background:#f1f3f5; border:2px solid #ced4da; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:bold; border-radius:10px; cursor:pointer; user-select:none; box-shadow:0 2px 4px rgba(0,0,0,0.05); }
         .letter-box.used { opacity:0.2; cursor:default; background:#e9ecef; box-shadow:none; }
         .word-input-view { min-width:180px; min-height:40px; border-bottom:3px solid #3498db; display:inline-block; font-size:26px; font-weight:bold; letter-spacing:6px; margin-bottom:20px; color:#2c3e50; text-transform:uppercase; }
@@ -230,34 +245,58 @@ function injectGameStyles() {
         .type-input:focus { border-color:#3498db; }
         
         .memory-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin:15px auto; max-width:360px; }
-        .m-card { height:75px; background:#2c3e50; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:bold; cursor:pointer; padding:5px; text-align:center; user-select:none; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+        .m-card { height:75px; background:#2c3e50; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:13px; font-weight:bold; cursor:pointer; padding:5px; text-align:center; user-select:none; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
         .m-card.flipped { background:#fff; color:#2c3e50; border:2px solid #2c3e50; }
         
         .ws-grid { display:grid; grid-template-columns:repeat(8, 1fr); gap:5px; max-width:320px; margin:15px auto; }
         .ws-cell { width:36px; height:36px; background:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; text-transform:uppercase; cursor:pointer; border-radius:6px; user-select:none; }
         .ws-cell.highlighted { background:#3498db; color:white; }
+        .ws-words-hint { font-size:14px; font-weight:bold; color:#2c3e50; margin-bottom:10px; background:#edf2f7; padding:8px; border-radius:8px; }
     `;
     document.head.appendChild(style);
 }
 
+// 1️⃣ MATCHUP GAME ENGINE (Guruhlab chiqarish)
 function buildMatchupGame(container) {
     selectedCards = { eng: null, uz: null };
-    let data = localGameData.slice(0, 5); 
+    let startIdx = currentGameIndex * 5;
+    let data = localGameData.slice(startIdx, startIdx + 5); 
+
+    if (data.length === 0) {
+        container.innerHTML = `
+            <div class="game-wrapper">
+                <div class="game-title">Match up</div>
+                <p>Barcha so'zlarni muvaffaqiyatli moslashtirdingiz! 🎉</p>
+                <button class="game-btn" onclick="currentGameIndex=0; buildMatchupGame(container)">Qayta boshlash</button>
+            </div>`;
+        return;
+    }
+
+    let totalGroups = Math.ceil(localGameData.length / 5);
     let engItems = data.map(i => i.word).sort(() => Math.random() - 0.5);
     let uzItems = data.map(i => i.translation).sort(() => Math.random() - 0.5);
 
     container.innerHTML = `
         <div class="game-wrapper">
+            <div class="game-progress">Bosqich: ${currentGameIndex + 1} / ${totalGroups}</div>
             <div class="game-title">Match up</div>
             <div class="game-cols">
                 <div class="game-col" id="engCol"></div>
                 <div class="game-col" id="uzCol"></div>
             </div>
-            <button class="game-btn" style="display:none;" id="muReset" onclick="loadContent('matchup')">🔄</button>
+            <div class="game-btn-group">
+                <button class="game-btn btn-next" style="display:none;" id="muNextBtn">Keyingi guruh ➡️</button>
+            </div>
         </div>`;
 
     const engCol = document.getElementById("engCol");
     const uzCol = document.getElementById("uzCol");
+    const nextBtn = document.getElementById("muNextBtn");
+
+    nextBtn.onclick = () => {
+        currentGameIndex++;
+        buildMatchupGame(container);
+    };
 
     engItems.forEach(w => {
         let card = document.createElement("div");
@@ -268,7 +307,7 @@ function buildMatchupGame(container) {
             if(selectedCards.eng) selectedCards.eng.classList.remove('selected');
             selectedCards.eng = card;
             card.classList.add('selected');
-            checkMatchup();
+            checkMatchup(data.length, nextBtn);
         };
         engCol.appendChild(card);
     });
@@ -282,17 +321,16 @@ function buildMatchupGame(container) {
             if(selectedCards.uz) selectedCards.uz.classList.remove('selected');
             selectedCards.uz = card;
             card.classList.add('selected');
-            checkMatchup();
+            checkMatchup(data.length, nextBtn);
         };
         uzCol.appendChild(card);
     });
 }
 
-function checkMatchup() {
+function checkMatchup(currentLen, nextBtn) {
     if (selectedCards.eng && selectedCards.uz) {
         let engVal = selectedCards.eng.innerText;
         let uzVal = selectedCards.uz.innerText;
-
         let match = localGameData.find(i => i.word === engVal && i.translation === uzVal);
 
         let eCard = selectedCards.eng;
@@ -304,8 +342,8 @@ function checkMatchup() {
             speakWord(engVal);
             selectedCards = { eng: null, uz: null };
             
-            if(document.querySelectorAll('.g-card.correct').length === localGameData.slice(0, 5).length * 2) {
-                document.getElementById("muReset").style.display = "inline-block";
+            if(document.querySelectorAll('.g-card.correct').length === currentLen * 2) {
+                nextBtn.style.display = "inline-block";
             }
         } else {
             eCard.classList.add('wrong');
@@ -319,27 +357,52 @@ function checkMatchup() {
     }
 }
 
+// 2️⃣ ANAGRAMA GAME ENGINE (Har bir so'z tartib bilan)
 let anagramWord = "";
 let anagramTyped = "";
 function buildAnagramaGame(container) {
-    let randomItem = localGameData[Math.floor(Math.random() * localGameData.length)];
-    anagramWord = randomItem.word.toUpperCase().replace(/[\[\]]/g, '').trim();
+    if (currentGameIndex >= localGameData.length) {
+        container.innerHTML = `
+            <div class="game-wrapper">
+                <div class="game-title">Anagrama</div>
+                <p>Lug'atdagi barcha anagramalarni tugatdingiz! 🏆</p>
+                <button class="game-btn" onclick="currentGameIndex=0; buildAnagramaGame(container)">Qaytadan boshlash</button>
+            </div>`;
+        return;
+    }
+
+    let currentItem = localGameData[currentGameIndex];
+    anagramWord = currentItem.word.toUpperCase().replace(/[\[\]]/g, '').trim();
     anagramTyped = "";
 
     let letters = anagramWord.split("").sort(() => Math.random() - 0.5);
 
     container.innerHTML = `
         <div class="game-wrapper">
+            <div class="game-progress">${currentGameIndex + 1} / ${localGameData.length}</div>
             <div class="game-title">Anagrama</div>
-            <div class="target-translation">${randomItem.translation}</div>
+            <div class="target-translation">${currentItem.translation}</div>
             <div class="word-input-view" id="anagView"></div>
             <div class="letters-container" id="lettersBox"></div>
-            <br>
-            <button class="game-btn" onclick="loadContent('anagrama')">🔄</button>
+            <div class="game-btn-group">
+                <button class="game-btn btn-clear" id="anagClear">Clear</button>
+                <button class="game-btn btn-skip" id="anagSkip">Skip</button>
+            </div>
         </div>`;
 
     const view = document.getElementById("anagView");
     const box = document.getElementById("lettersBox");
+    
+    document.getElementById("anagClear").onclick = () => {
+        anagramTyped = "";
+        view.innerText = "";
+        document.querySelectorAll('.letter-box').forEach(b => b.classList.remove('used'));
+    };
+
+    document.getElementById("anagSkip").onclick = () => {
+        currentGameIndex++;
+        buildAnagramaGame(container);
+    };
 
     letters.forEach((char) => {
         let lBox = document.createElement("div");
@@ -355,10 +418,18 @@ function buildAnagramaGame(container) {
                 if (anagramTyped === anagramWord) {
                     view.style.color = "#2ecc71";
                     speakWord(anagramWord);
-                    setTimeout(() => loadContent('anagrama'), 1000);
+                    setTimeout(() => {
+                        currentGameIndex++;
+                        buildAnagramaGame(container);
+                    }, 1000);
                 } else {
                     view.style.color = "#e74c3c";
-                    setTimeout(() => loadContent('anagrama'), 1000);
+                    setTimeout(() => {
+                        view.style.color = "#2c3e50";
+                        anagramTyped = "";
+                        view.innerText = "";
+                        document.querySelectorAll('.letter-box').forEach(b => b.classList.remove('used'));
+                    }, 1000);
                 }
             }
         };
@@ -366,23 +437,48 @@ function buildAnagramaGame(container) {
     });
 }
 
+// 3️⃣ TYPE ANSWER ENGINE (Bosqichma-bosqich yozish)
 function buildTypeAnswerGame(container) {
-    let randomItem = localGameData[Math.floor(Math.random() * localGameData.length)];
-    let targetWord = randomItem.word.toLowerCase().replace(/[\[\]]/g, '').trim();
+    if (currentGameIndex >= localGameData.length) {
+        container.innerHTML = `
+            <div class="game-wrapper">
+                <div class="game-title">Type Answer</div>
+                <p>Ajoyib! Barcha so'zlarni to'g'ri yozib chiqdingiz! ⌨️</p>
+                <button class="game-btn" onclick="currentGameIndex=0; buildTypeAnswerGame(container)">Qaytadan</button>
+            </div>`;
+        return;
+    }
+
+    let currentItem = localGameData[currentGameIndex];
+    let targetWord = currentItem.word.toLowerCase().replace(/[\[\]]/g, '').trim();
 
     container.innerHTML = `
         <div class="game-wrapper">
+            <div class="game-progress">${currentGameIndex + 1} / ${localGameData.length}</div>
             <div class="game-title">Type Answer</div>
-            <div class="target-translation">${randomItem.translation}</div>
-            <input type="text" class="type-input" id="typeInp" placeholder="..." autocomplete="off">
-            <br>
-            <button class="game-btn" id="checkTypeBtn">Check</button>
-            <button class="game-btn" style="display:none;" id="nextTypeBtn" onclick="loadContent('typeanswer')">➡️</button>
+            <div class="target-translation">${currentItem.translation}</div>
+            <input type="text" class="type-input" id="typeInp" placeholder="Yozing..." autocomplete="off">
+            <div class="game-btn-group">
+                <button class="game-btn" id="checkTypeBtn">Check</button>
+                <button class="game-btn btn-skip" id="skipTypeBtn">Skip</button>
+                <button class="game-btn btn-next" style="display:none;" id="nextTypeBtn">Next ➡️</button>
+            </div>
         </div>`;
 
     const inp = document.getElementById("typeInp");
     const btn = document.getElementById("checkTypeBtn");
+    const sBtn = document.getElementById("skipTypeBtn");
     const nBtn = document.getElementById("nextTypeBtn");
+
+    sBtn.onclick = () => {
+        currentGameIndex++;
+        buildTypeAnswerGame(container);
+    };
+
+    nBtn.onclick = () => {
+        currentGameIndex++;
+        buildTypeAnswerGame(container);
+    };
 
     btn.onclick = () => {
         let userVal = inp.value.toLowerCase().trim();
@@ -391,6 +487,7 @@ function buildTypeAnswerGame(container) {
             inp.style.color = "white";
             speakWord(targetWord);
             btn.style.display = "none";
+            sBtn.style.display = "none";
             nBtn.style.display = "inline-block";
         } else {
             inp.style.background = "#e74c3c";
@@ -404,8 +501,22 @@ function buildTypeAnswerGame(container) {
     };
 }
 
+// 4️⃣ WORD SEARCH ENGINE (To'liq topilishi kerak bo'lgan so'zlar bilan)
 function buildWordSearchGame(container) {
-    let data = localGameData.slice(0, 3); 
+    let startIdx = currentGameIndex * 3;
+    let data = localGameData.slice(startIdx, startIdx + 3); 
+
+    if (data.length === 0) {
+        container.innerHTML = `
+            <div class="game-wrapper">
+                <div class="game-title">Word Search</div>
+                <p>Hamma yashirin so'zlarni topib bo'ldingiz! 🔍</p>
+                <button class="game-btn" onclick="currentGameIndex=0; buildWordSearchGame(container)">Boshidan boshlash</button>
+            </div>`;
+        return;
+    }
+
+    let totalGroups = Math.ceil(localGameData.length / 3);
     let words = data.map(i => i.word.toUpperCase().replace(/[\[\]]/g, '').slice(0,6));
     let size = 8;
     let grid = Array(size).fill(null).map(() => Array(size).fill(''));
@@ -428,7 +539,9 @@ function buildWordSearchGame(container) {
 
     let html = `
         <div class="game-wrapper">
+            <div class="game-progress">Guruh: ${currentGameIndex + 1} / ${totalGroups}</div>
             <div class="game-title">Word Search</div>
+            <div class="ws-words-hint">Qidiring: ${words.join(', ')}</div>
             <div class="ws-grid" style="grid-template-columns: repeat(${size}, 1fr);">`;
             
     for(let r=0; r<size; r++){
@@ -438,16 +551,32 @@ function buildWordSearchGame(container) {
     }
     
     html += `</div>
-            <button class="game-btn" onclick="loadContent('wordsearch')">🔄</button>
+            <div class="game-btn-group">
+                <button class="game-btn btn-next" onclick="currentGameIndex++; buildWordSearchGame(document.getElementById('textContainer'))">Keyingi guruh ➡️</button>
+            </div>
         </div>`;
     container.innerHTML = html;
 }
 
+// 5️⃣ MEMORY CARD PAIR GAME ENGINE
 let firstCard = null, secondCard = null;
 let lockBoard = false;
 function buildPairGame(container) {
     firstCard = null; secondCard = null; lockBoard = false;
-    let data = localGameData.slice(0, 4); 
+    let startIdx = currentGameIndex * 4;
+    let data = localGameData.slice(startIdx, startIdx + 4); 
+
+    if (data.length === 0) {
+        container.innerHTML = `
+            <div class="game-wrapper">
+                <div class="game-title">Pair / Nopair</div>
+                <p>Xotira mashqi muvaffaqiyatli yakunlandi! 🧠</p>
+                <button class="game-btn" onclick="currentGameIndex=0; buildPairGame(container)">Qayta boshlash</button>
+            </div>`;
+        return;
+    }
+
+    let totalGroups = Math.ceil(localGameData.length / 4);
     let cardsArray = [];
     data.forEach(item => {
         cardsArray.push({ val: item.word, id: item.word });
@@ -457,20 +586,28 @@ function buildPairGame(container) {
 
     let html = `
         <div class="game-wrapper">
+            <div class="game-progress">Guruh: ${currentGameIndex + 1} / ${totalGroups}</div>
             <div class="game-title">Pair / Nopair</div>
             <div class="memory-grid">`;
             
     cardsArray.forEach((card, idx) => {
-        html += `<div class="m-card" id="mCard_${idx}" data-id="${card.id}" data-val="${card.val}" onclick="flipMemoryCard(this)">?</div>`;
+        html += `<div class="m-card" id="mCard_${idx}" data-id="${card.id}" data-val="${card.val}" onclick="flipMemoryCard(this, ${data.length}, document.getElementById('pairReset'))">?</div>`;
     });
     
     html += `</div>
-            <button class="game-btn" style="display:none;" id="pairReset" onclick="loadContent('pair')">🔄</button>
+            <div class="game-btn-group">
+                <button class="game-btn btn-next" style="display:none;" id="pairReset">Keyingi raund ➡️</button>
+            </div>
         </div>`;
     container.innerHTML = html;
+
+    document.getElementById("pairReset").onclick = () => {
+        currentGameIndex++;
+        buildPairGame(container);
+    };
 }
 
-function flipMemoryCard(card) {
+function flipMemoryCard(card, currentLen, nextBtn) {
     if (lockBoard || card === firstCard || card.classList.contains('flipped')) return;
 
     card.classList.add('flipped');
@@ -489,8 +626,8 @@ function flipMemoryCard(card) {
         secondCard.className = "m-card flipped correct";
         firstCard = null; secondCard = null; lockBoard = false;
         
-        if (document.querySelectorAll('.m-card.correct').length === localGameData.slice(0, 4).length * 2) {
-            document.getElementById("pairReset").style.display = "inline-block";
+        if (document.querySelectorAll('.m-card.correct').length === currentLen * 2) {
+            nextBtn.style.display = "inline-block";
         }
     } else {
         setTimeout(() => {
