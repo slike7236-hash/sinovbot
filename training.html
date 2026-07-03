@@ -81,6 +81,7 @@
         <div class="game-info">Pair / Nopair <i class="fa-solid fa-angle-right"></i></div>
     </button>
 </div>
+
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 const bookCode = urlParams.get('book') || "ess1";
@@ -93,7 +94,6 @@ if(currentLang === 'en') currentLang = 'uz';
 const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
 let currentLessonData = lessonDataFull[currentLang];
 
-// O'yinlar uchun global o'zgaruvchilar
 let localGameData = [];
 let selectedCards = { eng: null, uz: null };
 
@@ -132,10 +132,8 @@ function loadContent(type) {
     iframeZone.style.display = "none";
     iframeZone.src = "";
 
-    // Ma'lumotlarni o'yinlar uchun tayyorlab olish
     localGameData = currentLessonData.keywordsList || [];
 
-    // 1. TEXT JONLASHTIRISH
     if (type === 'text') {
         let audioHtml = '';
         if (currentLessonData.audioUrl) {
@@ -157,7 +155,6 @@ function loadContent(type) {
         initAudioPlayerListeners(); 
         initMobileTooltips(); 
     } 
-    // 2. KEYWORDS JONLASHTIRISH
     else if (type === 'keywords') {
         if (localGameData.length > 0) {
             let tableHtml = `
@@ -182,17 +179,14 @@ function loadContent(type) {
         }
         textZone.style.display = "block";
     }
-    // 3. VIDEO JONLASHTIRISH
     else if (type === 'video') {
         iframeZone.src = currentLessonData.videoUrl;
         iframeZone.style.display = "block";
     } 
-    // 4. TEST JONLASHTIRISH
     else if (type === 'test') {
         iframeZone.src = currentLessonData.testUrl;
         iframeZone.style.display = "block";
     } 
-    // 5. ICHKI GAMELAR MONITORI (Wordwall o'rniga o'zimizning o'yinlar yuklanadi)
     else {
         textZone.style.display = "block";
         if (localGameData.length === 0) {
@@ -200,7 +194,6 @@ function loadContent(type) {
             return;
         }
         
-        // CSS o'yin stillarini ulash
         injectGameStyles();
 
         if (type === 'matchup') buildMatchupGame(textZone);
@@ -211,66 +204,57 @@ function loadContent(type) {
     }
 }
 
-// 🎨 O'YINLAR STILIZATSIYASI
 function injectGameStyles() {
     if (document.getElementById("localGameStyles")) return;
     const style = document.createElement("style");
     style.id = "localGameStyles";
     style.innerHTML = `
-        .game-wrapper { background:#ffffff; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); text-align:center; border:1px solid #eef2f3; margin-top:10px; }
-        .game-title { font-size:20px; color:#2c3e50; margin-bottom:15px; font-weight:bold; }
-        .game-cols { display:flex; justify-content:space-between; gap:15px; margin-top:15px; }
+        .game-wrapper { background:#ffffff; padding:15px; border-radius:15px; text-align:center; margin-top:5px; }
+        .game-title { font-size:22px; color:#2c3e50; margin-bottom:20px; font-weight:bold; letter-spacing:0.5px; }
+        .game-cols { display:flex; justify-content:space-between; gap:15px; }
         .game-col { width:50%; display:flex; flex-direction:column; gap:10px; }
-        .g-card { background:#f8f9fa; padding:12px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer; font-weight:600; font-size:15px; transition:0.2s; user-select:none; color:#2d3748; }
+        .g-card { background:#f8f9fa; padding:14px; border:2px solid #e2e8f0; border-radius:12px; cursor:pointer; font-weight:600; font-size:16px; transition:0.2s; user-select:none; color:#2d3748; }
         .g-card:hover { background:#edf2f7; border-color:#cbd5e0; }
         .g-card.selected { background:#3498db !important; color:white !important; border-color:#2980b9 !important; }
-        .g-card.correct { background:#2ecc71 !important; color:white !important; border-color:#27ae60 !important; opacity:0.6; cursor:default; }
+        .g-card.correct { background:#2ecc71 !important; color:white !important; border-color:#27ae60 !important; opacity:0.5; cursor:default; }
         .g-card.wrong { background:#e74c3c !important; color:white !important; border-color:#c0392b !important; }
-        .game-btn { background:#3498db; color:white; border:none; padding:10px 20px; font-size:16px; border-radius:8px; cursor:pointer; margin-top:15px; font-weight:bold; }
-        .game-btn:hover { background:#2980b9; }
+        .game-btn { background:#3498db; color:white; border:none; padding:12px 25px; font-size:16px; border-radius:8px; cursor:pointer; margin-top:20px; font-weight:bold; }
         
-        /* Anagrama */
-        .letters-container { display:flex; justify-content:center; gap:8px; margin:20px 0; flex-wrap:wrap; }
-        .letter-box { width:45px; height:45px; background:#f1f3f5; border:2px solid #ced4da; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; border-radius:8px; cursor:pointer; user-select:none; }
-        .letter-box.used { opacity:0.3; cursor:default; background:#e9ecef; }
-        .word-input-view { min-width:200px; min-height:40px; border-bottom:3px solid #3498db; display:inline-block; font-size:24px; font-weight:bold; letter-spacing:5px; margin-bottom:15px; color:#2c3e50; text-transform:uppercase; }
+        .letters-container { display:flex; justify-content:center; gap:10px; margin:25px 0; flex-wrap:wrap; }
+        .letter-box { width:48px; height:48px; background:#f1f3f5; border:2px solid #ced4da; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:bold; border-radius:10px; cursor:pointer; user-select:none; box-shadow:0 2px 4px rgba(0,0,0,0.05); }
+        .letter-box.used { opacity:0.2; cursor:default; background:#e9ecef; box-shadow:none; }
+        .word-input-view { min-width:180px; min-height:40px; border-bottom:3px solid #3498db; display:inline-block; font-size:26px; font-weight:bold; letter-spacing:6px; margin-bottom:20px; color:#2c3e50; text-transform:uppercase; }
+        .target-translation { font-size:24px; color:#e67e22; font-weight:bold; margin-bottom:15px; }
         
-        /* Type Answer */
-        .type-input { width:80%; max-width:300px; padding:12px; font-size:16px; border:2px solid #cbd5e0; border-radius:8px; outline:none; text-align:center; font-weight:bold; }
+        .type-input { width:85%; max-width:280px; padding:14px; font-size:18px; border:2px solid #cbd5e0; border-radius:10px; outline:none; text-align:center; font-weight:bold; margin-bottom:15px; }
         .type-input:focus { border-color:#3498db; }
         
-        /* Memory Pair */
-        .memory-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin:15px auto; max-width:400px; }
-        .m-card { height:70px; background:#2c3e50; border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold; cursor:pointer; padding:5px; text-align:center; transform-style:preserve-3d; transition:transform 0.3s; user-select:none; }
+        .memory-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin:15px auto; max-width:360px; }
+        .m-card { height:75px; background:#2c3e50; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:bold; cursor:pointer; padding:5px; text-align:center; user-select:none; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
         .m-card.flipped { background:#fff; color:#2c3e50; border:2px solid #2c3e50; }
         
-        /* Word Search */
-        .ws-grid { display:grid; grid-template-columns:repeat(8, 1fr); gap:4px; max-width:320px; margin:15px auto; }
-        .ws-cell { width:36px; height:36px; background:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; text-transform:uppercase; cursor:pointer; border-radius:4px; user-select:none; }
+        .ws-grid { display:grid; grid-template-columns:repeat(8, 1fr); gap:5px; max-width:320px; margin:15px auto; }
+        .ws-cell { width:36px; height:36px; background:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; text-transform:uppercase; cursor:pointer; border-radius:6px; user-select:none; }
         .ws-cell.highlighted { background:#3498db; color:white; }
-        .ws-cell.found { background:#2ecc71; color:white; }
     `;
     document.head.appendChild(style);
 }
 
-// 1️⃣ MATCHUP GAME ENGINE
 function buildMatchupGame(container) {
     selectedCards = { eng: null, uz: null };
-    let data = localGameData.slice(0, 5); // Maksimal 5 ta so'z
+    let data = localGameData.slice(0, 5); 
     let engItems = data.map(i => i.word).sort(() => Math.random() - 0.5);
     let uzItems = data.map(i => i.translation).sort(() => Math.random() - 0.5);
 
-    let html = `
+    container.innerHTML = `
         <div class="game-wrapper">
-            <div class="game-title">Match up (Moslashtirish) 🧩</div>
-            <p style="color:#7f8c8d; font-size:14px;">Inglizcha so'zni va uning o'zbekcha tarjimasini ketma-ket tanlang.</p>
+            <div class="game-title">Match up</div>
             <div class="game-cols">
                 <div class="game-col" id="engCol"></div>
                 <div class="game-col" id="uzCol"></div>
             </div>
-            <button class="game-btn" style="display:none;" id="muReset" onclick="loadContent('matchup')">Qayta yuklash 🔄</button>
+            <button class="game-btn" style="display:none;" id="muReset" onclick="loadContent('matchup')">🔄</button>
         </div>`;
-    container.innerHTML = html;
 
     const engCol = document.getElementById("engCol");
     const uzCol = document.getElementById("uzCol");
@@ -335,7 +319,6 @@ function checkMatchup() {
     }
 }
 
-// 2️⃣ ANAGRAMA GAME ENGINE
 let anagramWord = "";
 let anagramTyped = "";
 function buildAnagramaGame(container) {
@@ -347,18 +330,18 @@ function buildAnagramaGame(container) {
 
     container.innerHTML = `
         <div class="game-wrapper">
-            <div class="game-title">Anagrama (Harflarni yig'ish) 🔀</div>
-            <p style="color:#e67e22; font-weight:bold; font-size:16px;">Tarjimasi: ${randomItem.translation}</p>
+            <div class="game-title">Anagrama</div>
+            <div class="target-translation">${randomItem.translation}</div>
             <div class="word-input-view" id="anagView"></div>
             <div class="letters-container" id="lettersBox"></div>
             <br>
-            <button class="game-btn" style="background:#e74c3c; margin-right:10px;" onclick="loadContent('anagrama')">Tozalash / Keyingi 🔁</button>
+            <button class="game-btn" onclick="loadContent('anagrama')">🔄</button>
         </div>`;
 
     const view = document.getElementById("anagView");
     const box = document.getElementById("lettersBox");
 
-    letters.forEach((char, idx) => {
+    letters.forEach((char) => {
         let lBox = document.createElement("div");
         lBox.className = "letter-box";
         lBox.innerText = char;
@@ -372,13 +355,10 @@ function buildAnagramaGame(container) {
                 if (anagramTyped === anagramWord) {
                     view.style.color = "#2ecc71";
                     speakWord(anagramWord);
-                    setTimeout(() => alert("To'g'ri topildi! 🎉"), 300);
+                    setTimeout(() => loadContent('anagrama'), 1000);
                 } else {
                     view.style.color = "#e74c3c";
-                    setTimeout(() => {
-                        alert("Xato! Qayta urining.");
-                        loadContent('anagrama');
-                    }, 400);
+                    setTimeout(() => loadContent('anagrama'), 1000);
                 }
             }
         };
@@ -386,20 +366,18 @@ function buildAnagramaGame(container) {
     });
 }
 
-// 3️⃣ TYPE ANSWER ENGINE
 function buildTypeAnswerGame(container) {
     let randomItem = localGameData[Math.floor(Math.random() * localGameData.length)];
     let targetWord = randomItem.word.toLowerCase().replace(/[\[\]]/g, '').trim();
 
     container.innerHTML = `
         <div class="game-wrapper">
-            <div class="game-title">Type Answer (So'z yozish) ⌨️</div>
-            <p style="font-size:18px; font-weight:bold; color:#2c3e50;">Ushbu so'zning inglizcha variantini yozing:</p>
-            <p style="font-size:20px; color:#3498db; font-weight:bold; margin-bottom:15px;">"${randomItem.translation}"</p>
-            <input type="text" class="type-input" id="typeInp" placeholder="Bu yerga yozing..." autocomplete="off">
+            <div class="game-title">Type Answer</div>
+            <div class="target-translation">${randomItem.translation}</div>
+            <input type="text" class="type-input" id="typeInp" placeholder="..." autocomplete="off">
             <br>
-            <button class="game-btn" id="checkTypeBtn">Tekshirish Check</button>
-            <button class="game-btn" style="background:#95a5a6; display:none;" id="nextTypeBtn" onclick="loadContent('typeanswer')">Keyingi dars ➡️</button>
+            <button class="game-btn" id="checkTypeBtn">Check</button>
+            <button class="game-btn" style="display:none;" id="nextTypeBtn" onclick="loadContent('typeanswer')">➡️</button>
         </div>`;
 
     const inp = document.getElementById("typeInp");
@@ -420,31 +398,25 @@ function buildTypeAnswerGame(container) {
             setTimeout(() => {
                 inp.style.background = "white";
                 inp.style.color = "black";
+                inp.value = "";
             }, 800);
         }
     };
 }
 
-// 4️⃣ WORD SEARCH ENGINE
-let selectedCells = [];
 function buildWordSearchGame(container) {
-    selectedCells = [];
-    let data = localGameData.slice(0, 3); // Jadval kichik bo'lishi uchun 3 ta so'z olamiz
+    let data = localGameData.slice(0, 3); 
     let words = data.map(i => i.word.toUpperCase().replace(/[\[\]]/g, '').slice(0,6));
-    
-    // 8x8 o'yin matritsasi
     let size = 8;
     let grid = Array(size).fill(null).map(() => Array(size).fill(''));
     
-    // So'zlarni matritsaga joylash
     words.forEach((word, index) => {
-        let row = index * 2; // Har xil qatorlarga qo'yamiz
+        let row = index * 2; 
         for(let i=0; i<word.length; i++) {
             if(i < size) grid[row][i] = word[i];
         }
     });
 
-    // Bo'sh joylarni tasodifiy harflar bilan to'ldirish
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for(let r=0; r<size; r++){
         for(let c=0; c<size; c++){
@@ -456,54 +428,44 @@ function buildWordSearchGame(container) {
 
     let html = `
         <div class="game-wrapper">
-            <div class="game-title">Word Search (Yashirin so'zlar) 🔍</div>
-            <p style="font-size:13px; color:#e74c3c; font-weight:bold;">Toping: ${words.join(', ')}</p>
+            <div class="game-title">Word Search</div>
             <div class="ws-grid" style="grid-template-columns: repeat(${size}, 1fr);">`;
             
     for(let r=0; r<size; r++){
         for(let c=0; c<size; c++){
-            html += `<div class="ws-cell" data-r="${r}" data-c="${c}" onclick="selectWsCell(this)">${grid[r][c]}</div>`;
+            html += `<div class="ws-cell" onclick="this.classList.toggle('highlighted')">${grid[r][c]}</div>`;
         }
     }
     
     html += `</div>
-            <button class="game-btn" onclick="loadContent('wordsearch')">Yangi o'yin 🔄</button>
+            <button class="game-btn" onclick="loadContent('wordsearch')">🔄</button>
         </div>`;
     container.innerHTML = html;
 }
 
-function selectWsCell(cell) {
-    cell.classList.toggle('highlighted');
-    // Soddalashtirilgan versiya: topilgan harflarni yashil qilish uchun o'zingiz belgilaysiz
-}
-
-// 5️⃣ MEMORY CARD PAIR GAME ENGINE
 let firstCard = null, secondCard = null;
 let lockBoard = false;
 function buildPairGame(container) {
     firstCard = null; secondCard = null; lockBoard = false;
-    let data = localGameData.slice(0, 4); // 4 ta juftlik = 8 ta karta
-    
+    let data = localGameData.slice(0, 4); 
     let cardsArray = [];
     data.forEach(item => {
-        cardsArray.push({ type: 'eng', val: item.word, id: item.word });
-        cardsArray.push({ type: 'uz', val: item.translation, id: item.word });
+        cardsArray.push({ val: item.word, id: item.word });
+        cardsArray.push({ val: item.translation, id: item.word });
     });
-    
-    // Chalkashtirish
     cardsArray.sort(() => Math.random() - 0.5);
 
     let html = `
         <div class="game-wrapper">
-            <div class="game-title">Pair / Nopair (Xotira mashqi) 🧠</div>
+            <div class="game-title">Pair / Nopair</div>
             <div class="memory-grid">`;
             
     cardsArray.forEach((card, idx) => {
-        html += `<div class="m-card" id="mCard_${idx}" data-id="${card.id}" data-val="${card.val}" onclick="flipMemoryCard(this)">❔</div>`;
+        html += `<div class="m-card" id="mCard_${idx}" data-id="${card.id}" data-val="${card.val}" onclick="flipMemoryCard(this)">?</div>`;
     });
     
     html += `</div>
-            <button class="game-btn" style="display:none;" id="pairReset" onclick="loadContent('pair')">Qayta boshlash 🔄</button>
+            <button class="game-btn" style="display:none;" id="pairReset" onclick="loadContent('pair')">🔄</button>
         </div>`;
     container.innerHTML = html;
 }
@@ -534,14 +496,13 @@ function flipMemoryCard(card) {
         setTimeout(() => {
             firstCard.classList.remove('flipped');
             secondCard.classList.remove('flipped');
-            firstCard.innerText = "❔";
-            secondCard.innerText = "❔";
+            firstCard.innerText = "?";
+            secondCard.innerText = "?";
             firstCard = null; secondCard = null; lockBoard = false;
         }, 1000);
     }
 }
 
-// 🔊 SIZNING ESKI AUDIO VA TOOLTIP FUNKSIYALARINGIZ TEGIB O'TILMADI
 function initMobileTooltips() {
     const tooltips = document.querySelectorAll('.keyword-tooltip');
     tooltips.forEach(item => {
