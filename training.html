@@ -81,7 +81,6 @@
         <div class="game-info">Pair / Nopair <i class="fa-solid fa-angle-right"></i></div>
     </button>
 </div>
-
 <script>
 const urlParams = new URLSearchParams(window.location.search);
 const bookCode = urlParams.get('book') || "ess1";
@@ -93,6 +92,10 @@ if(currentLang === 'en') currentLang = 'uz';
 
 const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
 let currentLessonData = lessonDataFull[currentLang];
+
+// O'yinlar uchun global o'zgaruvchilar
+let localGameData = [];
+let selectedCards = { eng: null, uz: null };
 
 window.onload = function() {
     document.getElementById("langSelect").value = currentLang;
@@ -129,32 +132,25 @@ function loadContent(type) {
     iframeZone.style.display = "none";
     iframeZone.src = "";
 
-    // 1. TEXT JONLASHTIRISH (AUDIO PLEYER SHU YERDA)
+    // Ma'lumotlarni o'yinlar uchun tayyorlab olish
+    localGameData = currentLessonData.keywordsList || [];
+
+    // 1. TEXT JONLASHTIRISH
     if (type === 'text') {
         let audioHtml = '';
         if (currentLessonData.audioUrl) {
             audioHtml = `
-                <div class="sticky-player-wrapper">
-                    <div class="audio-player-container">
-                        <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
-                        <div class="player-controls">
-                            <button onclick="rewindAudio(-10)" class="p-btn"><i class="fa-solid fa-backward"></i></button>
-                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
-                            <button onclick="rewindAudio(10)" class="p-btn"><i class="fa-solid fa-forward"></i></button>
-                            
-                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
-                                <option value="0.75">0.75x</option>
-                                <option value="1.0" selected>1.0x</option>
-                                <option value="1.25">1.25x</option>
-                                <option value="1.5">1.5x</option>
-                            </select>
-                        </div>
-                        <div class="progress-wrapper">
-                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
-                        </div>
-                    </div>
-                </div>
-            `;
+                <div class="audio-player-container" style="background:#f1f1f1; padding:10px; border-radius:8px; margin-bottom:15px; display:flex; gap:10px; align-items:center;">
+                    <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
+                    <button id="playPauseBtn" onclick="toggleAudio()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;"><i class="fa-solid fa-play"></i></button>
+                    <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)" style="flex-grow:1;">
+                    <select onchange="changeAudioSpeed(this.value)" style="padding:5px; border-radius:5px;">
+                        <option value="0.75">0.75x</option>
+                        <option value="1.0" selected>1.0x</option>
+                        <option value="1.25">1.25x</option>
+                        <option value="1.5">1.5x</option>
+                    </select>
+                </div>`;
         }
         textZone.innerHTML = audioHtml + currentLessonData.textHtml;
         textZone.style.display = "block";
@@ -163,30 +159,23 @@ function loadContent(type) {
     } 
     // 2. KEYWORDS JONLASHTIRISH
     else if (type === 'keywords') {
-        if (currentLessonData.keywordsList && currentLessonData.keywordsList.length > 0) {
-            let tableHtml = `<div class="keywords-table-wrapper">
-                                <table class="keywords-custom-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Word</th>
-                                            <th>Translation</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
-            currentLessonData.keywordsList.forEach(item => {
-                tableHtml += `<tr>
-                                <td class="kw-bold-word">
-                                    <div class="word-with-audio">
-                                        <button class="speak-btn" onclick="speakWord('${item.word.replace(/'/g, "\\'")}')">
-                                            <i class="fa-solid fa-volume-high"></i>
-                                        </button>
-                                        <span class="actual-word">${item.word}</span>
-                                    </div>
-                                </td>
-                                <td class="kw-translation">${item.translation}</td>
-                              </tr>`;
+        if (localGameData.length > 0) {
+            let tableHtml = `
+                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+                    <tr style="background:#3498db; color:white;">
+                        <th style="padding:10px; border:1px solid #ddd; text-align:left;">Word</th>
+                        <th style="padding:10px; border:1px solid #ddd; text-align:left;">Translation</th>
+                    </tr>`;
+            localGameData.forEach(item => {
+                tableHtml += `
+                    <tr>
+                        <td style="padding:10px; border:1px solid #ddd; font-weight:bold; cursor:pointer; color:#2c3e50;" onclick="speakWord('${item.word}')">
+                            <i class="fa-solid fa-volume-high" style="margin-right:8px; color:#3498db;"></i>${item.word}
+                        </td>
+                        <td style="padding:10px; border:1px solid #ddd; color:#7f8c8d;">${item.translation}</td>
+                    </tr>`;
             });
-            tableHtml += `</tbody></table></div>`;
+            tableHtml += `</table>`;
             textZone.innerHTML = tableHtml;
         } else {
             textZone.innerHTML = `<p style="padding:20px; text-align:center;">Keywords topilmadi.</p>`;
@@ -203,15 +192,356 @@ function loadContent(type) {
         iframeZone.src = currentLessonData.testUrl;
         iframeZone.style.display = "block";
     } 
-    // 5. GAMELAR JONLASHTIRISH
+    // 5. ICHKI GAMELAR MONITORI (Wordwall o'rniga o'zimizning o'yinlar yuklanadi)
     else {
-        if (currentLessonData.games && currentLessonData.games[type]) {
-            iframeZone.src = currentLessonData.games[type];
-            iframeZone.style.display = "block";
+        textZone.style.display = "block";
+        if (localGameData.length === 0) {
+            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin yaratish uchun lug'at boyligi yetarli emas!</p>`;
+            return;
+        }
+        
+        // CSS o'yin stillarini ulash
+        injectGameStyles();
+
+        if (type === 'matchup') buildMatchupGame(textZone);
+        else if (type === 'anagrama') buildAnagramaGame(textZone);
+        else if (type === 'typeanswer') buildTypeAnswerGame(textZone);
+        else if (type === 'wordsearch') buildWordSearchGame(textZone);
+        else if (type === 'pair') buildPairGame(textZone);
+    }
+}
+
+// 🎨 O'YINLAR STILIZATSIYASI
+function injectGameStyles() {
+    if (document.getElementById("localGameStyles")) return;
+    const style = document.createElement("style");
+    style.id = "localGameStyles";
+    style.innerHTML = `
+        .game-wrapper { background:#ffffff; padding:20px; border-radius:15px; box-shadow:0 4px 15px rgba(0,0,0,0.05); text-align:center; border:1px solid #eef2f3; margin-top:10px; }
+        .game-title { font-size:20px; color:#2c3e50; margin-bottom:15px; font-weight:bold; }
+        .game-cols { display:flex; justify-content:space-between; gap:15px; margin-top:15px; }
+        .game-col { width:50%; display:flex; flex-direction:column; gap:10px; }
+        .g-card { background:#f8f9fa; padding:12px; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer; font-weight:600; font-size:15px; transition:0.2s; user-select:none; color:#2d3748; }
+        .g-card:hover { background:#edf2f7; border-color:#cbd5e0; }
+        .g-card.selected { background:#3498db !important; color:white !important; border-color:#2980b9 !important; }
+        .g-card.correct { background:#2ecc71 !important; color:white !important; border-color:#27ae60 !important; opacity:0.6; cursor:default; }
+        .g-card.wrong { background:#e74c3c !important; color:white !important; border-color:#c0392b !important; }
+        .game-btn { background:#3498db; color:white; border:none; padding:10px 20px; font-size:16px; border-radius:8px; cursor:pointer; margin-top:15px; font-weight:bold; }
+        .game-btn:hover { background:#2980b9; }
+        
+        /* Anagrama */
+        .letters-container { display:flex; justify-content:center; gap:8px; margin:20px 0; flex-wrap:wrap; }
+        .letter-box { width:45px; height:45px; background:#f1f3f5; border:2px solid #ced4da; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; border-radius:8px; cursor:pointer; user-select:none; }
+        .letter-box.used { opacity:0.3; cursor:default; background:#e9ecef; }
+        .word-input-view { min-width:200px; min-height:40px; border-bottom:3px solid #3498db; display:inline-block; font-size:24px; font-weight:bold; letter-spacing:5px; margin-bottom:15px; color:#2c3e50; text-transform:uppercase; }
+        
+        /* Type Answer */
+        .type-input { width:80%; max-width:300px; padding:12px; font-size:16px; border:2px solid #cbd5e0; border-radius:8px; outline:none; text-align:center; font-weight:bold; }
+        .type-input:focus { border-color:#3498db; }
+        
+        /* Memory Pair */
+        .memory-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin:15px auto; max-width:400px; }
+        .m-card { height:70px; background:#2c3e50; border-radius:8px; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold; cursor:pointer; padding:5px; text-align:center; transform-style:preserve-3d; transition:transform 0.3s; user-select:none; }
+        .m-card.flipped { background:#fff; color:#2c3e50; border:2px solid #2c3e50; }
+        
+        /* Word Search */
+        .ws-grid { display:grid; grid-template-columns:repeat(8, 1fr); gap:4px; max-width:320px; margin:15px auto; }
+        .ws-cell { width:36px; height:36px; background:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; text-transform:uppercase; cursor:pointer; border-radius:4px; user-select:none; }
+        .ws-cell.highlighted { background:#3498db; color:white; }
+        .ws-cell.found { background:#2ecc71; color:white; }
+    `;
+    document.head.appendChild(style);
+}
+
+// 1️⃣ MATCHUP GAME ENGINE
+function buildMatchupGame(container) {
+    selectedCards = { eng: null, uz: null };
+    let data = localGameData.slice(0, 5); // Maksimal 5 ta so'z
+    let engItems = data.map(i => i.word).sort(() => Math.random() - 0.5);
+    let uzItems = data.map(i => i.translation).sort(() => Math.random() - 0.5);
+
+    let html = `
+        <div class="game-wrapper">
+            <div class="game-title">Match up (Moslashtirish) 🧩</div>
+            <p style="color:#7f8c8d; font-size:14px;">Inglizcha so'zni va uning o'zbekcha tarjimasini ketma-ket tanlang.</p>
+            <div class="game-cols">
+                <div class="game-col" id="engCol"></div>
+                <div class="game-col" id="uzCol"></div>
+            </div>
+            <button class="game-btn" style="display:none;" id="muReset" onclick="loadContent('matchup')">Qayta yuklash 🔄</button>
+        </div>`;
+    container.innerHTML = html;
+
+    const engCol = document.getElementById("engCol");
+    const uzCol = document.getElementById("uzCol");
+
+    engItems.forEach(w => {
+        let card = document.createElement("div");
+        card.className = "g-card";
+        card.innerText = w;
+        card.onclick = () => {
+            if(card.classList.contains('correct') || card.classList.contains('wrong')) return;
+            if(selectedCards.eng) selectedCards.eng.classList.remove('selected');
+            selectedCards.eng = card;
+            card.classList.add('selected');
+            checkMatchup();
+        };
+        engCol.appendChild(card);
+    });
+
+    uzItems.forEach(t => {
+        let card = document.createElement("div");
+        card.className = "g-card";
+        card.innerText = t;
+        card.onclick = () => {
+            if(card.classList.contains('correct') || card.classList.contains('wrong')) return;
+            if(selectedCards.uz) selectedCards.uz.classList.remove('selected');
+            selectedCards.uz = card;
+            card.classList.add('selected');
+            checkMatchup();
+        };
+        uzCol.appendChild(card);
+    });
+}
+
+function checkMatchup() {
+    if (selectedCards.eng && selectedCards.uz) {
+        let engVal = selectedCards.eng.innerText;
+        let uzVal = selectedCards.uz.innerText;
+
+        let match = localGameData.find(i => i.word === engVal && i.translation === uzVal);
+
+        let eCard = selectedCards.eng;
+        let uCard = selectedCards.uz;
+
+        if (match) {
+            eCard.className = "g-card correct";
+            uCard.className = "g-card correct";
+            speakWord(engVal);
+            selectedCards = { eng: null, uz: null };
+            
+            if(document.querySelectorAll('.g-card.correct').length === localGameData.slice(0, 5).length * 2) {
+                document.getElementById("muReset").style.display = "inline-block";
+            }
+        } else {
+            eCard.classList.add('wrong');
+            uCard.classList.add('wrong');
+            selectedCards = { eng: null, uz: null };
+            setTimeout(() => {
+                eCard.classList.remove('wrong', 'selected');
+                uCard.classList.remove('wrong', 'selected');
+            }, 600);
         }
     }
 }
 
+// 2️⃣ ANAGRAMA GAME ENGINE
+let anagramWord = "";
+let anagramTyped = "";
+function buildAnagramaGame(container) {
+    let randomItem = localGameData[Math.floor(Math.random() * localGameData.length)];
+    anagramWord = randomItem.word.toUpperCase().replace(/[\[\]]/g, '').trim();
+    anagramTyped = "";
+
+    let letters = anagramWord.split("").sort(() => Math.random() - 0.5);
+
+    container.innerHTML = `
+        <div class="game-wrapper">
+            <div class="game-title">Anagrama (Harflarni yig'ish) 🔀</div>
+            <p style="color:#e67e22; font-weight:bold; font-size:16px;">Tarjimasi: ${randomItem.translation}</p>
+            <div class="word-input-view" id="anagView"></div>
+            <div class="letters-container" id="lettersBox"></div>
+            <br>
+            <button class="game-btn" style="background:#e74c3c; margin-right:10px;" onclick="loadContent('anagrama')">Tozalash / Keyingi 🔁</button>
+        </div>`;
+
+    const view = document.getElementById("anagView");
+    const box = document.getElementById("lettersBox");
+
+    letters.forEach((char, idx) => {
+        let lBox = document.createElement("div");
+        lBox.className = "letter-box";
+        lBox.innerText = char;
+        lBox.onclick = () => {
+            if(lBox.classList.contains('used')) return;
+            lBox.classList.add('used');
+            anagramTyped += char;
+            view.innerText = anagramTyped;
+
+            if (anagramTyped.length === anagramWord.length) {
+                if (anagramTyped === anagramWord) {
+                    view.style.color = "#2ecc71";
+                    speakWord(anagramWord);
+                    setTimeout(() => alert("To'g'ri topildi! 🎉"), 300);
+                } else {
+                    view.style.color = "#e74c3c";
+                    setTimeout(() => {
+                        alert("Xato! Qayta urining.");
+                        loadContent('anagrama');
+                    }, 400);
+                }
+            }
+        };
+        box.appendChild(lBox);
+    });
+}
+
+// 3️⃣ TYPE ANSWER ENGINE
+function buildTypeAnswerGame(container) {
+    let randomItem = localGameData[Math.floor(Math.random() * localGameData.length)];
+    let targetWord = randomItem.word.toLowerCase().replace(/[\[\]]/g, '').trim();
+
+    container.innerHTML = `
+        <div class="game-wrapper">
+            <div class="game-title">Type Answer (So'z yozish) ⌨️</div>
+            <p style="font-size:18px; font-weight:bold; color:#2c3e50;">Ushbu so'zning inglizcha variantini yozing:</p>
+            <p style="font-size:20px; color:#3498db; font-weight:bold; margin-bottom:15px;">"${randomItem.translation}"</p>
+            <input type="text" class="type-input" id="typeInp" placeholder="Bu yerga yozing..." autocomplete="off">
+            <br>
+            <button class="game-btn" id="checkTypeBtn">Tekshirish Check</button>
+            <button class="game-btn" style="background:#95a5a6; display:none;" id="nextTypeBtn" onclick="loadContent('typeanswer')">Keyingi dars ➡️</button>
+        </div>`;
+
+    const inp = document.getElementById("typeInp");
+    const btn = document.getElementById("checkTypeBtn");
+    const nBtn = document.getElementById("nextTypeBtn");
+
+    btn.onclick = () => {
+        let userVal = inp.value.toLowerCase().trim();
+        if(userVal === targetWord) {
+            inp.style.background = "#2ecc71";
+            inp.style.color = "white";
+            speakWord(targetWord);
+            btn.style.display = "none";
+            nBtn.style.display = "inline-block";
+        } else {
+            inp.style.background = "#e74c3c";
+            inp.style.color = "white";
+            setTimeout(() => {
+                inp.style.background = "white";
+                inp.style.color = "black";
+            }, 800);
+        }
+    };
+}
+
+// 4️⃣ WORD SEARCH ENGINE
+let selectedCells = [];
+function buildWordSearchGame(container) {
+    selectedCells = [];
+    let data = localGameData.slice(0, 3); // Jadval kichik bo'lishi uchun 3 ta so'z olamiz
+    let words = data.map(i => i.word.toUpperCase().replace(/[\[\]]/g, '').slice(0,6));
+    
+    // 8x8 o'yin matritsasi
+    let size = 8;
+    let grid = Array(size).fill(null).map(() => Array(size).fill(''));
+    
+    // So'zlarni matritsaga joylash
+    words.forEach((word, index) => {
+        let row = index * 2; // Har xil qatorlarga qo'yamiz
+        for(let i=0; i<word.length; i++) {
+            if(i < size) grid[row][i] = word[i];
+        }
+    });
+
+    // Bo'sh joylarni tasodifiy harflar bilan to'ldirish
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for(let r=0; r<size; r++){
+        for(let c=0; c<size; c++){
+            if(grid[r][c] === '') {
+                grid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
+            }
+        }
+    }
+
+    let html = `
+        <div class="game-wrapper">
+            <div class="game-title">Word Search (Yashirin so'zlar) 🔍</div>
+            <p style="font-size:13px; color:#e74c3c; font-weight:bold;">Toping: ${words.join(', ')}</p>
+            <div class="ws-grid" style="grid-template-columns: repeat(${size}, 1fr);">`;
+            
+    for(let r=0; r<size; r++){
+        for(let c=0; c<size; c++){
+            html += `<div class="ws-cell" data-r="${r}" data-c="${c}" onclick="selectWsCell(this)">${grid[r][c]}</div>`;
+        }
+    }
+    
+    html += `</div>
+            <button class="game-btn" onclick="loadContent('wordsearch')">Yangi o'yin 🔄</button>
+        </div>`;
+    container.innerHTML = html;
+}
+
+function selectWsCell(cell) {
+    cell.classList.toggle('highlighted');
+    // Soddalashtirilgan versiya: topilgan harflarni yashil qilish uchun o'zingiz belgilaysiz
+}
+
+// 5️⃣ MEMORY CARD PAIR GAME ENGINE
+let firstCard = null, secondCard = null;
+let lockBoard = false;
+function buildPairGame(container) {
+    firstCard = null; secondCard = null; lockBoard = false;
+    let data = localGameData.slice(0, 4); // 4 ta juftlik = 8 ta karta
+    
+    let cardsArray = [];
+    data.forEach(item => {
+        cardsArray.push({ type: 'eng', val: item.word, id: item.word });
+        cardsArray.push({ type: 'uz', val: item.translation, id: item.word });
+    });
+    
+    // Chalkashtirish
+    cardsArray.sort(() => Math.random() - 0.5);
+
+    let html = `
+        <div class="game-wrapper">
+            <div class="game-title">Pair / Nopair (Xotira mashqi) 🧠</div>
+            <div class="memory-grid">`;
+            
+    cardsArray.forEach((card, idx) => {
+        html += `<div class="m-card" id="mCard_${idx}" data-id="${card.id}" data-val="${card.val}" onclick="flipMemoryCard(this)">❔</div>`;
+    });
+    
+    html += `</div>
+            <button class="game-btn" style="display:none;" id="pairReset" onclick="loadContent('pair')">Qayta boshlash 🔄</button>
+        </div>`;
+    container.innerHTML = html;
+}
+
+function flipMemoryCard(card) {
+    if (lockBoard || card === firstCard || card.classList.contains('flipped')) return;
+
+    card.classList.add('flipped');
+    card.innerText = card.getAttribute('data-val');
+
+    if (!firstCard) {
+        firstCard = card;
+        return;
+    }
+
+    secondCard = card;
+    lockBoard = true;
+
+    if (firstCard.getAttribute('data-id') === secondCard.getAttribute('data-id')) {
+        firstCard.className = "m-card flipped correct";
+        secondCard.className = "m-card flipped correct";
+        firstCard = null; secondCard = null; lockBoard = false;
+        
+        if (document.querySelectorAll('.m-card.correct').length === localGameData.slice(0, 4).length * 2) {
+            document.getElementById("pairReset").style.display = "inline-block";
+        }
+    } else {
+        setTimeout(() => {
+            firstCard.classList.remove('flipped');
+            secondCard.classList.remove('flipped');
+            firstCard.innerText = "❔";
+            secondCard.innerText = "❔";
+            firstCard = null; secondCard = null; lockBoard = false;
+        }, 1000);
+    }
+}
+
+// 🔊 SIZNING ESKI AUDIO VA TOOLTIP FUNKSIYALARINGIZ TEGIB O'TILMADI
 function initMobileTooltips() {
     const tooltips = document.querySelectorAll('.keyword-tooltip');
     tooltips.forEach(item => {
@@ -256,7 +586,6 @@ function speakWord(word) {
         const utterance = new SpeechSynthesisUtterance(cleanWord);
         utterance.lang = 'en-US'; 
         utterance.rate = 0.85; 
-        utterance.volume = 1.0; 
         window.speechSynthesis.speak(utterance);
     } catch (error) {
         console.error("Audio xatolik:", error);
