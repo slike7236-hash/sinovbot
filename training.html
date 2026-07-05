@@ -82,7 +82,7 @@
 </div>
 
 <script>
-const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(window.location.search);
 const bookCode = urlParams.get('book') || "ess1";
 const unitId = urlParams.get('unit') || "1";
 const lessonKey = `${bookCode}_${unitId}`;
@@ -136,7 +136,9 @@ function startWordwallTimer() {
         const min = Math.floor(gameSeconds / 60);
         const sec = gameSeconds % 60;
         const timerEl = document.getElementById("wwTimer");
-        if(timerEl) timerEl.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        if(timerEl) {
+            timerEl.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
     }, 1000);
 
     roundTimerInterval = setInterval(() => { roundSeconds++; }, 1000);
@@ -169,14 +171,14 @@ function checkGameOver(type, container) {
         container.innerHTML = `
             <div class="ww-result-screen">
                 <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
-                <h2>Mashg'ulot Yakunlandi!</h2>
+                <h2 style="margin: 10px 0; color: #2c3e50;">Mashg'ulot Yakunlandi!</h2>
                 <div class="ww-result-stats">
                     <div class="ww-stat-row"><span>⏱️ Vaqt:</span> <strong>${min} m ${sec} s</strong></div>
                     <div class="ww-stat-row"><span>🎯 Yakuniy Ball:</span> <strong>${gameScore}</strong></div>
                 </div>
                 <div class="ww-leaderboard-input-zone" id="leaderboardInputZone">
                     <p style="font-size:14px; color:#555; margin-bottom:8px;">Reyting jadvali uchun ismingizni kiriting:</p>
-                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Ismingiz..." style="width:90%; margin-bottom:10px;">
+                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Ismingiz..." style="width:90%; margin-bottom:10px; display:inline-block;">
                     <button class="ww-action-btn" onclick="submitLocalScore('${type}')">Natijani Saqlash</button>
                 </div>
                 <div id="leaderboardDisplay" style="margin-top:20px; width:100%; display:none;">
@@ -204,10 +206,7 @@ function submitLocalScore(type) {
         date: new Date().getTime()
     });
 
-    // Saralash: Eng yuqori ball birinchi, agar ballar teng bo'lsa kamroq vaqt sarflagani birinchi
     scores.sort((a, b) => b.score - a.score || a.duration - b.duration);
-    
-    // Top 10 talikni saqlash
     scores = scores.slice(0, 10);
     localStorage.setItem(storageKey, JSON.stringify(scores));
 
@@ -285,29 +284,48 @@ function loadContent(type) {
         }
         
         injectGameStyles();
+
+        // O'yin qobig'ini (Frame) bir marta yaratish
+        textZone.innerHTML = `
+            <div class="ww-game-container">
+                <div class="ww-top-bar">
+                    <span id="wwTimer">0:00</span>
+                    <span id="wwScore">✓ 0</span>
+                </div>
+                <div class="ww-play-area" id="wwPlayArea"></div>
+                <div class="ww-bottom-bar">
+                    <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, '${type}')"><i class="fa-solid fa-backward-step"></i></button>
+                    <span class="ww-progress-text" id="wwProgressText"></span>
+                    <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, '${type}')"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+            </div>`;
+
         startWordwallTimer();
 
         if (type === 'anagrama') {
             totalGameRounds = localGameData.length;
-            buildAnagramaGame(textZone);
+            buildAnagramaGame();
         } else if (type === 'typeanswer') {
             totalGameRounds = localGameData.length;
-            buildTypeAnswerGame(textZone);
+            buildTypeAnswerGame();
         } else if (type === 'matchup') {
             matchUpGroups = [];
             for (let i = 0; i < localGameData.length; i += 5) {
                 matchUpGroups.push(localGameData.slice(i, i + 5));
             }
             totalGameRounds = matchUpGroups.length;
-            buildMatchupGame(textZone);
+            buildMatchupGame();
         }
     }
 }
 
 // 1️⃣ ANAGRAMA GAME
 let userAnagramBuilt = "";
-function buildAnagramaGame(container) {
-    if (checkGameOver('anagrama', container)) return;
+function buildAnagramaGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    
+    if (checkGameOver('anagrama', playArea)) return;
 
     let item = localGameData[currentGameIndex];
     let cleanWord = item.word.toUpperCase().replace(/[\[\]]/g, '').trim();
@@ -316,23 +334,10 @@ function buildAnagramaGame(container) {
     let lettersArr = cleanWord.split("");
     let shuffled = [...lettersArr].sort(() => Math.random() - 0.5);
 
-    container.innerHTML = `
-        <div class="ww-game-container">
-            <div class="ww-top-bar">
-                <span id="wwTimer">0:00</span>
-                <span id="wwScore">✓ ${gameScore}</span>
-            </div>
-            <div class="ww-play-area">
-                <div class="ww-target-title">${item.translation}</div>
-                <div class="ww-slots-row" id="slotsRow"></div>
-                <div class="ww-letters-row" id="lettersRow"></div>
-            </div>
-            <div class="ww-bottom-bar">
-                <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'anagrama')"><i class="fa-solid fa-backward-step"></i></button>
-                <span class="ww-progress-text" id="wwProgressText"></span>
-                <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, 'anagrama')"><i class="fa-solid fa-forward-step"></i></button>
-            </div>
-        </div>`;
+    playArea.innerHTML = `
+        <div class="ww-target-title">${item.translation}</div>
+        <div class="ww-slots-row" id="slotsRow"></div>
+        <div class="ww-letters-row" id="lettersRow"></div>`;
 
     updateWWStats();
     document.getElementById("wwPrev").disabled = currentGameIndex === 0;
@@ -365,7 +370,7 @@ function buildAnagramaGame(container) {
                     gameScore += calculateSpeedBonus();
                     speakWord(cleanWord);
                     slotsRow.style.borderColor = "#2ecc71";
-                    setTimeout(() => { currentGameIndex++; buildAnagramaGame(container); }, 800);
+                    setTimeout(() => { currentGameIndex++; buildAnagramaGame(); }, 800);
                 } else {
                     slotsRow.style.borderColor = "#e74c3c";
                     setTimeout(() => {
@@ -382,29 +387,19 @@ function buildAnagramaGame(container) {
 }
 
 // 2️⃣ TYPE ANSWER GAME
-function buildTypeAnswerGame(container) {
-    if (checkGameOver('typeanswer', container)) return;
+function buildTypeAnswerGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+
+    if (checkGameOver('typeanswer', playArea)) return;
 
     let item = localGameData[currentGameIndex];
     let correctAns = item.word.toLowerCase().replace(/[\[\]]/g, '').trim();
 
-    container.innerHTML = `
-        <div class="ww-game-container">
-            <div class="ww-top-bar">
-                <span id="wwTimer">0:00</span>
-                <span id="wwScore">✓ ${gameScore}</span>
-            </div>
-            <div class="ww-play-area">
-                <div class="ww-target-title">"${item.translation}"</div>
-                <input type="text" class="ww-input-field" id="wwTypeInp" placeholder="Inglizchasini yozing..." autocomplete="off">
-                <button class="ww-action-btn" id="wwSubmitBtn">Tekshirish</button>
-            </div>
-            <div class="ww-bottom-bar">
-                <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'typeanswer')"><i class="fa-solid fa-backward-step"></i></button>
-                <span class="ww-progress-text" id="wwProgressText"></span>
-                <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, 'typeanswer')"><i class="fa-solid fa-forward-step"></i></button>
-            </div>
-        </div>`;
+    playArea.innerHTML = `
+        <div class="ww-target-title">"${item.translation}"</div>
+        <input type="text" class="ww-input-field" id="wwTypeInp" placeholder="Inglizchasini yozing..." autocomplete="off" style="display:block; margin: 0 auto 15px;">
+        <button class="ww-action-btn" id="wwSubmitBtn">Tekshirish</button>`;
 
     updateWWStats();
     document.getElementById("wwPrev").disabled = currentGameIndex === 0;
@@ -417,7 +412,7 @@ function buildTypeAnswerGame(container) {
             gameScore += calculateSpeedBonus();
             inp.style.borderColor = "#2ecc71";
             speakWord(correctAns);
-            setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(container); }, 800);
+            setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(); }, 800);
         } else {
             inp.style.borderColor = "#e74c3c";
             setTimeout(() => { inp.style.borderColor = "#ced4da"; inp.value = ""; }, 1000);
@@ -425,32 +420,26 @@ function buildTypeAnswerGame(container) {
     };
 }
 
-// 3️⃣ MATNLI MATCH UP GAME (Guruhli variant)
+// 3️⃣ MATNLI MATCH UP GAME
 let selectedMatch = { eng: null, uz: null };
-function buildMatchupGame(container) {
-    if (checkGameOver('matchup', container)) return;
+function buildMatchupGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+
+    if (checkGameOver('matchup', playArea)) return;
 
     let currentGroup = matchUpGroups[currentGameIndex];
     
     let engList = [...currentGroup].sort(() => Math.random() - 0.5);
     let uzList = [...currentGroup].sort(() => Math.random() - 0.5);
 
-    container.innerHTML = `
-        <div class="ww-game-container">
-            <div class="ww-top-bar">
-                <span id="wwTimer">0:00</span>
-                <span id="wwScore">✓ ${gameScore}</span>
-            </div>
-            <div class="ww-play-area" style="flex-direction:row; justify-content:space-around; align-items:flex-start; overflow-y:auto;">
-                <div class="match-column" id="engCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>
-                <div class="match-column" id="uzCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>
-            </div>
-            <div class="ww-bottom-bar">
-                <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'matchup')"><i class="fa-solid fa-backward-step"></i></button>
-                <span class="ww-progress-text" id="wwProgressText"></span>
-                <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, 'matchup')"><i class="fa-solid fa-forward-step"></i></button>
-            </div>
-        </div>`;
+    playArea.style.flexDirection = "row";
+    playArea.style.justifyContent = "space-around";
+    playArea.style.alignItems = "flex-start";
+
+    playArea.innerHTML = `
+        <div class="match-column" id="engCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>
+        <div class="match-column" id="uzCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>`;
 
     updateWWStats();
     document.getElementById("wwPrev").disabled = currentGameIndex === 0;
@@ -469,7 +458,7 @@ function buildMatchupGame(container) {
             document.querySelectorAll("#engCol .match-block").forEach(b => b.classList.remove('selected'));
             block.classList.add('selected');
             selectedMatch.eng = item.word;
-            checkMatchPair(container);
+            checkMatchPair();
         };
         engCol.appendChild(block);
     });
@@ -483,13 +472,13 @@ function buildMatchupGame(container) {
             document.querySelectorAll("#uzCol .match-block").forEach(b => b.classList.remove('selected'));
             block.classList.add('selected');
             selectedMatch.uz = item.word; 
-            checkMatchPair(container);
+            checkMatchPair();
         };
         uzCol.appendChild(block);
     });
 }
 
-function checkMatchPair(container) {
+function checkMatchPair() {
     if(selectedMatch.eng && selectedMatch.uz) {
         let engBlock = Array.from(document.querySelectorAll("#engCol .match-block")).find(b => b.innerText === selectedMatch.eng);
         let uzBlock = Array.from(document.querySelectorAll("#uzCol .match-block")).find(b => b.classList.contains('selected'));
@@ -513,17 +502,36 @@ function checkMatchPair(container) {
         let totalMatched = document.querySelectorAll(".match-block.matched").length;
         if(totalMatched === matchUpGroups[currentGameIndex].length * 2) {
             gameScore += calculateSpeedBonus(); 
-            setTimeout(() => { currentGameIndex++; buildMatchupGame(container); }, 1000);
+            setTimeout(() => { 
+                currentGameIndex++; 
+                const playArea = document.getElementById("wwPlayArea");
+                playArea.removeAttribute("style"); // Uslublarni tozalash
+                playArea.style.flexGrow = "1";
+                playArea.style.display = "flex";
+                playArea.style.flexDirection = "column";
+                playArea.style.justifyContent = "center";
+                playArea.style.alignItems = "center";
+                buildMatchupGame(); 
+            }, 1000);
         }
     }
 }
 
 function navWWGame(step, type) {
-    currentGameIndex += step;
-    const textZone = document.getElementById("textContainer");
-    if(type === 'anagrama') buildAnagramaGame(textZone);
-    if(type === 'typeanswer') buildTypeAnswerGame(textZone);
-    if(type === 'matchup') buildMatchupGame(textZone);
+    if (currentGameIndex + step >= 0 && currentGameIndex + step < totalGameRounds) {
+        currentGameIndex += step;
+        const playArea = document.getElementById("wwPlayArea");
+        playArea.removeAttribute("style");
+        playArea.style.flexGrow = "1";
+        playArea.style.display = "flex";
+        playArea.style.flexDirection = "column";
+        playArea.style.justifyContent = "center";
+        playArea.style.alignItems = "center";
+
+        if(type === 'anagrama') buildAnagramaGame();
+        if(type === 'typeanswer') buildTypeAnswerGame();
+        if(type === 'matchup') buildMatchupGame();
+    }
 }
 
 function speakWord(word) {
@@ -564,9 +572,9 @@ function injectGameStyles() {
     const style = document.createElement("style");
     style.id = "wwGameStyles";
     style.innerHTML = `
-        .ww-game-container { display:flex; flex-direction:column; height:450px; background:#fff; font-family:sans-serif; border:1px solid #ddd; border-radius:8px; overflow:hidden; }
+        .ww-game-container { display:flex; flex-direction:column; height:450px; background:#fff; font-family:sans-serif; border:1px solid #ddd; border-radius:8px; overflow:hidden; box-sizing: border-box; }
         .ww-top-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 15px; background:#f8f9fa; border-bottom:1px solid #e9ecef; font-size:18px; font-weight:bold; color:#333; }
-        .ww-play-area { flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px; background:#fafafa; position:relative; }
+        .ww-play-area { flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px; background:#fafafa; position:relative; overflow-y: auto; }
         .ww-bottom-bar { display:flex; justify-content:center; align-items:center; gap:25px; padding:10px; background:#f8f9fa; border-top:1px solid #e9ecef; }
         
         .ww-nav-btn { background:none; border:none; font-size:22px; color:#495057; cursor:pointer; }
@@ -583,7 +591,7 @@ function injectGameStyles() {
         
         /* Input & Actions */
         .ww-input-field { width:80%; max-width:260px; padding:10px; font-size:16px; border:2px solid #ced4da; border-radius:6px; text-align:center; outline:none; }
-        .ww-action-btn { background:#2ecc71; color:white; border:none; padding:10px 20px; font-size:15px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #27ae60; }
+        .ww-action-btn { background:#2ecc71; color:white; border:none; padding:10px 20px; font-size:15px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #27ae60; display:block; margin:0 auto;}
         
         /* Match Up Ustunlari */
         .match-block { padding:12px; border:2px solid #34495e; background:#fff; border-radius:6px; text-align:center; font-weight:bold; cursor:pointer; transition:0.2s; user-select:none; font-size:14px; width:100%; box-sizing:border-box;}
@@ -592,15 +600,15 @@ function injectGameStyles() {
         .match-block.wrong { background:#e74c3c; color:white; border-color:#c0392b; }
         
         /* Result Screen */
-        .ww-result-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:#fff; padding:20px; box-sizing:border-box; overflow-y:auto; }
-        .ww-result-trophy { font-size:55px; color:#f1c40f; margin-bottom:10px; }
+        .ww-result-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:#fff; padding:10px; box-sizing:border-box; }
+        .ww-result-trophy { font-size:55px; color:#f1c40f; margin-bottom:5px; }
         .ww-result-stats { background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px; padding:12px; width:90%; max-width:280px; margin-bottom:15px; }
         .ww-stat-row { display:flex; justify-content:space-between; margin:6px 0; font-size:15px; }
         .ww-restart-btn { background:#34495e; color:white; border:none; padding:10px 20px; font-size:14px; border-radius:6px; cursor:pointer; }
         
-        table { width:100%; margin-top:10px; }
-        th, td { padding:8px; border:1px solid #ddd; text-align:left; }
-        th { background:#f5f5f5; }
+        .ww-leaderboard-input-zone { width: 100%; text-align:center; }
+        #lbTable { width:100%; margin-top:10px; text-align:left; border-collapse:collapse; }
+        #lbTable th, #lbTable td { padding:6px; border:1px solid #ddd; }
     `;
     document.head.appendChild(style);
 }
