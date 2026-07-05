@@ -46,7 +46,6 @@
         </button>
 
         <div id="textContainer" class="scrollable-text-content"></div>
-        
         <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
     </div>
 </div>
@@ -95,10 +94,16 @@ const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
 let currentLessonData = lessonDataFull[currentLang];
 
 let localGameData = [];
-let selectedCards = { eng: null, uz: null };
+let matchUpGroups = []; 
 
-// O'yinlar uchun progress indekslari
+// Wordwall Global Tizimi
 let currentGameIndex = 0;
+let totalGameRounds = 0; 
+let gameScore = 0;
+let gameTimerInterval = null;
+let gameSeconds = 0;
+let roundSeconds = 0;
+let roundTimerInterval = null;
 
 window.onload = function() {
     document.getElementById("langSelect").value = currentLang;
@@ -119,17 +124,134 @@ function renderLessonContent() {
     document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
 }
 
+// Wordwall Taymer mexanikasi
+function startWordwallTimer() {
+    clearInterval(gameTimerInterval);
+    clearInterval(roundTimerInterval);
+    gameSeconds = 0;
+    roundSeconds = 0;
+    
+    gameTimerInterval = setInterval(() => {
+        gameSeconds++;
+        const min = Math.floor(gameSeconds / 60);
+        const sec = gameSeconds % 60;
+        const timerEl = document.getElementById("wwTimer");
+        if(timerEl) timerEl.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }, 1000);
+
+    roundTimerInterval = setInterval(() => { roundSeconds++; }, 1000);
+}
+
+function calculateSpeedBonus() {
+    let bonus = 20; 
+    if (roundSeconds <= 7) bonus = 100;      
+    else if (roundSeconds <= 15) bonus = 60; 
+    roundSeconds = 0; 
+    return bonus;
+}
+
+function updateWWStats() {
+    const scoreEl = document.getElementById("wwScore");
+    const progressEl = document.getElementById("wwProgressText");
+    if(scoreEl) scoreEl.innerText = `✓ ${gameScore}`;
+    if(progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
+}
+
+// FINISH & LOCAL REYTING SYSTEM
+function checkGameOver(type, container) {
+    if (currentGameIndex >= totalGameRounds) {
+        clearInterval(gameTimerInterval);
+        clearInterval(roundTimerInterval);
+        
+        const min = Math.floor(gameSeconds / 60);
+        const sec = gameSeconds % 60;
+        
+        container.innerHTML = `
+            <div class="ww-result-screen">
+                <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
+                <h2>Mashg'ulot Yakunlandi!</h2>
+                <div class="ww-result-stats">
+                    <div class="ww-stat-row"><span>⏱️ Vaqt:</span> <strong>${min} m ${sec} s</strong></div>
+                    <div class="ww-stat-row"><span>🎯 Yakuniy Ball:</span> <strong>${gameScore}</strong></div>
+                </div>
+                <div class="ww-leaderboard-input-zone" id="leaderboardInputZone">
+                    <p style="font-size:14px; color:#555; margin-bottom:8px;">Reyting jadvali uchun ismingizni kiriting:</p>
+                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Ismingiz..." style="width:90%; margin-bottom:10px;">
+                    <button class="ww-action-btn" onclick="submitLocalScore('${type}')">Natijani Saqlash</button>
+                </div>
+                <div id="leaderboardDisplay" style="margin-top:20px; width:100%; display:none;">
+                    <h3 style="font-size:16px; margin-bottom:5px; color:#2c3e50;">🏆 TOP 10 REYTING</h3>
+                    <table id="lbTable" style="width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;"></table>
+                </div>
+                <button class="ww-restart-btn" style="margin-top:20px; background:#95a5a6;" onclick="resetAndRestart('${type}')">Qayta boshlash <i class="fa-solid fa-arrow-rotate-right"></i></button>
+            </div>`;
+        return true;
+    }
+    return false;
+}
+
+function submitLocalScore(type) {
+    const nameInp = document.getElementById("leaderboardName").value.trim();
+    if(!nameInp) { alert("Iltimos ism kiriting!"); return; }
+
+    const storageKey = `lb_${lessonKey}_${type}`;
+    let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    
+    scores.push({
+        name: nameInp,
+        score: gameScore,
+        duration: gameSeconds,
+        date: new Date().getTime()
+    });
+
+    // Saralash: Eng yuqori ball birinchi, agar ballar teng bo'lsa kamroq vaqt sarflagani birinchi
+    scores.sort((a, b) => b.score - a.score || a.duration - b.duration);
+    
+    // Top 10 talikni saqlash
+    scores = scores.slice(0, 10);
+    localStorage.setItem(storageKey, JSON.stringify(scores));
+
+    document.getElementById("leaderboardInputZone").style.display = "none";
+    showLocalLeaderboard(type);
+}
+
+function showLocalLeaderboard(type) {
+    const storageKey = `lb_${lessonKey}_${type}`;
+    const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const table = document.getElementById("lbTable");
+    
+    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Ism</th><th>Ball</th><th>Vaqt</th></tr>`;
+    
+    scores.forEach((row, idx) => {
+        const m = Math.floor(row.duration / 60);
+        const s = row.duration % 60;
+        table.innerHTML += `<tr>
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${idx+1}</td>
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold;">${row.name}</td>
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold; text-align:center; color:#2ecc71;">${row.score}</td>
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m}:${s<10?'0':''}${s}</td>
+        </tr>`;
+    });
+    document.getElementById("leaderboardDisplay").style.display = "block";
+}
+
+function resetAndRestart(type) {
+    currentGameIndex = 0;
+    gameScore = 0;
+    loadContent(type);
+}
+
+// KONTENTNI YUKLASH TIZIMI
 function loadContent(type) {
     const textZone = document.getElementById("textContainer");
     const iframeZone = document.getElementById("iframeViewer");
 
-    const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
-    allBtns.forEach(btn => btn.classList.remove("active"));
+    clearInterval(gameTimerInterval);
+    clearInterval(roundTimerInterval);
 
+    document.querySelectorAll(".material-btn, .game-card-btn").forEach(btn => btn.classList.remove("active"));
     let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
-    if(targetBtn) {
-        targetBtn.classList.add("active");
-    }
+    if(targetBtn) targetBtn.classList.add("active");
 
     textZone.style.display = "none";
     iframeZone.style.display = "none";
@@ -138,519 +260,282 @@ function loadContent(type) {
     localGameData = currentLessonData.keywordsList || [];
 
     if (type === 'text') {
-        let audioHtml = '';
-        if (currentLessonData.audioUrl) {
-            audioHtml = `
-                <div class="audio-player-container" style="background:#f1f1f1; padding:10px; border-radius:8px; margin-bottom:15px; display:flex; gap:10px; align-items:center;">
-                    <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
-                    <button id="playPauseBtn" onclick="toggleAudio()" style="background:#3498db; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;"><i class="fa-solid fa-play"></i></button>
-                    <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)" style="flex-grow:1;">
-                    <select onchange="changeAudioSpeed(this.value)" style="padding:5px; border-radius:5px;">
-                        <option value="0.75">0.75x</option>
-                        <option value="1.0" selected>1.0x</option>
-                        <option value="1.25">1.25x</option>
-                        <option value="1.5">1.5x</option>
-                    </select>
-                </div>`;
-        }
-        textZone.innerHTML = audioHtml + currentLessonData.textHtml;
+        textZone.innerHTML = currentLessonData.textHtml;
         textZone.style.display = "block";
-        initAudioPlayerListeners(); 
-        initMobileTooltips(); 
     } 
     else if (type === 'keywords') {
-        if (localGameData.length > 0) {
-            let tableHtml = `
-                <table style="width:100%; border-collapse:collapse; margin-top:10px;">
-                    <tr style="background:#3498db; color:white;">
-                        <th style="padding:10px; border:1px solid #ddd; text-align:left;">Word</th>
-                        <th style="padding:10px; border:1px solid #ddd; text-align:left;">Translation</th>
-                    </tr>`;
-            localGameData.forEach(item => {
-                tableHtml += `
-                    <tr>
-                        <td style="padding:10px; border:1px solid #ddd; font-weight:bold; cursor:pointer; color:#2c3e50;" onclick="speakWord('${item.word}')">
-                            <i class="fa-solid fa-volume-high" style="margin-right:8px; color:#3498db;"></i>${item.word}
-                        </td>
-                        <td style="padding:10px; border:1px solid #ddd; color:#7f8c8d;">${item.translation}</td>
-                    </tr>`;
-            });
-            tableHtml += `</table>`;
-            textZone.innerHTML = tableHtml;
-        } else {
-            textZone.innerHTML = `<p style="padding:20px; text-align:center;">Keywords topilmadi.</p>`;
-        }
+        let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">
+            <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
+        localGameData.forEach(item => {
+            tableHtml += `<tr><td style="padding:10px; font-weight:bold; cursor:pointer;" onclick="speakWord('${item.word}')"><i class="fa-solid fa-volume-high"></i> ${item.word}</td><td style="padding:10px;">${item.translation}</td></tr>`;
+        });
+        tableHtml += `</table>`;
+        textZone.innerHTML = tableHtml;
         textZone.style.display = "block";
     }
-    else if (type === 'video') {
-        iframeZone.src = currentLessonData.videoUrl;
-        iframeZone.style.display = "block";
-    } 
-    else if (type === 'test') {
-        iframeZone.src = currentLessonData.testUrl;
+    else if (type === 'video' || type === 'test') {
+        iframeZone.src = type === 'video' ? currentLessonData.videoUrl : currentLessonData.testUrl;
         iframeZone.style.display = "block";
     } 
     else {
         textZone.style.display = "block";
         if (localGameData.length === 0) {
-            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin yaratish uchun lug'at boyligi yetarli emas!</p>`;
+            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin ma'lumotlari mavjud emas!</p>`;
             return;
         }
         
         injectGameStyles();
+        startWordwallTimer();
 
-        // Har safar o'yin tugmasi bosilganda indeksni boshiga qaytaramiz (agar toza yuklanish bo'lsa)
-        if (!window.gameTypeState || window.gameTypeState !== type) {
-            window.gameTypeState = type;
-            currentGameIndex = 0;
-        }
-
-        if (type === 'matchup') buildMatchupGame(textZone);
-        else if (type === 'anagrama') buildAnagramaGame(textZone);
-        else if (type === 'typeanswer') buildTypeAnswerGame(textZone);
-        else if (type === 'wordsearch') buildWordSearchGame(textZone);
-        else if (type === 'pair') buildPairGame(textZone);
-    }
-}
-
-function injectGameStyles() {
-    if (document.getElementById("localGameStyles")) return;
-    const style = document.createElement("style");
-    style.id = "localGameStyles";
-    style.innerHTML = `
-        .game-wrapper { background:#ffffff; padding:15px; border-radius:15px; text-align:center; margin-top:5px; position:relative; }
-        .game-progress { font-size:14px; font-weight:bold; color:#7f8c8d; background:#f1f3f5; padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:10px; }
-        .game-title { font-size:22px; color:#2c3e50; margin-bottom:15px; font-weight:bold; letter-spacing:0.5px; }
-        .game-cols { display:flex; justify-content:space-between; gap:15px; }
-        .game-col { width:50%; display:flex; flex-direction:column; gap:10px; }
-        .g-card { background:#f8f9fa; padding:14px; border:2px solid #e2e8f0; border-radius:12px; cursor:pointer; font-weight:600; font-size:16px; transition:0.2s; user-select:none; color:#2d3748; }
-        .g-card:hover { background:#edf2f7; border-color:#cbd5e0; }
-        .g-card.selected { background:#3498db !important; color:white !important; border-color:#2980b9 !important; }
-        .g-card.correct { background:#2ecc71 !important; color:white !important; border-color:#27ae60 !important; opacity:0.5; cursor:default; }
-        .g-card.wrong { background:#e74c3c !important; color:white !important; border-color:#c0392b !important; }
-        .game-btn-group { display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap; }
-        .game-btn { background:#3498db; color:white; border:none; padding:12px 22px; font-size:15px; border-radius:8px; cursor:pointer; font-weight:bold; transition:0.2s; }
-        .game-btn.btn-clear { background:#e67e22; }
-        .game-btn.btn-skip { background:#95a5a6; }
-        .game-btn.btn-next { background:#2ecc71; }
-        .game-btn:hover { opacity:0.9; }
-        
-        .letters-container { display:flex; justify-content:center; gap:10px; margin:20px 0; flex-wrap:wrap; }
-        .letter-box { width:48px; height:48px; background:#f1f3f5; border:2px solid #ced4da; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:bold; border-radius:10px; cursor:pointer; user-select:none; box-shadow:0 2px 4px rgba(0,0,0,0.05); }
-        .letter-box.used { opacity:0.2; cursor:default; background:#e9ecef; box-shadow:none; }
-        .word-input-view { min-width:180px; min-height:40px; border-bottom:3px solid #3498db; display:inline-block; font-size:26px; font-weight:bold; letter-spacing:6px; margin-bottom:20px; color:#2c3e50; text-transform:uppercase; }
-        .target-translation { font-size:24px; color:#e67e22; font-weight:bold; margin-bottom:15px; }
-        
-        .type-input { width:85%; max-width:280px; padding:14px; font-size:18px; border:2px solid #cbd5e0; border-radius:10px; outline:none; text-align:center; font-weight:bold; margin-bottom:15px; }
-        .type-input:focus { border-color:#3498db; }
-        
-        .memory-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; margin:15px auto; max-width:360px; }
-        .m-card { height:75px; background:#2c3e50; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:13px; font-weight:bold; cursor:pointer; padding:5px; text-align:center; user-select:none; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
-        .m-card.flipped { background:#fff; color:#2c3e50; border:2px solid #2c3e50; }
-        
-        .ws-grid { display:grid; grid-template-columns:repeat(8, 1fr); gap:5px; max-width:320px; margin:15px auto; }
-        .ws-cell { width:36px; height:36px; background:#f8f9fa; border:1px solid #dee2e6; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; text-transform:uppercase; cursor:pointer; border-radius:6px; user-select:none; }
-        .ws-cell.highlighted { background:#3498db; color:white; }
-        .ws-words-hint { font-size:14px; font-weight:bold; color:#2c3e50; margin-bottom:10px; background:#edf2f7; padding:8px; border-radius:8px; }
-    `;
-    document.head.appendChild(style);
-}
-
-// 1️⃣ MATCHUP GAME ENGINE (Guruhlab chiqarish)
-function buildMatchupGame(container) {
-    selectedCards = { eng: null, uz: null };
-    let startIdx = currentGameIndex * 5;
-    let data = localGameData.slice(startIdx, startIdx + 5); 
-
-    if (data.length === 0) {
-        container.innerHTML = `
-            <div class="game-wrapper">
-                <div class="game-title">Match up</div>
-                <p>Barcha so'zlarni muvaffaqiyatli moslashtirdingiz! 🎉</p>
-                <button class="game-btn" onclick="currentGameIndex=0; buildMatchupGame(container)">Qayta boshlash</button>
-            </div>`;
-        return;
-    }
-
-    let totalGroups = Math.ceil(localGameData.length / 5);
-    let engItems = data.map(i => i.word).sort(() => Math.random() - 0.5);
-    let uzItems = data.map(i => i.translation).sort(() => Math.random() - 0.5);
-
-    container.innerHTML = `
-        <div class="game-wrapper">
-            <div class="game-progress">Bosqich: ${currentGameIndex + 1} / ${totalGroups}</div>
-            <div class="game-title">Match up</div>
-            <div class="game-cols">
-                <div class="game-col" id="engCol"></div>
-                <div class="game-col" id="uzCol"></div>
-            </div>
-            <div class="game-btn-group">
-                <button class="game-btn btn-next" style="display:none;" id="muNextBtn">Keyingi guruh ➡️</button>
-            </div>
-        </div>`;
-
-    const engCol = document.getElementById("engCol");
-    const uzCol = document.getElementById("uzCol");
-    const nextBtn = document.getElementById("muNextBtn");
-
-    nextBtn.onclick = () => {
-        currentGameIndex++;
-        buildMatchupGame(container);
-    };
-
-    engItems.forEach(w => {
-        let card = document.createElement("div");
-        card.className = "g-card";
-        card.innerText = w;
-        card.onclick = () => {
-            if(card.classList.contains('correct') || card.classList.contains('wrong')) return;
-            if(selectedCards.eng) selectedCards.eng.classList.remove('selected');
-            selectedCards.eng = card;
-            card.classList.add('selected');
-            checkMatchup(data.length, nextBtn);
-        };
-        engCol.appendChild(card);
-    });
-
-    uzItems.forEach(t => {
-        let card = document.createElement("div");
-        card.className = "g-card";
-        card.innerText = t;
-        card.onclick = () => {
-            if(card.classList.contains('correct') || card.classList.contains('wrong')) return;
-            if(selectedCards.uz) selectedCards.uz.classList.remove('selected');
-            selectedCards.uz = card;
-            card.classList.add('selected');
-            checkMatchup(data.length, nextBtn);
-        };
-        uzCol.appendChild(card);
-    });
-}
-
-function checkMatchup(currentLen, nextBtn) {
-    if (selectedCards.eng && selectedCards.uz) {
-        let engVal = selectedCards.eng.innerText;
-        let uzVal = selectedCards.uz.innerText;
-        let match = localGameData.find(i => i.word === engVal && i.translation === uzVal);
-
-        let eCard = selectedCards.eng;
-        let uCard = selectedCards.uz;
-
-        if (match) {
-            eCard.className = "g-card correct";
-            uCard.className = "g-card correct";
-            speakWord(engVal);
-            selectedCards = { eng: null, uz: null };
-            
-            if(document.querySelectorAll('.g-card.correct').length === currentLen * 2) {
-                nextBtn.style.display = "inline-block";
+        if (type === 'anagrama') {
+            totalGameRounds = localGameData.length;
+            buildAnagramaGame(textZone);
+        } else if (type === 'typeanswer') {
+            totalGameRounds = localGameData.length;
+            buildTypeAnswerGame(textZone);
+        } else if (type === 'matchup') {
+            matchUpGroups = [];
+            for (let i = 0; i < localGameData.length; i += 5) {
+                matchUpGroups.push(localGameData.slice(i, i + 5));
             }
-        } else {
-            eCard.classList.add('wrong');
-            uCard.classList.add('wrong');
-            selectedCards = { eng: null, uz: null };
-            setTimeout(() => {
-                eCard.classList.remove('wrong', 'selected');
-                uCard.classList.remove('wrong', 'selected');
-            }, 600);
+            totalGameRounds = matchUpGroups.length;
+            buildMatchupGame(textZone);
         }
     }
 }
 
-// 2️⃣ ANAGRAMA GAME ENGINE (Har bir so'z tartib bilan)
-let anagramWord = "";
-let anagramTyped = "";
+// 1️⃣ ANAGRAMA GAME
+let userAnagramBuilt = "";
 function buildAnagramaGame(container) {
-    if (currentGameIndex >= localGameData.length) {
-        container.innerHTML = `
-            <div class="game-wrapper">
-                <div class="game-title">Anagrama</div>
-                <p>Lug'atdagi barcha anagramalarni tugatdingiz! 🏆</p>
-                <button class="game-btn" onclick="currentGameIndex=0; buildAnagramaGame(container)">Qaytadan boshlash</button>
-            </div>`;
-        return;
-    }
+    if (checkGameOver('anagrama', container)) return;
 
-    let currentItem = localGameData[currentGameIndex];
-    anagramWord = currentItem.word.toUpperCase().replace(/[\[\]]/g, '').trim();
-    anagramTyped = "";
-
-    let letters = anagramWord.split("").sort(() => Math.random() - 0.5);
+    let item = localGameData[currentGameIndex];
+    let cleanWord = item.word.toUpperCase().replace(/[\[\]]/g, '').trim();
+    userAnagramBuilt = "";
+    
+    let lettersArr = cleanWord.split("");
+    let shuffled = [...lettersArr].sort(() => Math.random() - 0.5);
 
     container.innerHTML = `
-        <div class="game-wrapper">
-            <div class="game-progress">${currentGameIndex + 1} / ${localGameData.length}</div>
-            <div class="game-title">Anagrama</div>
-            <div class="target-translation">${currentItem.translation}</div>
-            <div class="word-input-view" id="anagView"></div>
-            <div class="letters-container" id="lettersBox"></div>
-            <div class="game-btn-group">
-                <button class="game-btn btn-clear" id="anagClear">Clear</button>
-                <button class="game-btn btn-skip" id="anagSkip">Skip</button>
+        <div class="ww-game-container">
+            <div class="ww-top-bar">
+                <span id="wwTimer">0:00</span>
+                <span id="wwScore">✓ ${gameScore}</span>
+            </div>
+            <div class="ww-play-area">
+                <div class="ww-target-title">${item.translation}</div>
+                <div class="ww-slots-row" id="slotsRow"></div>
+                <div class="ww-letters-row" id="lettersRow"></div>
+            </div>
+            <div class="ww-bottom-bar">
+                <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'anagrama')"><i class="fa-solid fa-backward-step"></i></button>
+                <span class="ww-progress-text" id="wwProgressText"></span>
+                <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, 'anagrama')"><i class="fa-solid fa-forward-step"></i></button>
             </div>
         </div>`;
 
-    const view = document.getElementById("anagView");
-    const box = document.getElementById("lettersBox");
-    
-    document.getElementById("anagClear").onclick = () => {
-        anagramTyped = "";
-        view.innerText = "";
-        document.querySelectorAll('.letter-box').forEach(b => b.classList.remove('used'));
-    };
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
 
-    document.getElementById("anagSkip").onclick = () => {
-        currentGameIndex++;
-        buildAnagramaGame(container);
-    };
+    const slotsRow = document.getElementById("slotsRow");
+    const lettersRow = document.getElementById("lettersRow");
 
-    letters.forEach((char) => {
-        let lBox = document.createElement("div");
-        lBox.className = "letter-box";
-        lBox.innerText = char;
-        lBox.onclick = () => {
-            if(lBox.classList.contains('used')) return;
-            lBox.classList.add('used');
-            anagramTyped += char;
-            view.innerText = anagramTyped;
+    lettersArr.forEach(() => {
+        let slot = document.createElement("div");
+        slot.className = "ww-slot-box";
+        slotsRow.appendChild(slot);
+    });
 
-            if (anagramTyped.length === anagramWord.length) {
-                if (anagramTyped === anagramWord) {
-                    view.style.color = "#2ecc71";
-                    speakWord(anagramWord);
-                    setTimeout(() => {
-                        currentGameIndex++;
-                        buildAnagramaGame(container);
-                    }, 1000);
+    shuffled.forEach((char) => {
+        let tile = document.createElement("div");
+        tile.className = "ww-letter-tile";
+        tile.innerText = char;
+        tile.onclick = () => {
+            if(tile.classList.contains('used')) return;
+            tile.classList.add('used');
+            
+            let emptySlot = Array.from(slotsRow.children).find(s => s.innerText === "");
+            if(emptySlot) {
+                emptySlot.innerText = char;
+                userAnagramBuilt += char;
+            }
+
+            if(userAnagramBuilt.length === cleanWord.length) {
+                if(userAnagramBuilt === cleanWord) {
+                    gameScore += calculateSpeedBonus();
+                    speakWord(cleanWord);
+                    slotsRow.style.borderColor = "#2ecc71";
+                    setTimeout(() => { currentGameIndex++; buildAnagramaGame(container); }, 800);
                 } else {
-                    view.style.color = "#e74c3c";
+                    slotsRow.style.borderColor = "#e74c3c";
                     setTimeout(() => {
-                        view.style.color = "#2c3e50";
-                        anagramTyped = "";
-                        view.innerText = "";
-                        document.querySelectorAll('.letter-box').forEach(b => b.classList.remove('used'));
+                        slotsRow.style.borderColor = "#ced4da";
+                        userAnagramBuilt = "";
+                        Array.from(slotsRow.children).forEach(s => s.innerText = "");
+                        Array.from(lettersRow.children).forEach(t => t.classList.remove('used'));
                     }, 1000);
                 }
             }
         };
-        box.appendChild(lBox);
+        lettersRow.appendChild(tile);
     });
 }
 
-// 3️⃣ TYPE ANSWER ENGINE (Bosqichma-bosqich yozish)
+// 2️⃣ TYPE ANSWER GAME
 function buildTypeAnswerGame(container) {
-    if (currentGameIndex >= localGameData.length) {
-        container.innerHTML = `
-            <div class="game-wrapper">
-                <div class="game-title">Type Answer</div>
-                <p>Ajoyib! Barcha so'zlarni to'g'ri yozib chiqdingiz! ⌨️</p>
-                <button class="game-btn" onclick="currentGameIndex=0; buildTypeAnswerGame(container)">Qaytadan</button>
-            </div>`;
-        return;
-    }
+    if (checkGameOver('typeanswer', container)) return;
 
-    let currentItem = localGameData[currentGameIndex];
-    let targetWord = currentItem.word.toLowerCase().replace(/[\[\]]/g, '').trim();
+    let item = localGameData[currentGameIndex];
+    let correctAns = item.word.toLowerCase().replace(/[\[\]]/g, '').trim();
 
     container.innerHTML = `
-        <div class="game-wrapper">
-            <div class="game-progress">${currentGameIndex + 1} / ${localGameData.length}</div>
-            <div class="game-title">Type Answer</div>
-            <div class="target-translation">${currentItem.translation}</div>
-            <input type="text" class="type-input" id="typeInp" placeholder="Yozing..." autocomplete="off">
-            <div class="game-btn-group">
-                <button class="game-btn" id="checkTypeBtn">Check</button>
-                <button class="game-btn btn-skip" id="skipTypeBtn">Skip</button>
-                <button class="game-btn btn-next" style="display:none;" id="nextTypeBtn">Next ➡️</button>
+        <div class="ww-game-container">
+            <div class="ww-top-bar">
+                <span id="wwTimer">0:00</span>
+                <span id="wwScore">✓ ${gameScore}</span>
+            </div>
+            <div class="ww-play-area">
+                <div class="ww-target-title">"${item.translation}"</div>
+                <input type="text" class="ww-input-field" id="wwTypeInp" placeholder="Inglizchasini yozing..." autocomplete="off">
+                <button class="ww-action-btn" id="wwSubmitBtn">Tekshirish</button>
+            </div>
+            <div class="ww-bottom-bar">
+                <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'typeanswer')"><i class="fa-solid fa-backward-step"></i></button>
+                <span class="ww-progress-text" id="wwProgressText"></span>
+                <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, 'typeanswer')"><i class="fa-solid fa-forward-step"></i></button>
             </div>
         </div>`;
 
-    const inp = document.getElementById("typeInp");
-    const btn = document.getElementById("checkTypeBtn");
-    const sBtn = document.getElementById("skipTypeBtn");
-    const nBtn = document.getElementById("nextTypeBtn");
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
 
-    sBtn.onclick = () => {
-        currentGameIndex++;
-        buildTypeAnswerGame(container);
-    };
-
-    nBtn.onclick = () => {
-        currentGameIndex++;
-        buildTypeAnswerGame(container);
-    };
+    const inp = document.getElementById("wwTypeInp");
+    const btn = document.getElementById("wwSubmitBtn");
 
     btn.onclick = () => {
-        let userVal = inp.value.toLowerCase().trim();
-        if(userVal === targetWord) {
-            inp.style.background = "#2ecc71";
-            inp.style.color = "white";
-            speakWord(targetWord);
-            btn.style.display = "none";
-            sBtn.style.display = "none";
-            nBtn.style.display = "inline-block";
+        if(inp.value.toLowerCase().trim() === correctAns) {
+            gameScore += calculateSpeedBonus();
+            inp.style.borderColor = "#2ecc71";
+            speakWord(correctAns);
+            setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(container); }, 800);
         } else {
-            inp.style.background = "#e74c3c";
-            inp.style.color = "white";
+            inp.style.borderColor = "#e74c3c";
+            setTimeout(() => { inp.style.borderColor = "#ced4da"; inp.value = ""; }, 1000);
+        }
+    };
+}
+
+// 3️⃣ MATNLI MATCH UP GAME (Guruhli variant)
+let selectedMatch = { eng: null, uz: null };
+function buildMatchupGame(container) {
+    if (checkGameOver('matchup', container)) return;
+
+    let currentGroup = matchUpGroups[currentGameIndex];
+    
+    let engList = [...currentGroup].sort(() => Math.random() - 0.5);
+    let uzList = [...currentGroup].sort(() => Math.random() - 0.5);
+
+    container.innerHTML = `
+        <div class="ww-game-container">
+            <div class="ww-top-bar">
+                <span id="wwTimer">0:00</span>
+                <span id="wwScore">✓ ${gameScore}</span>
+            </div>
+            <div class="ww-play-area" style="flex-direction:row; justify-content:space-around; align-items:flex-start; overflow-y:auto;">
+                <div class="match-column" id="engCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>
+                <div class="match-column" id="uzCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>
+            </div>
+            <div class="ww-bottom-bar">
+                <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'matchup')"><i class="fa-solid fa-backward-step"></i></button>
+                <span class="ww-progress-text" id="wwProgressText"></span>
+                <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, 'matchup')"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+        </div>`;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    const engCol = document.getElementById("engCol");
+    const uzCol = document.getElementById("uzCol");
+
+    selectedMatch = { eng: null, uz: null };
+
+    engList.forEach(item => {
+        let block = document.createElement("div");
+        block.className = "match-block";
+        block.innerText = item.word;
+        block.onclick = () => {
+            if(block.classList.contains('matched')) return;
+            document.querySelectorAll("#engCol .match-block").forEach(b => b.classList.remove('selected'));
+            block.classList.add('selected');
+            selectedMatch.eng = item.word;
+            checkMatchPair(container);
+        };
+        engCol.appendChild(block);
+    });
+
+    uzList.forEach(item => {
+        let block = document.createElement("div");
+        block.className = "match-block";
+        block.innerText = item.translation;
+        block.onclick = () => {
+            if(block.classList.contains('matched')) return;
+            document.querySelectorAll("#uzCol .match-block").forEach(b => b.classList.remove('selected'));
+            block.classList.add('selected');
+            selectedMatch.uz = item.word; 
+            checkMatchPair(container);
+        };
+        uzCol.appendChild(block);
+    });
+}
+
+function checkMatchPair(container) {
+    if(selectedMatch.eng && selectedMatch.uz) {
+        let engBlock = Array.from(document.querySelectorAll("#engCol .match-block")).find(b => b.innerText === selectedMatch.eng);
+        let uzBlock = Array.from(document.querySelectorAll("#uzCol .match-block")).find(b => b.classList.contains('selected'));
+
+        if(selectedMatch.eng === selectedMatch.uz) {
+            engBlock.className = "match-block matched";
+            uzBlock.className = "match-block matched";
+            gameScore += 10; 
+            speakWord(selectedMatch.eng);
+        } else {
+            engBlock.classList.add('wrong');
+            uzBlock.classList.add('wrong');
             setTimeout(() => {
-                inp.style.background = "white";
-                inp.style.color = "black";
-                inp.value = "";
+                engBlock.classList.remove('wrong', 'selected');
+                uzBlock.classList.remove('wrong', 'selected');
             }, 800);
         }
-    };
-}
+        selectedMatch = { eng: null, uz: null };
+        document.getElementById("wwScore").innerText = `✓ ${gameScore}`;
 
-// 4️⃣ WORD SEARCH ENGINE (To'liq topilishi kerak bo'lgan so'zlar bilan)
-function buildWordSearchGame(container) {
-    let startIdx = currentGameIndex * 3;
-    let data = localGameData.slice(startIdx, startIdx + 3); 
-
-    if (data.length === 0) {
-        container.innerHTML = `
-            <div class="game-wrapper">
-                <div class="game-title">Word Search</div>
-                <p>Hamma yashirin so'zlarni topib bo'ldingiz! 🔍</p>
-                <button class="game-btn" onclick="currentGameIndex=0; buildWordSearchGame(container)">Boshidan boshlash</button>
-            </div>`;
-        return;
-    }
-
-    let totalGroups = Math.ceil(localGameData.length / 3);
-    let words = data.map(i => i.word.toUpperCase().replace(/[\[\]]/g, '').slice(0,6));
-    let size = 8;
-    let grid = Array(size).fill(null).map(() => Array(size).fill(''));
-    
-    words.forEach((word, index) => {
-        let row = index * 2; 
-        for(let i=0; i<word.length; i++) {
-            if(i < size) grid[row][i] = word[i];
-        }
-    });
-
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    for(let r=0; r<size; r++){
-        for(let c=0; c<size; c++){
-            if(grid[r][c] === '') {
-                grid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
-            }
+        let totalMatched = document.querySelectorAll(".match-block.matched").length;
+        if(totalMatched === matchUpGroups[currentGameIndex].length * 2) {
+            gameScore += calculateSpeedBonus(); 
+            setTimeout(() => { currentGameIndex++; buildMatchupGame(container); }, 1000);
         }
     }
-
-    let html = `
-        <div class="game-wrapper">
-            <div class="game-progress">Guruh: ${currentGameIndex + 1} / ${totalGroups}</div>
-            <div class="game-title">Word Search</div>
-            <div class="ws-words-hint">Qidiring: ${words.join(', ')}</div>
-            <div class="ws-grid" style="grid-template-columns: repeat(${size}, 1fr);">`;
-            
-    for(let r=0; r<size; r++){
-        for(let c=0; c<size; c++){
-            html += `<div class="ws-cell" onclick="this.classList.toggle('highlighted')">${grid[r][c]}</div>`;
-        }
-    }
-    
-    html += `</div>
-            <div class="game-btn-group">
-                <button class="game-btn btn-next" onclick="currentGameIndex++; buildWordSearchGame(document.getElementById('textContainer'))">Keyingi guruh ➡️</button>
-            </div>
-        </div>`;
-    container.innerHTML = html;
 }
 
-// 5️⃣ MEMORY CARD PAIR GAME ENGINE
-let firstCard = null, secondCard = null;
-let lockBoard = false;
-function buildPairGame(container) {
-    firstCard = null; secondCard = null; lockBoard = false;
-    let startIdx = currentGameIndex * 4;
-    let data = localGameData.slice(startIdx, startIdx + 4); 
-
-    if (data.length === 0) {
-        container.innerHTML = `
-            <div class="game-wrapper">
-                <div class="game-title">Pair / Nopair</div>
-                <p>Xotira mashqi muvaffaqiyatli yakunlandi! 🧠</p>
-                <button class="game-btn" onclick="currentGameIndex=0; buildPairGame(container)">Qayta boshlash</button>
-            </div>`;
-        return;
-    }
-
-    let totalGroups = Math.ceil(localGameData.length / 4);
-    let cardsArray = [];
-    data.forEach(item => {
-        cardsArray.push({ val: item.word, id: item.word });
-        cardsArray.push({ val: item.translation, id: item.word });
-    });
-    cardsArray.sort(() => Math.random() - 0.5);
-
-    let html = `
-        <div class="game-wrapper">
-            <div class="game-progress">Guruh: ${currentGameIndex + 1} / ${totalGroups}</div>
-            <div class="game-title">Pair / Nopair</div>
-            <div class="memory-grid">`;
-            
-    cardsArray.forEach((card, idx) => {
-        html += `<div class="m-card" id="mCard_${idx}" data-id="${card.id}" data-val="${card.val}" onclick="flipMemoryCard(this, ${data.length}, document.getElementById('pairReset'))">?</div>`;
-    });
-    
-    html += `</div>
-            <div class="game-btn-group">
-                <button class="game-btn btn-next" style="display:none;" id="pairReset">Keyingi raund ➡️</button>
-            </div>
-        </div>`;
-    container.innerHTML = html;
-
-    document.getElementById("pairReset").onclick = () => {
-        currentGameIndex++;
-        buildPairGame(container);
-    };
+function navWWGame(step, type) {
+    currentGameIndex += step;
+    const textZone = document.getElementById("textContainer");
+    if(type === 'anagrama') buildAnagramaGame(textZone);
+    if(type === 'typeanswer') buildTypeAnswerGame(textZone);
+    if(type === 'matchup') buildMatchupGame(textZone);
 }
 
-function flipMemoryCard(card, currentLen, nextBtn) {
-    if (lockBoard || card === firstCard || card.classList.contains('flipped')) return;
-
-    card.classList.add('flipped');
-    card.innerText = card.getAttribute('data-val');
-
-    if (!firstCard) {
-        firstCard = card;
-        return;
-    }
-
-    secondCard = card;
-    lockBoard = true;
-
-    if (firstCard.getAttribute('data-id') === secondCard.getAttribute('data-id')) {
-        firstCard.className = "m-card flipped correct";
-        secondCard.className = "m-card flipped correct";
-        firstCard = null; secondCard = null; lockBoard = false;
-        
-        if (document.querySelectorAll('.m-card.correct').length === currentLen * 2) {
-            nextBtn.style.display = "inline-block";
-        }
-    } else {
-        setTimeout(() => {
-            firstCard.classList.remove('flipped');
-            secondCard.classList.remove('flipped');
-            firstCard.innerText = "?";
-            secondCard.innerText = "?";
-            firstCard = null; secondCard = null; lockBoard = false;
-        }, 1000);
-    }
+function speakWord(word) {
+    try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(word);
+        u.lang = 'en-US';
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+    } catch (e) {}
 }
 
-function initMobileTooltips() {
-    const tooltips = document.querySelectorAll('.keyword-tooltip');
-    tooltips.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation();
-            alert(this.getAttribute('data-tooltip'));
-        });
-    });
-}
-
-let isFull = false;
 function toggleFullscreen() {
     const windowEl = document.getElementById("displayWindow");
     const topBar = document.querySelector(".top-materials-bar");
@@ -658,83 +543,66 @@ function toggleFullscreen() {
     const grid = document.getElementById("gamesGrid");
     const btnIcon = document.getElementById("resizeBtn").querySelector("i");
 
-    if (!isFull) {
+    if (!windowEl.classList.contains("fullscreen-active")) {
         topBar.style.display = "none";
         divider.style.display = "none";
         grid.style.display = "none";
         windowEl.classList.add("fullscreen-active");
         btnIcon.className = "fa-solid fa-compress";
-        isFull = true;
     } else {
         topBar.style.display = "flex";
         divider.style.display = "flex";
         grid.style.display = "grid";
         windowEl.classList.remove("fullscreen-active");
         btnIcon.className = "fa-solid fa-expand";
-        isFull = false;
     }
 }
 
-function speakWord(word) {
-    try {
-        let cleanWord = word.replace(/[\[\]]/g, '');
-        if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.cancel();
-        }
-        const utterance = new SpeechSynthesisUtterance(cleanWord);
-        utterance.lang = 'en-US'; 
-        utterance.rate = 0.85; 
-        window.speechSynthesis.speak(utterance);
-    } catch (error) {
-        console.error("Audio xatolik:", error);
-    }
-}
-
-function toggleAudio() {
-    const audio = document.getElementById("lessonAudio");
-    const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
-    if (audio.paused) {
-        audio.play();
-        btnIcon.className = "fa-solid fa-pause";
-    } else {
-        audio.pause();
-        btnIcon.className = "fa-solid fa-play";
-    }
-}
-
-function rewindAudio(seconds) {
-    const audio = document.getElementById("lessonAudio");
-    audio.currentTime += seconds;
-}
-
-function changeAudioSpeed(speed) {
-    const audio = document.getElementById("lessonAudio");
-    audio.playbackRate = parseFloat(speed);
-}
-
-function seekAudio(value) {
-    const audio = document.getElementById("lessonAudio");
-    const seekTo = audio.duration * (value / 100);
-    audio.currentTime = seekTo;
-}
-
-function initAudioPlayerListeners() {
-    const audio = document.getElementById("lessonAudio");
-    const progressBar = document.getElementById("audioProgress");
-    if(!audio || !progressBar) return;
-
-    audio.addEventListener("timeupdate", () => {
-        if(audio.duration) {
-            const percentage = (audio.currentTime / audio.duration) * 100;
-            progressBar.value = percentage;
-        }
-    });
-
-    audio.addEventListener("ended", () => {
-        const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
-        btnIcon.className = "fa-solid fa-play";
-        progressBar.value = 0;
-    });
+// STYLES INJECTION
+function injectGameStyles() {
+    if (document.getElementById("wwGameStyles")) return;
+    const style = document.createElement("style");
+    style.id = "wwGameStyles";
+    style.innerHTML = `
+        .ww-game-container { display:flex; flex-direction:column; height:450px; background:#fff; font-family:sans-serif; border:1px solid #ddd; border-radius:8px; overflow:hidden; }
+        .ww-top-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 15px; background:#f8f9fa; border-bottom:1px solid #e9ecef; font-size:18px; font-weight:bold; color:#333; }
+        .ww-play-area { flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px; background:#fafafa; position:relative; }
+        .ww-bottom-bar { display:flex; justify-content:center; align-items:center; gap:25px; padding:10px; background:#f8f9fa; border-top:1px solid #e9ecef; }
+        
+        .ww-nav-btn { background:none; border:none; font-size:22px; color:#495057; cursor:pointer; }
+        .ww-nav-btn:disabled { color:#ccc; cursor:default; }
+        .ww-progress-text { font-size:16px; font-weight:bold; color:#495057; }
+        .ww-target-title { font-size:24px; font-weight:600; margin-bottom:20px; text-align:center; color:#2c3e50; }
+        
+        /* Anagrama */
+        .ww-slots-row { display:flex; justify-content:center; gap:8px; min-height:50px; margin-bottom:25px; flex-wrap:wrap; border-bottom: 2px dashed #b2bec3; padding-bottom: 8px; width:90%; }
+        .ww-slot-box { width:42px; height:42px; background:#fff; border:2px solid #dfe6e9; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; }
+        .ww-letters-row { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+        .ww-letter-tile { width:42px; height:42px; background:#3498db; color:white; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; cursor:pointer; box-shadow:0 3px 0 #2980b9; user-select:none; }
+        .ww-letter-tile.used { opacity:0.15; cursor:default; box-shadow:none; transform:translateY(3px); }
+        
+        /* Input & Actions */
+        .ww-input-field { width:80%; max-width:260px; padding:10px; font-size:16px; border:2px solid #ced4da; border-radius:6px; text-align:center; outline:none; }
+        .ww-action-btn { background:#2ecc71; color:white; border:none; padding:10px 20px; font-size:15px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #27ae60; }
+        
+        /* Match Up Ustunlari */
+        .match-block { padding:12px; border:2px solid #34495e; background:#fff; border-radius:6px; text-align:center; font-weight:bold; cursor:pointer; transition:0.2s; user-select:none; font-size:14px; width:100%; box-sizing:border-box;}
+        .match-block.selected { background:#3498db; color:white; border-color:#2980b9; }
+        .match-block.matched { background:#2ecc71; color:white; border-color:#27ae60; cursor:default; opacity:0.8; }
+        .match-block.wrong { background:#e74c3c; color:white; border-color:#c0392b; }
+        
+        /* Result Screen */
+        .ww-result-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:#fff; padding:20px; box-sizing:border-box; overflow-y:auto; }
+        .ww-result-trophy { font-size:55px; color:#f1c40f; margin-bottom:10px; }
+        .ww-result-stats { background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px; padding:12px; width:90%; max-width:280px; margin-bottom:15px; }
+        .ww-stat-row { display:flex; justify-content:space-between; margin:6px 0; font-size:15px; }
+        .ww-restart-btn { background:#34495e; color:white; border:none; padding:10px 20px; font-size:14px; border-radius:6px; cursor:pointer; }
+        
+        table { width:100%; margin-top:10px; }
+        th, td { padding:8px; border:1px solid #ddd; text-align:left; }
+        th { background:#f5f5f5; }
+    `;
+    document.head.appendChild(style);
 }
 </script>
 </body>
