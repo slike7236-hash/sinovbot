@@ -69,16 +69,9 @@
         <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
         <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
     </button>
-    
-    <button class="game-card-btn wordsearch-g-btn" onclick="loadContent('wordsearch')">
-        <div class="game-icon"><i class="fa-solid fa-table-cells"></i></div>
-        <div class="game-info">Word search <i class="fa-solid fa-angle-right"></i></div>
-    </button>
-    
-    <button class="game-card-btn pair-g-btn" onclick="loadContent('pair')">
-        <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
-        <div class="game-info">Pair / Nopair <i class="fa-solid fa-angle-right"></i></div>
-    </button>
+    <button class="game-card-btn" onclick="loadContent('wordsearch')" style="display: none;">Word Search</button>
+<button class="game-card-btn" onclick="loadContent('pairnopair')" style="display: none;">Pair / No Pair</button>
+   
 </div>
 
 <script>
@@ -122,6 +115,44 @@ function toggleLessonLanguage(lang) {
 function renderLessonContent() {
     document.getElementById("lessonTitle").innerText = currentLessonData.title;
     document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
+}
+
+// 🔊 PRO SOUND EFFECTS GENERATOR (Web Audio API)
+function playSoundEffect(isCorrect) {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        
+        if (isCorrect) {
+            // To'g'ri javob: Yoqimli va ko'tariluvchi "ding" ovozi
+            let osc1 = ctx.createOscillator();
+            let gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5 notasi
+            osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5 notasi
+            gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start();
+            osc1.stop(ctx.currentTime + 0.3);
+        } else {
+            // Noto'g'ri javob: Past va qisqa "bup" xato ovozi
+            let osc2 = ctx.createOscillator();
+            let gain2 = ctx.createGain();
+            osc2.type = 'sawtooth';
+            osc2.frequency.setValueAtTime(120, ctx.currentTime); // Past chastota
+            gain2.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start();
+            osc2.stop(ctx.currentTime + 0.25);
+        }
+    } catch (e) {
+        console.log("Ovoz chiqarishda xatolik:", e);
+    }
 }
 
 // Wordwall Taymer mexanikasi
@@ -285,7 +316,6 @@ function loadContent(type) {
         
         injectGameStyles();
 
-        // O'yin qobig'ini (Frame) bir marta yaratish
         textZone.innerHTML = `
             <div class="ww-game-container">
                 <div class="ww-top-bar">
@@ -367,11 +397,13 @@ function buildAnagramaGame() {
 
             if(userAnagramBuilt.length === cleanWord.length) {
                 if(userAnagramBuilt === cleanWord) {
+                    playSoundEffect(true); // OVOZ: TO'G'RI
                     gameScore += calculateSpeedBonus();
                     speakWord(cleanWord);
                     slotsRow.style.borderColor = "#2ecc71";
                     setTimeout(() => { currentGameIndex++; buildAnagramaGame(); }, 800);
                 } else {
+                    playSoundEffect(false); // OVOZ: XATO
                     slotsRow.style.borderColor = "#e74c3c";
                     setTimeout(() => {
                         slotsRow.style.borderColor = "#ced4da";
@@ -409,11 +441,13 @@ function buildTypeAnswerGame() {
 
     btn.onclick = () => {
         if(inp.value.toLowerCase().trim() === correctAns) {
+            playSoundEffect(true); // OVOZ: TO'G'RI
             gameScore += calculateSpeedBonus();
             inp.style.borderColor = "#2ecc71";
             speakWord(correctAns);
             setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(); }, 800);
         } else {
+            playSoundEffect(false); // OVOZ: XATO
             inp.style.borderColor = "#e74c3c";
             setTimeout(() => { inp.style.borderColor = "#ced4da"; inp.value = ""; }, 1000);
         }
@@ -484,11 +518,13 @@ function checkMatchPair() {
         let uzBlock = Array.from(document.querySelectorAll("#uzCol .match-block")).find(b => b.classList.contains('selected'));
 
         if(selectedMatch.eng === selectedMatch.uz) {
+            playSoundEffect(true); // OVOZ: TO'G'RI PAIR
             engBlock.className = "match-block matched";
             uzBlock.className = "match-block matched";
             gameScore += 10; 
             speakWord(selectedMatch.eng);
         } else {
+            playSoundEffect(false); // OVOZ: XATO PAIR
             engBlock.classList.add('wrong');
             uzBlock.classList.add('wrong');
             setTimeout(() => {
@@ -505,7 +541,7 @@ function checkMatchPair() {
             setTimeout(() => { 
                 currentGameIndex++; 
                 const playArea = document.getElementById("wwPlayArea");
-                playArea.removeAttribute("style"); // Uslublarni tozalash
+                playArea.removeAttribute("style");
                 playArea.style.flexGrow = "1";
                 playArea.style.display = "flex";
                 playArea.style.flexDirection = "column";
