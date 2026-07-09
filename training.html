@@ -99,6 +99,11 @@ let gameSeconds = 0;
 let roundSeconds = 0;
 let roundTimerInterval = null;
 
+// 🎧 AudioSync Global O'zgaruvchilari
+let synthUtterance = null;
+let syncWordsMap = []; 
+let isPlayingFullAudio = false;
+
 window.onload = function() {
     document.getElementById("langSelect").value = currentLang;
     renderLessonContent();
@@ -109,6 +114,7 @@ function toggleLessonLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('selectedLang', lang);
     currentLessonData = lessonDataFull[lang] || lessonDataFull["uz"];
+    stopFullAudio(); // Til o'zgarganda audioni to'xtatish
     renderLessonContent();
     loadContent('text'); 
 }
@@ -118,8 +124,9 @@ function renderLessonContent() {
     document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
 }
 
-// 🔊 Ovoz chiqarish funksiyasi
+// 🔊 Yakka so'zlarni eshitish uchun qisqa funksiya
 function speakWord(word) {
+    if (isPlayingFullAudio) return; // To'liq matn o'qilayotganda halaqit bermaslik
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel(); 
         let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
@@ -128,6 +135,99 @@ function speakWord(word) {
         utterance.lang = 'en-US';
         utterance.rate = 0.85; 
         window.speechSynthesis.speak(utterance);
+    }
+}
+
+// ⚡ AUDIO SYNC TIZIMI (Matnni to'liq eshitish va so'zlarni yoritish)
+function playFullAudioSync() {
+    if (!('speechSynthesis' in window)) {
+        alert("Brauzeringiz ovozli tizimni qo'llab-quvvatlamaydi.");
+        return;
+    }
+
+    if (isPlayingFullAudio) {
+        // Agar allaqachon aytilayotgan bo'lsa pauza yoki to'xtatish
+        stopFullAudio();
+        return;
+    }
+
+    window.speechSynthesis.cancel(); // Har ehtimolga qarshi tozalash
+
+    // Matndagi barcha toza so'zlarni yig'ib chiqamiz
+    let fullCleanText = "";
+    syncWordsMap = [];
+    
+    const wordElements = document.querySelectorAll(".sync-word");
+    let currentCharacterIndex = 0;
+
+    wordElements.forEach((el, index) => {
+        let text = el.innerText;
+        fullCleanText += text + " ";
+        
+        // Har bir so'zning umumiy matndagi boshlanish va tugash indeksini saqlaymiz
+        syncWordsMap.push({
+            element: el,
+            startIdx: currentCharacterIndex,
+            endIdx: currentCharacterIndex + text.length
+        });
+        currentCharacterIndex += text.length + 1; // Bo'shliq bilan birga
+    });
+
+    if (syncWordsMap.length === 0) return;
+
+    synthUtterance = new SpeechSynthesisUtterance(fullCleanText.trim());
+    synthUtterance.lang = 'en-US';
+    synthUtterance.rate = 0.85;
+
+    // 🔥 Sinxronizatsiya jarayoni (onboundary)
+    synthUtterance.onboundary = function(event) {
+        if (event.name === 'word') {
+            const charIdx = event.charIndex;
+            
+            // Hozir aytilayotgan so'zni indeks bo'yicha qidirib topamiz
+            const activeMatch = syncWordsMap.find(item => charIdx >= item.startIdx && charIdx <= item.endIdx);
+            
+            if (activeMatch) {
+                // Avvalgi yorishgan so'zlarni tozalash
+                wordElements.forEach(w => w.classList.remove("sync-active"));
+                // Hozirgi aytilayotgan so'zni yoritish (Highlight)
+                activeMatch.element.classList.add("sync-active");
+                
+                // Matn uzun bo'lsa avtomatik tarzda o'qilayotgan joyga scroll qilish
+                activeMatch.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    };
+
+    synthUtterance.onend = function() {
+        stopFullAudio();
+    };
+
+    synthUtterance.onerror = function() {
+        stopFullAudio();
+    };
+
+    // Tugma ko'rinishini o'zgartirish
+    const playBtn = document.getElementById("audioSyncBtn");
+    if (playBtn) {
+        playBtn.innerHTML = `<i class="fa-solid fa-circle-stop"></i> Audio to'xtatish`;
+        playBtn.style.background = "#e74c3c";
+    }
+
+    isPlayingFullAudio = true;
+    window.speechSynthesis.speak(synthUtterance);
+}
+
+function stopFullAudio() {
+    window.speechSynthesis.cancel();
+    isPlayingFullAudio = false;
+    
+    document.querySelectorAll(".sync-word").forEach(w => w.classList.remove("sync-active"));
+    
+    const playBtn = document.getElementById("audioSyncBtn");
+    if (playBtn) {
+        playBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i> Matnni to'liq tinglash (AudioSync)`;
+        playBtn.style.background = "#2ecc71";
     }
 }
 
@@ -278,13 +378,13 @@ function loadContent(type) {
     localGameData = currentLessonData.keywordsList || [];
 
     if (type === 'text') {
+        stopFullAudio(); // Har safar Text sahifasiga kirganda tozalash
         let rawHtml = currentLessonData.textHtml || "<p>Matn mavjud emas.</p>";
         
-        // ✨ ENG KUCHLI YANGILANISH: Matn ichidagi har bitta alohida so'zni bosiladigan qilish
         let tempDiv = document.createElement("div");
         tempDiv.innerHTML = rawHtml;
         
-        // Matndagi barcha text elementlarini topib, so'zlarini span'ga o'raymiz
+        // Har bir so'zni alohida `.sync-word` klasiga ega bo'lgan spanga o'raymiz
         let walk = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null, false);
         let textNodes = [];
         let node;
@@ -300,9 +400,8 @@ function loadContent(type) {
             words.forEach(w => {
                 if (w.trim().length > 0 && /[a-zA-Z]/.test(w)) {
                     let span = document.createElement("span");
-                    span.className = "clickable-word";
+                    span.className = "sync-word";
                     span.innerText = w;
-                    span.style.cursor = "pointer";
                     span.setAttribute("onclick", `speakWord(this.innerText)`);
                     fragment.appendChild(span);
                 } else {
@@ -312,10 +411,20 @@ function loadContent(type) {
             tNode.parentNode.replaceChild(fragment, tNode);
         });
 
-        textZone.innerHTML = tempDiv.innerHTML;
+        // 🔘 AudioSync boshqaruv tugmasini matnning tepasiga qo'shish
+        let actionControlHtml = `
+            <div class="audiosync-control-panel">
+                <button id="audioSyncBtn" class="audiosync-btn" onclick="playFullAudioSync()">
+                    <i class="fa-solid fa-circle-play"></i> Matnni to'liq tinglash (AudioSync)
+                </button>
+            </div>
+        `;
+
+        textZone.innerHTML = actionControlHtml + `<div class="actual-synced-text">${tempDiv.innerHTML}</div>`;
         textZone.style.display = "block";
     } 
     else if (type === 'keywords') {
+        stopFullAudio();
         let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">
             <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
         localGameData.forEach(item => {
@@ -332,10 +441,12 @@ function loadContent(type) {
         textZone.style.display = "block";
     }
     else if (type === 'video' || type === 'test') {
+        stopFullAudio();
         iframeZone.src = type === 'video' ? (currentLessonData.videoUrl || "") : (currentLessonData.testUrl || "");
         iframeZone.style.display = "block";
     } 
     else {
+        stopFullAudio();
         textZone.style.display = "block";
         if (localGameData.length === 0) {
             textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin ma'lumotlari mavjud emas!</p>`;
@@ -691,9 +802,17 @@ function injectGameStyles() {
         .ww-leaderboard-input-zone { width: 100%; text-align:center; }
         #lbTable { width:100%; margin-top:10px; text-align:left; border-collapse:collapse; }
         #lbTable th, #lbTable td { padding:6px; border:1px solid #ddd; }
+
+        /* 🎧 AUDIO SYNC JADVALI VA EFFEKTLARI */
+        .audiosync-control-panel { background: #f1f3f4; padding: 10px; text-align: center; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e0e0e0; }
+        .audiosync-btn { background: #2ecc71; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s ease; }
+        .audiosync-btn:hover { transform: scale(1.02); }
         
-        /* Matndagi bosiladigan so'zlar uchun ozgina vizual effekt */
-        .clickable-word:hover { background-color: #ffeaa7; border-radius: 4px; color: #2980b9; }
+        .sync-word { cursor: pointer; padding: 1px 3px; border-radius: 4px; transition: background-color 0.15s ease, color 0.15s ease; display: inline-block; }
+        .sync-word:hover { background-color: #e3f2fd; color: #1e88e5; }
+        
+        /* 🔥 O'qilayotgan so'zning sinxron yorishish effekti (Highlight) */
+        .sync-word.sync-active { background-color: #f1c40f !important; color: #000 !important; font-weight: bold; box-shadow: 0 0 8px #f1c40f; transform: scale(1.08); position: relative; z-index: 10; }
     `;
     document.head.appendChild(style);
 }
