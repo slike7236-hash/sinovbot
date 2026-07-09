@@ -45,6 +45,19 @@
             <i class="fa-solid fa-expand"></i>
         </button>
 
+        <div id="floatingAudioPlayer" class="floating-audio-player" style="display: none;">
+            <button onclick="rewindAudio(-10)" title="10 soniya ortga"><i class="fa-solid fa-backward"></i></button>
+            <button id="playerPlayBtn" onclick="toggleAudioPlay()" class="play-main-btn" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
+            <button onclick="rewindAudio(10)" title="10 soniya oldinga"><i class="fa-solid fa-forward"></i></button>
+            <select id="audioSpeedSelect" onchange="changeAudioSpeed(this.value)" title="Tezlik">
+                <option value="1">1.0x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="2">2.0x</option>
+            </select>
+            <audio id="mainAudioElement"></audio>
+        </div>
+
         <div id="textContainer" class="scrollable-text-content"></div>
         <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
     </div>
@@ -99,11 +112,6 @@ let gameSeconds = 0;
 let roundSeconds = 0;
 let roundTimerInterval = null;
 
-// 🎧 AudioSync Global O'zgaruvchilari
-let synthUtterance = null;
-let syncWordsMap = []; 
-let isPlayingFullAudio = false;
-
 window.onload = function() {
     document.getElementById("langSelect").value = currentLang;
     renderLessonContent();
@@ -114,7 +122,7 @@ function toggleLessonLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('selectedLang', lang);
     currentLessonData = lessonDataFull[lang] || lessonDataFull["uz"];
-    stopFullAudio(); // Til o'zgarganda audioni to'xtatish
+    resetAudioPlayer(); // Til o'zgarganda audioni o'chirish
     renderLessonContent();
     loadContent('text'); 
 }
@@ -124,111 +132,60 @@ function renderLessonContent() {
     document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
 }
 
-// 🔊 Yakka so'zlarni eshitish uchun qisqa funksiya
-function speakWord(word) {
-    if (isPlayingFullAudio) return; // To'liq matn o'qilayotganda halaqit bermaslik
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); 
-        let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
-        if(!cleanText) return;
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85; 
-        window.speechSynthesis.speak(utterance);
+// 🎵 MP3 AUDIO PLAYER FUNKSIYALARI
+function initAudioPlayer() {
+    const audio = document.getElementById("mainAudioElement");
+    const playerContainer = document.getElementById("floatingAudioPlayer");
+    
+    if (currentLessonData.audioUrl) {
+        audio.src = currentLessonData.audioUrl;
+        playerContainer.style.display = "flex"; // Faqat audioUrl bo'lsa ko'rinadi
+        document.getElementById("audioSpeedSelect").value = "1";
+        audio.playbackRate = 1;
+        updatePlayBtnIcon(false);
+    } else {
+        playerContainer.style.display = "none";
     }
 }
 
-// ⚡ AUDIO SYNC TIZIMI (Matnni to'liq eshitish va so'zlarni yoritish)
-function playFullAudioSync() {
-    if (!('speechSynthesis' in window)) {
-        alert("Brauzeringiz ovozli tizimni qo'llab-quvvatlamaydi.");
-        return;
+function toggleAudioPlay() {
+    const audio = document.getElementById("mainAudioElement");
+    if (audio.paused) {
+        audio.play();
+        updatePlayBtnIcon(true);
+    } else {
+        audio.pause();
+        updatePlayBtnIcon(false);
     }
-
-    if (isPlayingFullAudio) {
-        // Agar allaqachon aytilayotgan bo'lsa pauza yoki to'xtatish
-        stopFullAudio();
-        return;
-    }
-
-    window.speechSynthesis.cancel(); // Har ehtimolga qarshi tozalash
-
-    // Matndagi barcha toza so'zlarni yig'ib chiqamiz
-    let fullCleanText = "";
-    syncWordsMap = [];
-    
-    const wordElements = document.querySelectorAll(".sync-word");
-    let currentCharacterIndex = 0;
-
-    wordElements.forEach((el, index) => {
-        let text = el.innerText;
-        fullCleanText += text + " ";
-        
-        // Har bir so'zning umumiy matndagi boshlanish va tugash indeksini saqlaymiz
-        syncWordsMap.push({
-            element: el,
-            startIdx: currentCharacterIndex,
-            endIdx: currentCharacterIndex + text.length
-        });
-        currentCharacterIndex += text.length + 1; // Bo'shliq bilan birga
-    });
-
-    if (syncWordsMap.length === 0) return;
-
-    synthUtterance = new SpeechSynthesisUtterance(fullCleanText.trim());
-    synthUtterance.lang = 'en-US';
-    synthUtterance.rate = 0.85;
-
-    // 🔥 Sinxronizatsiya jarayoni (onboundary)
-    synthUtterance.onboundary = function(event) {
-        if (event.name === 'word') {
-            const charIdx = event.charIndex;
-            
-            // Hozir aytilayotgan so'zni indeks bo'yicha qidirib topamiz
-            const activeMatch = syncWordsMap.find(item => charIdx >= item.startIdx && charIdx <= item.endIdx);
-            
-            if (activeMatch) {
-                // Avvalgi yorishgan so'zlarni tozalash
-                wordElements.forEach(w => w.classList.remove("sync-active"));
-                // Hozirgi aytilayotgan so'zni yoritish (Highlight)
-                activeMatch.element.classList.add("sync-active");
-                
-                // Matn uzun bo'lsa avtomatik tarzda o'qilayotgan joyga scroll qilish
-                activeMatch.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-    };
-
-    synthUtterance.onend = function() {
-        stopFullAudio();
-    };
-
-    synthUtterance.onerror = function() {
-        stopFullAudio();
-    };
-
-    // Tugma ko'rinishini o'zgartirish
-    const playBtn = document.getElementById("audioSyncBtn");
-    if (playBtn) {
-        playBtn.innerHTML = `<i class="fa-solid fa-circle-stop"></i> Audio to'xtatish`;
-        playBtn.style.background = "#e74c3c";
-    }
-
-    isPlayingFullAudio = true;
-    window.speechSynthesis.speak(synthUtterance);
 }
 
-function stopFullAudio() {
-    window.speechSynthesis.cancel();
-    isPlayingFullAudio = false;
-    
-    document.querySelectorAll(".sync-word").forEach(w => w.classList.remove("sync-active"));
-    
-    const playBtn = document.getElementById("audioSyncBtn");
-    if (playBtn) {
-        playBtn.innerHTML = `<i class="fa-solid fa-circle-play"></i> Matnni to'liq tinglash (AudioSync)`;
-        playBtn.style.background = "#2ecc71";
+function updatePlayBtnIcon(isPlaying) {
+    const btn = document.getElementById("playerPlayBtn");
+    if (isPlaying) {
+        btn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
+    } else {
+        btn.innerHTML = `<i class="fa-solid fa-play"></i>`;
     }
+}
+
+function rewindAudio(seconds) {
+    const audio = document.getElementById("mainAudioElement");
+    audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + seconds));
+}
+
+function changeAudioSpeed(speed) {
+    const audio = document.getElementById("mainAudioElement");
+    audio.playbackRate = parseFloat(speed);
+}
+
+function resetAudioPlayer() {
+    const audio = document.getElementById("mainAudioElement");
+    if(audio) {
+        audio.pause();
+        audio.src = "";
+    }
+    const playerContainer = document.getElementById("floatingAudioPlayer");
+    if(playerContainer) playerContainer.style.display = "none";
 }
 
 function playSoundEffect(isCorrect) {
@@ -374,65 +331,25 @@ function loadContent(type) {
     textZone.style.display = "none";
     iframeZone.style.display = "none";
     iframeZone.src = "";
+    
+    resetAudioPlayer(); // Boshqa bo'limga o'tganda audioni yopish
 
     localGameData = currentLessonData.keywordsList || [];
 
     if (type === 'text') {
-        stopFullAudio(); // Har safar Text sahifasiga kirganda tozalash
         let rawHtml = currentLessonData.textHtml || "<p>Matn mavjud emas.</p>";
-        
-        let tempDiv = document.createElement("div");
-        tempDiv.innerHTML = rawHtml;
-        
-        // Har bir so'zni alohida `.sync-word` klasiga ega bo'lgan spanga o'raymiz
-        let walk = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null, false);
-        let textNodes = [];
-        let node;
-        while(node = walk.nextNode()) {
-            if (node.parentNode.nodeName !== 'SCRIPT' && node.parentNode.nodeName !== 'STYLE') {
-                textNodes.push(node);
-            }
-        }
-        
-        textNodes.forEach(tNode => {
-            let words = tNode.nodeValue.split(/(\s+)/);
-            let fragment = document.createDocumentFragment();
-            words.forEach(w => {
-                if (w.trim().length > 0 && /[a-zA-Z]/.test(w)) {
-                    let span = document.createElement("span");
-                    span.className = "sync-word";
-                    span.innerText = w;
-                    span.setAttribute("onclick", `speakWord(this.innerText)`);
-                    fragment.appendChild(span);
-                } else {
-                    fragment.appendChild(document.createTextNode(w));
-                }
-            });
-            tNode.parentNode.replaceChild(fragment, tNode);
-        });
-
-        // 🔘 AudioSync boshqaruv tugmasini matnning tepasiga qo'shish
-        let actionControlHtml = `
-            <div class="audiosync-control-panel">
-                <button id="audioSyncBtn" class="audiosync-btn" onclick="playFullAudioSync()">
-                    <i class="fa-solid fa-circle-play"></i> Matnni to'liq tinglash (AudioSync)
-                </button>
-            </div>
-        `;
-
-        textZone.innerHTML = actionControlHtml + `<div class="actual-synced-text">${tempDiv.innerHTML}</div>`;
+        textZone.innerHTML = rawHtml;
         textZone.style.display = "block";
+        
+        injectGameStyles(); 
+        initAudioPlayer(); // Matn bo'limi ochilganda MP3 Pleyerni yuklash
     } 
     else if (type === 'keywords') {
-        stopFullAudio();
         let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">
             <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
         localGameData.forEach(item => {
-            let escapedWord = item.word.replace(/'/g, "\\'");
             tableHtml += `<tr>
-                <td style="padding:10px; font-weight:bold; cursor:pointer; color:#2c3e50;" onclick="speakWord('${escapedWord}')">
-                    <i class="fa-solid fa-volume-high" style="color:#3498db; margin-right:5px;"></i> ${item.word}
-                </td>
+                <td style="padding:10px; font-weight:bold; color:#2c3e50;">${item.word}</td>
                 <td style="padding:10px; color:#555;">${item.translation}</td>
             </tr>`;
         });
@@ -441,381 +358,10 @@ function loadContent(type) {
         textZone.style.display = "block";
     }
     else if (type === 'video' || type === 'test') {
-        stopFullAudio();
         iframeZone.src = type === 'video' ? (currentLessonData.videoUrl || "") : (currentLessonData.testUrl || "");
         iframeZone.style.display = "block";
     } 
     else {
-        stopFullAudio();
         textZone.style.display = "block";
         if (localGameData.length === 0) {
-            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin ma'lumotlari mavjud emas!</p>`;
-            return;
-        }
-        
-        injectGameStyles();
-
-        textZone.innerHTML = `
-            <div class="ww-game-container">
-                <div class="ww-top-bar">
-                    <span id="wwTimer">0:00</span>
-                    <span id="wwScore">✓ 0</span>
-                </div>
-                <div class="ww-play-area" id="wwPlayArea"></div>
-                <div class="ww-bottom-bar">
-                    <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, '${type}')"><i class="fa-solid fa-backward-step"></i></button>
-                    <span class="ww-progress-text" id="wwProgressText"></span>
-                    <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, '${type}')"><i class="fa-solid fa-forward-step"></i></button>
-                </div>
-            </div>`;
-
-        startWordwallTimer();
-
-        if (type === 'anagrama') {
-            totalGameRounds = localGameData.length;
-            buildAnagramaGame();
-        } else if (type === 'typeanswer') {
-            totalGameRounds = localGameData.length;
-            buildTypeAnswerGame();
-        } else if (type === 'matchup') {
-            matchUpGroups = [];
-            for (let i = 0; i < localGameData.length; i += 5) {
-                matchUpGroups.push(localGameData.slice(i, i + 5));
-            }
-            totalGameRounds = matchUpGroups.length;
-            buildMatchupGame();
-        }
-    }
-}
-
-// 1️⃣ ANAGRAMA GAME
-function buildAnagramaGame() {
-    const playArea = document.getElementById("wwPlayArea");
-    if (!playArea) return;
-    if (checkGameOver('anagrama', playArea)) return;
-
-    let item = localGameData[currentGameIndex];
-    let cleanWord = item.word.toUpperCase().replace(/[\[\]]/g, '').trim();
-    let lettersArr = cleanWord.split("");
-    let shuffled = lettersArr.map((char, index) => ({ char, id: index })).sort(() => Math.random() - 0.5);
-
-    playArea.innerHTML = `
-        <div class="ww-target-title">${item.translation}</div>
-        <div class="ww-slots-row" id="slotsRow"></div>
-        <div class="ww-letters-row" id="lettersRow"></div>
-        <div class="ww-clear-container">
-            <button class="ww-clear-btn" onclick="clearAnagramSlots()">
-                <i class="fa-solid fa-trash-can"></i> Tozalash
-            </button>
-        </div>`;
-
-    updateWWStats();
-    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
-
-    const slotsRow = document.getElementById("slotsRow");
-    const lettersRow = document.getElementById("lettersRow");
-
-    lettersArr.forEach(() => {
-        let slot = document.createElement("div");
-        slot.className = "ww-slot-box";
-        slot.onclick = () => {
-            if (slot.innerText === "") return;
-            let tileId = slot.getAttribute("data-tile-id");
-            let originalTile = document.getElementById(`tile-${tileId}`);
-            if (originalTile) originalTile.classList.remove('used');
-            slot.innerText = "";
-            slot.removeAttribute("data-tile-id");
-            checkAnagramResult(cleanWord);
-        };
-        slotsRow.appendChild(slot);
-    });
-
-    shuffled.forEach((obj) => {
-        let tile = document.createElement("div");
-        tile.className = "ww-letter-tile";
-        tile.id = `tile-${obj.id}`;
-        tile.innerText = obj.char;
-        tile.onclick = () => {
-            if(tile.classList.contains('used')) return;
-            let emptySlot = Array.from(slotsRow.children).find(s => s.innerText === "");
-            if(emptySlot) {
-                tile.classList.add('used');
-                emptySlot.innerText = obj.char;
-                emptySlot.setAttribute("data-tile-id", obj.id);
-                checkAnagramResult(cleanWord);
-            }
-        };
-        lettersRow.appendChild(tile);
-    });
-}
-
-function checkAnagramResult(cleanWord) {
-    const slotsRow = document.getElementById("slotsRow");
-    let currentWord = "";
-    let filledCount = 0;
-
-    Array.from(slotsRow.children).forEach(s => {
-        if (s.innerText !== "") {
-            currentWord += s.innerText;
-            filledCount++;
-        }
-    });
-
-    if(filledCount === cleanWord.length) {
-        if(currentWord === cleanWord) {
-            playSoundEffect(true);
-            gameScore += calculateSpeedBonus();
-            speakWord(cleanWord);
-            slotsRow.style.borderColor = "#2ecc71";
-            setTimeout(() => { currentGameIndex++; buildAnagramaGame(); }, 800);
-        } else {
-            playSoundEffect(false);
-            slotsRow.style.borderColor = "#e74c3c";
-            setTimeout(() => { slotsRow.style.borderColor = "#b2bec3"; }, 1000);
-        }
-    }
-}
-
-function clearAnagramSlots() {
-    const slotsRow = document.getElementById("slotsRow");
-    if (slotsRow) {
-        Array.from(slotsRow.children).forEach(slot => {
-            slot.innerText = "";
-            slot.removeAttribute("data-tile-id");
-        });
-        slotsRow.style.borderColor = "#b2bec3";
-    }
-    document.querySelectorAll(".ww-letter-tile").forEach(tile => {
-        tile.classList.remove('used');
-    });
-}
-
-// 2️⃣ TYPE ANSWER GAME
-function buildTypeAnswerGame() {
-    const playArea = document.getElementById("wwPlayArea");
-    if (!playArea) return;
-    if (checkGameOver('typeanswer', playArea)) return;
-
-    let item = localGameData[currentGameIndex];
-    let correctAns = item.word.toLowerCase().replace(/[\[\]]/g, '').trim();
-
-    playArea.innerHTML = `
-        <div class="ww-target-title">"${item.translation}"</div>
-        <input type="text" class="ww-input-field" id="wwTypeInp" placeholder="Inglizchasini yozing..." autocomplete="off" style="display:block; margin: 0 auto 15px;">
-        <button class="ww-action-btn" id="wwSubmitBtn">Tekshirish</button>`;
-
-    updateWWStats();
-    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
-
-    const inp = document.getElementById("wwTypeInp");
-    const btn = document.getElementById("wwSubmitBtn");
-
-    btn.onclick = () => {
-        if(inp.value.toLowerCase().trim() === correctAns) {
-            playSoundEffect(true);
-            gameScore += calculateSpeedBonus();
-            inp.style.borderColor = "#2ecc71";
-            speakWord(correctAns);
-            setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(); }, 800);
-        } else {
-            playSoundEffect(false);
-            inp.style.borderColor = "#e74c3c";
-            setTimeout(() => { inp.style.borderColor = "#ced4da"; inp.value = ""; }, 1000);
-        }
-    };
-}
-
-// 3️⃣ MATCH UP GAME
-let selectedMatch = { eng: null, uz: null };
-function buildMatchupGame() {
-    const playArea = document.getElementById("wwPlayArea");
-    if (!playArea) return;
-    if (checkGameOver('matchup', playArea)) return;
-
-    let currentGroup = matchUpGroups[currentGameIndex];
-    let engList = [...currentGroup].sort(() => Math.random() - 0.5);
-    let uzList = [...currentGroup].sort(() => Math.random() - 0.5);
-
-    playArea.style.flexDirection = "row";
-    playArea.style.justifyContent = "space-around";
-    playArea.style.alignItems = "flex-start";
-
-    playArea.innerHTML = `
-        <div class="match-column" id="engCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>
-        <div class="match-column" id="uzCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>`;
-
-    updateWWStats();
-    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
-
-    const engCol = document.getElementById("engCol");
-    const uzCol = document.getElementById("uzCol");
-    selectedMatch = { eng: null, uz: null };
-
-    engList.forEach(item => {
-        let block = document.createElement("div");
-        block.className = "match-block";
-        block.innerText = item.word;
-        block.onclick = () => {
-            if(block.classList.contains('matched')) return;
-            document.querySelectorAll("#engCol .match-block").forEach(b => b.classList.remove('selected'));
-            block.classList.add('selected');
-            selectedMatch.eng = item.word;
-            checkMatchPair();
-        };
-        engCol.appendChild(block);
-    });
-
-    uzList.forEach(item => {
-        let block = document.createElement("div");
-        block.className = "match-block";
-        block.innerText = item.translation;
-        block.onclick = () => {
-            if(block.classList.contains('matched')) return;
-            document.querySelectorAll("#uzCol .match-block").forEach(b => b.classList.remove('selected'));
-            block.classList.add('selected');
-            selectedMatch.uz = item.word; 
-            checkMatchPair();
-        };
-        uzCol.appendChild(block);
-    });
-}
-
-function checkMatchPair() {
-    if(selectedMatch.eng && selectedMatch.uz) {
-        let engBlock = Array.from(document.querySelectorAll("#engCol .match-block")).find(b => b.innerText === selectedMatch.eng);
-        let uzBlock = Array.from(document.querySelectorAll("#uzCol .match-block")).find(b => b.classList.contains('selected'));
-
-        if(selectedMatch.eng === selectedMatch.uz) {
-            playSoundEffect(true);
-            engBlock.className = "match-block matched";
-            uzBlock.className = "match-block matched";
-            gameScore += 10; 
-            speakWord(selectedMatch.eng);
-        } else {
-            playSoundEffect(false);
-            engBlock.classList.add('wrong');
-            uzBlock.classList.add('wrong');
-            setTimeout(() => {
-                engBlock.classList.remove('wrong', 'selected');
-                uzBlock.classList.remove('wrong', 'selected');
-            }, 800);
-        }
-        selectedMatch = { eng: null, uz: null };
-        document.getElementById("wwScore").innerText = `✓ ${gameScore}`;
-
-        let totalMatched = document.querySelectorAll(".match-block.matched").length;
-        if(totalMatched === matchUpGroups[currentGameIndex].length * 2) {
-            gameScore += calculateSpeedBonus(); 
-            setTimeout(() => { 
-                currentGameIndex++; 
-                const playArea = document.getElementById("wwPlayArea");
-                playArea.removeAttribute("style");
-                playArea.style.flexGrow = "1";
-                playArea.style.display = "flex";
-                playArea.style.flexDirection = "column";
-                playArea.style.justifyContent = "center";
-                playArea.style.alignItems = "center";
-                buildMatchupGame(); 
-            }, 1000);
-        }
-    }
-}
-
-function navWWGame(step, type) {
-    if (currentGameIndex + step >= 0 && currentGameIndex + step < totalGameRounds) {
-        currentGameIndex += step;
-        const playArea = document.getElementById("wwPlayArea");
-        playArea.removeAttribute("style");
-        playArea.style.flexGrow = "1";
-        playArea.style.display = "flex";
-        playArea.style.flexDirection = "column";
-        playArea.style.justifyContent = "center";
-        playArea.style.alignItems = "center";
-
-        if(type === 'anagrama') buildAnagramaGame();
-        if(type === 'typeanswer') buildTypeAnswerGame();
-        if(type === 'matchup') buildMatchupGame();
-    }
-}
-
-function toggleFullscreen() {
-    const windowEl = document.getElementById("displayWindow");
-    const topBar = document.querySelector(".top-materials-bar");
-    const divider = document.getElementById("gamesDivider");
-    const grid = document.getElementById("gamesGrid");
-    const btnIcon = document.getElementById("resizeBtn").querySelector("i");
-
-    if (!windowEl.classList.contains("fullscreen-active")) {
-        topBar.style.display = "none";
-        divider.style.display = "none";
-        grid.style.display = "none";
-        windowEl.classList.add("fullscreen-active");
-        btnIcon.className = "fa-solid fa-compress";
-    } else {
-        topBar.style.display = "flex";
-        divider.style.display = "flex";
-        grid.style.display = "grid";
-        windowEl.classList.remove("fullscreen-active");
-        btnIcon.className = "fa-solid fa-expand";
-    }
-}
-
-function injectGameStyles() {
-    if (document.getElementById("wwGameStyles")) return;
-    const style = document.createElement("style");
-    style.id = "wwGameStyles";
-    style.innerHTML = `
-        .ww-game-container { display:flex; flex-direction:column; height:450px; background:#fff; font-family:sans-serif; border:1px solid #ddd; border-radius:8px; overflow:hidden; box-sizing: border-box; }
-        .ww-top-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 15px; background:#f8f9fa; border-bottom:1px solid #e9ecef; font-size:18px; font-weight:bold; color:#333; }
-        .ww-play-area { flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px; background:#fafafa; position:relative; overflow-y: auto; }
-        .ww-bottom-bar { display:flex; justify-content:center; align-items:center; gap:25px; padding:10px; background:#f8f9fa; border-top:1px solid #e9ecef; }
-        
-        .ww-nav-btn { background:none; border:none; font-size:22px; color:#495057; cursor:pointer; }
-        .ww-nav-btn:disabled { color:#ccc; cursor:default; }
-        .ww-progress-text { font-size:16px; font-weight:bold; color:#495057; }
-        .ww-target-title { font-size:24px; font-weight:600; margin-bottom:20px; text-align:center; color:#2c3e50; }
-        
-        .ww-slots-row { display:flex; justify-content:center; gap:6px; min-height:45px; margin-bottom:20px; flex-wrap:wrap; border-bottom: 2px dashed #b2bec3; padding-bottom: 8px; width:95%; box-sizing:border-box; }
-        .ww-slot-box { width:38px; height:38px; background:#fff; border:2px solid #dfe6e9; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; cursor:pointer; box-sizing:border-box; }
-        .ww-letters-row { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; width:95%; box-sizing:border-box; }
-        .ww-letter-tile { width:38px; height:38px; background:#3498db; color:white; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; cursor:pointer; box-shadow:0 3px 0 #2980b9; user-select:none; box-sizing:border-box; }
-        .ww-letter-tile.used { opacity:0.15; cursor:default; box-shadow:none; transform:translateY(3px); }
-        
-        .ww-clear-container { margin-top: 20px; width: 100%; text-align: center; }
-        .ww-clear-btn { background:#e74c3c; color:white; border:none; padding:8px 16px; font-size:14px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #c0392b; display:inline-block; transition: 0.1s; }
-        .ww-clear-btn:active { transform: translateY(3px); box-shadow: none; }
-
-        .ww-input-field { width:80%; max-width:260px; padding:10px; font-size:16px; border:2px solid #ced4da; border-radius:6px; text-align:center; outline:none; }
-        .ww-action-btn { background:#2ecc71; color:white; border:none; padding:10px 20px; font-size:15px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #27ae60; display:block; margin:0 auto;}
-        
-        .match-block { padding:12px; border:2px solid #34495e; background:#fff; border-radius:6px; text-align:center; font-weight:bold; cursor:pointer; transition:0.2s; user-select:none; font-size:14px; width:100%; box-sizing:border-box;}
-        .match-block.selected { background:#3498db; color:white; border-color:#2980b9; }
-        .match-block.matched { background:#2ecc71; color:white; border-color:#27ae60; cursor:default; opacity:0.8; }
-        .match-block.wrong { background:#e74c3c; color:white; border-color:#c0392b; }
-        
-        .ww-result-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:#fff; padding:10px; box-sizing:border-box; }
-        .ww-result-trophy { font-size:55px; color:#f1c40f; margin-bottom:5px; }
-        .ww-result-stats { background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px; padding:12px; width:90%; max-width:280px; margin-bottom:15px; }
-        .ww-stat-row { display:flex; justify-content:space-between; margin:6px 0; font-size:15px; }
-        .ww-restart-btn { background:#34495e; color:white; border:none; padding:10px 20px; font-size:14px; border-radius:6px; cursor:pointer; }
-        
-        .ww-leaderboard-input-zone { width: 100%; text-align:center; }
-        #lbTable { width:100%; margin-top:10px; text-align:left; border-collapse:collapse; }
-        #lbTable th, #lbTable td { padding:6px; border:1px solid #ddd; }
-
-        /* 🎧 AUDIO SYNC JADVALI VA EFFEKTLARI */
-        .audiosync-control-panel { background: #f1f3f4; padding: 10px; text-align: center; border-radius: 6px; margin-bottom: 15px; border: 1px solid #e0e0e0; }
-        .audiosync-btn { background: #2ecc71; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 30px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.2s ease; }
-        .audiosync-btn:hover { transform: scale(1.02); }
-        
-        .sync-word { cursor: pointer; padding: 1px 3px; border-radius: 4px; transition: background-color 0.15s ease, color 0.15s ease; display: inline-block; }
-        .sync-word:hover { background-color: #e3f2fd; color: #1e88e5; }
-        
-        /* 🔥 O'qilayotgan so'zning sinxron yorishish effekti (Highlight) */
-        .sync-word.sync-active { background-color: #f1c40f !important; color: #000 !important; font-weight: bold; box-shadow: 0 0 8px #f1c40f; transform: scale(1.08); position: relative; z-index: 10; }
-    `;
-    document.head.appendChild(style);
-}
-</script>
-</body>
-</html>
+            textZone.innerHTML = `<p style="padding:20
