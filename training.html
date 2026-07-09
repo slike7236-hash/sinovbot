@@ -40,7 +40,7 @@
 </div>
 
 <div class="main-layout">
-    <div id="displayWindow" class="display-window">
+    <div id="displayWindow" class="display-window" style="position: relative;">
         <button id="resizeBtn" class="resize-btn" onclick="toggleFullscreen()">
             <i class="fa-solid fa-expand"></i>
         </button>
@@ -113,6 +113,7 @@ let roundSeconds = 0;
 let roundTimerInterval = null;
 
 window.onload = function() {
+    injectGameStyles(); // Uslublarni boshida bir marta yuklaymiz
     document.getElementById("langSelect").value = currentLang;
     renderLessonContent();
     loadContent('text');
@@ -122,7 +123,7 @@ function toggleLessonLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('selectedLang', lang);
     currentLessonData = lessonDataFull[lang] || lessonDataFull["uz"];
-    resetAudioPlayer(); // Til o'zgarganda audioni o'chirish
+    resetAudioPlayer();
     renderLessonContent();
     loadContent('text'); 
 }
@@ -132,14 +133,15 @@ function renderLessonContent() {
     document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
 }
 
-// 🎵 MP3 AUDIO PLAYER FUNKSIYALARI
+// 🎵 MP3 MULTIMEDIA AUDIO PLAYER FUNKSIYALARI
 function initAudioPlayer() {
     const audio = document.getElementById("mainAudioElement");
     const playerContainer = document.getElementById("floatingAudioPlayer");
     
-    if (currentLessonData.audioUrl) {
+    if (currentLessonData && currentLessonData.audioUrl) {
         audio.src = currentLessonData.audioUrl;
-        playerContainer.style.display = "flex"; // Faqat audioUrl bo'lsa ko'rinadi
+        audio.load(); // Audioni yuklash majburiy
+        playerContainer.style.display = "flex"; 
         document.getElementById("audioSpeedSelect").value = "1";
         audio.playbackRate = 1;
         updatePlayBtnIcon(false);
@@ -150,8 +152,9 @@ function initAudioPlayer() {
 
 function toggleAudioPlay() {
     const audio = document.getElementById("mainAudioElement");
+    if (!audio.src) return;
     if (audio.paused) {
-        audio.play();
+        audio.play().catch(e => console.log("Audio ijrosida xato:", e));
         updatePlayBtnIcon(true);
     } else {
         audio.pause();
@@ -161,207 +164,12 @@ function toggleAudioPlay() {
 
 function updatePlayBtnIcon(isPlaying) {
     const btn = document.getElementById("playerPlayBtn");
-    if (isPlaying) {
-        btn.innerHTML = `<i class="fa-solid fa-pause"></i>`;
-    } else {
-        btn.innerHTML = `<i class="fa-solid fa-play"></i>`;
+    if (btn) {
+        btn.innerHTML = isPlaying ? `<i class="fa-solid fa-pause"></i>` : `<i class="fa-solid fa-play"></i>`;
     }
 }
 
 function rewindAudio(seconds) {
     const audio = document.getElementById("mainAudioElement");
-    audio.currentTime = Math.max(0, Math.min(audio.duration || 0, audio.currentTime + seconds));
-}
-
-function changeAudioSpeed(speed) {
-    const audio = document.getElementById("mainAudioElement");
-    audio.playbackRate = parseFloat(speed);
-}
-
-function resetAudioPlayer() {
-    const audio = document.getElementById("mainAudioElement");
-    if(audio) {
-        audio.pause();
-        audio.src = "";
-    }
-    const playerContainer = document.getElementById("floatingAudioPlayer");
-    if(playerContainer) playerContainer.style.display = "none";
-}
-
-function playSoundEffect(isCorrect) {
-    try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
-        if (isCorrect) {
-            let osc1 = ctx.createOscillator();
-            let gain1 = ctx.createGain();
-            osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-            osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
-            gain1.gain.setValueAtTime(0.3, ctx.currentTime);
-            gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-            osc1.connect(gain1);
-            gain1.connect(ctx.destination);
-            osc1.start();
-            osc1.stop(ctx.currentTime + 0.3);
-        } else {
-            let osc2 = ctx.createOscillator();
-            let gain2 = ctx.createGain();
-            osc2.type = 'sawtooth';
-            osc2.frequency.setValueAtTime(120, ctx.currentTime);
-            gain2.gain.setValueAtTime(0.2, ctx.currentTime);
-            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-            osc2.connect(gain2);
-            gain2.connect(ctx.destination);
-            osc2.start();
-            osc2.stop(ctx.currentTime + 0.25);
-        }
-    } catch (e) {}
-}
-
-function startWordwallTimer() {
-    clearInterval(gameTimerInterval);
-    clearInterval(roundTimerInterval);
-    gameSeconds = 0;
-    roundSeconds = 0;
-    gameTimerInterval = setInterval(() => {
-        gameSeconds++;
-        const min = Math.floor(gameSeconds / 60);
-        const sec = gameSeconds % 60;
-        const timerEl = document.getElementById("wwTimer");
-        if(timerEl) timerEl.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
-    }, 1000);
-    roundTimerInterval = setInterval(() => { roundSeconds++; }, 1000);
-}
-
-function calculateSpeedBonus() {
-    let bonus = 20; 
-    if (roundSeconds <= 7) bonus = 100;      
-    else if (roundSeconds <= 15) bonus = 60; 
-    roundSeconds = 0; 
-    return bonus;
-}
-
-function updateWWStats() {
-    const scoreEl = document.getElementById("wwScore");
-    const progressEl = document.getElementById("wwProgressText");
-    if(scoreEl) scoreEl.innerText = `✓ ${gameScore}`;
-    if(progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
-}
-
-function checkGameOver(type, container) {
-    if (currentGameIndex >= totalGameRounds) {
-        clearInterval(gameTimerInterval);
-        clearInterval(roundTimerInterval);
-        const min = Math.floor(gameSeconds / 60);
-        const sec = gameSeconds % 60;
-        container.innerHTML = `
-            <div class="ww-result-screen">
-                <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
-                <h2 style="margin: 10px 0; color: #2c3e50;">Mashg'ulot Yakunlandi!</h2>
-                <div class="ww-result-stats">
-                    <div class="ww-stat-row"><span>⏱️ Vaqt:</span> <strong>${min} m ${sec} s</strong></div>
-                    <div class="ww-stat-row"><span>🎯 Yakuniy Ball:</span> <strong>${gameScore}</strong></div>
-                </div>
-                <div class="ww-leaderboard-input-zone" id="leaderboardInputZone">
-                    <p style="font-size:14px; color:#555; margin-bottom:8px;">Reyting jadvali uchun ismingizni kiriting:</p>
-                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Ismingiz..." style="width:90%; margin-bottom:10px; display:inline-block;">
-                    <button class="ww-action-btn" onclick="submitLocalScore('${type}')">Natijani Saqlash</button>
-                </div>
-                <div id="leaderboardDisplay" style="margin-top:20px; width:100%; display:none;">
-                    <h3 style="font-size:16px; margin-bottom:5px; color:#2c3e50;">🏆 TOP 10 REYTING</h3>
-                    <table id="lbTable" style="width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;"></table>
-                </div>
-                <button class="ww-restart-btn" style="margin-top:20px; background:#95a5a6;" onclick="resetAndRestart('${type}')">Qayta boshlash <i class="fa-solid fa-arrow-rotate-right"></i></button>
-            </div>`;
-        return true;
-    }
-    return false;
-}
-
-function submitLocalScore(type) {
-    const nameInp = document.getElementById("leaderboardName").value.trim();
-    if(!nameInp) { alert("Iltimos ism kiriting!"); return; }
-    const storageKey = `lb_${lessonKey}_${type}`;
-    let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
-    scores.push({ name: nameInp, score: gameScore, duration: gameSeconds, date: new Date().getTime() });
-    scores.sort((a, b) => b.score - a.score || a.duration - b.duration);
-    scores = scores.slice(0, 10);
-    localStorage.setItem(storageKey, JSON.stringify(scores));
-    document.getElementById("leaderboardInputZone").style.display = "none";
-    showLocalLeaderboard(type);
-}
-
-function showLocalLeaderboard(type) {
-    const storageKey = `lb_${lessonKey}_${type}`;
-    const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
-    const table = document.getElementById("lbTable");
-    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Ism</th><th>Ball</th><th>Vaqt</th></tr>`;
-    scores.forEach((row, idx) => {
-        const m = Math.floor(row.duration / 60);
-        const s = row.duration % 60;
-        table.innerHTML += `<tr>
-            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${idx+1}</td>
-            <td style="padding:6px; border:1px solid #ddd; font-weight:bold;">${row.name}</td>
-            <td style="padding:6px; border:1px solid #ddd; font-weight:bold; text-align:center; color:#2ecc71;">${row.score}</td>
-            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m}:${s<10?'0':''}${s}</td>
-        </tr>`;
-    });
-    document.getElementById("leaderboardDisplay").style.display = "block";
-}
-
-function resetAndRestart(type) {
-    currentGameIndex = 0;
-    gameScore = 0;
-    loadContent(type);
-}
-
-function loadContent(type) {
-    const textZone = document.getElementById("textContainer");
-    const iframeZone = document.getElementById("iframeViewer");
-
-    clearInterval(gameTimerInterval);
-    clearInterval(roundTimerInterval);
-
-    document.querySelectorAll(".material-btn, .game-card-btn").forEach(btn => btn.classList.remove("active"));
-    let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
-    if(targetBtn) targetBtn.classList.add("active");
-
-    textZone.style.display = "none";
-    iframeZone.style.display = "none";
-    iframeZone.src = "";
-    
-    resetAudioPlayer(); // Boshqa bo'limga o'tganda audioni yopish
-
-    localGameData = currentLessonData.keywordsList || [];
-
-    if (type === 'text') {
-        let rawHtml = currentLessonData.textHtml || "<p>Matn mavjud emas.</p>";
-        textZone.innerHTML = rawHtml;
-        textZone.style.display = "block";
-        
-        injectGameStyles(); 
-        initAudioPlayer(); // Matn bo'limi ochilganda MP3 Pleyerni yuklash
-    } 
-    else if (type === 'keywords') {
-        let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">
-            <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
-        localGameData.forEach(item => {
-            tableHtml += `<tr>
-                <td style="padding:10px; font-weight:bold; color:#2c3e50;">${item.word}</td>
-                <td style="padding:10px; color:#555;">${item.translation}</td>
-            </tr>`;
-        });
-        tableHtml += `</table>`;
-        textZone.innerHTML = tableHtml;
-        textZone.style.display = "block";
-    }
-    else if (type === 'video' || type === 'test') {
-        iframeZone.src = type === 'video' ? (currentLessonData.videoUrl || "") : (currentLessonData.testUrl || "");
-        iframeZone.style.display = "block";
-    } 
-    else {
-        textZone.style.display = "block";
-        if (localGameData.length === 0) {
-            textZone.innerHTML = `<p style="padding:20
+    if(audio.src) {
+        audio.currentTime = Math.max(0, Math.min(audio.
