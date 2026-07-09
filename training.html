@@ -65,14 +65,17 @@
         <div class="game-info">Anagrama <i class="fa-solid fa-angle-right"></i></div>
     </button>
     
-    <button class="game-card-btn typeanswer-g-btn" onclick="loadContent('keyboard')">
+    <button class="game-card-btn typeanswer-g-btn" onclick="loadContent('typeanswer')">
         <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
         <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
     </button>
+    <button class="game-card-btn" onclick="loadContent('wordsearch')" style="display: none;">Word Search</button>
+<button class="game-card-btn" onclick="loadContent('pairnopair')" style="display: none;">Pair / No Pair</button>
+   
 </div>
 
 <script>
-const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = new URLSearchParams(window.location.search);
 const bookCode = urlParams.get('book') || "ess1";
 const unitId = urlParams.get('unit') || "1";
 const lessonKey = `${bookCode}_${unitId}`;
@@ -80,17 +83,13 @@ const lessonKey = `${bookCode}_${unitId}`;
 let currentLang = localStorage.getItem('selectedLang') || 'uz';
 if(currentLang === 'en') currentLang = 'uz'; 
 
-const db = (typeof lessonsDatabase !== 'undefined') ? lessonsDatabase : {};
-const fallbackLesson = {
-    "uz": { "title": "Dars topilmadi", "gamesTitle": "O'YINLAR RO'YXATI", "textHtml": "<p>Baza ulanmagan yoki dars topilmadi.</p>", "keywordsList": [] },
-    "ru": { "title": "Урок не найден", "gamesTitle": "СПИСОК ИГР", "textHtml": "<p>База данных не найдена.</p>", "keywordsList": [] }
-};
-const lessonDataFull = db[lessonKey] || db["ess1_1"] || fallbackLesson;
-let currentLessonData = lessonDataFull[currentLang] || lessonDataFull["uz"];
+const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
+let currentLessonData = lessonDataFull[currentLang];
 
 let localGameData = [];
 let matchUpGroups = []; 
 
+// Wordwall Global Tizimi
 let currentGameIndex = 0;
 let totalGameRounds = 0; 
 let gameScore = 0;
@@ -108,39 +107,30 @@ window.onload = function() {
 function toggleLessonLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('selectedLang', lang);
-    currentLessonData = lessonDataFull[lang] || lessonDataFull["uz"];
+    currentLessonData = lessonDataFull[lang];
     renderLessonContent();
     loadContent('text'); 
 }
 
 function renderLessonContent() {
-    document.getElementById("lessonTitle").innerText = currentLessonData.title || "Mavzu";
-    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
+    document.getElementById("lessonTitle").innerText = currentLessonData.title;
+    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
 }
 
-// 🔊 Global Audio talaffuz funksiyasi (TTS)
-function speakWord(word) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Navbatni tozalash
-        let cleanText = word.replace(/[\[\]\(\)\.,\?!]/g, '').trim();
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85; 
-        window.speechSynthesis.speak(utterance);
-    }
-}
-
+// 🔊 PRO SOUND EFFECTS GENERATOR (Web Audio API)
 function playSoundEffect(isCorrect) {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
         const ctx = new AudioContext();
+        
         if (isCorrect) {
+            // To'g'ri javob: Yoqimli va ko'tariluvchi "ding" ovozi
             let osc1 = ctx.createOscillator();
             let gain1 = ctx.createGain();
             osc1.type = 'sine';
-            osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-            osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+            osc1.frequency.setValueAtTime(523.25, ctx.currentTime); // C5 notasi
+            osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5 notasi
             gain1.gain.setValueAtTime(0.3, ctx.currentTime);
             gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
             osc1.connect(gain1);
@@ -148,10 +138,11 @@ function playSoundEffect(isCorrect) {
             osc1.start();
             osc1.stop(ctx.currentTime + 0.3);
         } else {
+            // Noto'g'ri javob: Past va qisqa "bup" xato ovozi
             let osc2 = ctx.createOscillator();
             let gain2 = ctx.createGain();
             osc2.type = 'sawtooth';
-            osc2.frequency.setValueAtTime(120, ctx.currentTime);
+            osc2.frequency.setValueAtTime(120, ctx.currentTime); // Past chastota
             gain2.gain.setValueAtTime(0.2, ctx.currentTime);
             gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
             osc2.connect(gain2);
@@ -159,21 +150,28 @@ function playSoundEffect(isCorrect) {
             osc2.start();
             osc2.stop(ctx.currentTime + 0.25);
         }
-    } catch (e) {}
+    } catch (e) {
+        console.log("Ovoz chiqarishda xatolik:", e);
+    }
 }
 
+// Wordwall Taymer mexanikasi
 function startWordwallTimer() {
     clearInterval(gameTimerInterval);
     clearInterval(roundTimerInterval);
     gameSeconds = 0;
     roundSeconds = 0;
+    
     gameTimerInterval = setInterval(() => {
         gameSeconds++;
         const min = Math.floor(gameSeconds / 60);
         const sec = gameSeconds % 60;
         const timerEl = document.getElementById("wwTimer");
-        if(timerEl) timerEl.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        if(timerEl) {
+            timerEl.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
     }, 1000);
+
     roundTimerInterval = setInterval(() => { roundSeconds++; }, 1000);
 }
 
@@ -192,11 +190,464 @@ function updateWWStats() {
     if(progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
 }
 
+// FINISH & LOCAL REYTING SYSTEM
 function checkGameOver(type, container) {
     if (currentGameIndex >= totalGameRounds) {
         clearInterval(gameTimerInterval);
         clearInterval(roundTimerInterval);
+        
         const min = Math.floor(gameSeconds / 60);
         const sec = gameSeconds % 60;
+        
         container.innerHTML = `
             <div class="ww-result-screen">
+                <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
+                <h2 style="margin: 10px 0; color: #2c3e50;">Mashg'ulot Yakunlandi!</h2>
+                <div class="ww-result-stats">
+                    <div class="ww-stat-row"><span>⏱️ Vaqt:</span> <strong>${min} m ${sec} s</strong></div>
+                    <div class="ww-stat-row"><span>🎯 Yakuniy Ball:</span> <strong>${gameScore}</strong></div>
+                </div>
+                <div class="ww-leaderboard-input-zone" id="leaderboardInputZone">
+                    <p style="font-size:14px; color:#555; margin-bottom:8px;">Reyting jadvali uchun ismingizni kiriting:</p>
+                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Ismingiz..." style="width:90%; margin-bottom:10px; display:inline-block;">
+                    <button class="ww-action-btn" onclick="submitLocalScore('${type}')">Natijani Saqlash</button>
+                </div>
+                <div id="leaderboardDisplay" style="margin-top:20px; width:100%; display:none;">
+                    <h3 style="font-size:16px; margin-bottom:5px; color:#2c3e50;">🏆 TOP 10 REYTING</h3>
+                    <table id="lbTable" style="width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;"></table>
+                </div>
+                <button class="ww-restart-btn" style="margin-top:20px; background:#95a5a6;" onclick="resetAndRestart('${type}')">Qayta boshlash <i class="fa-solid fa-arrow-rotate-right"></i></button>
+            </div>`;
+        return true;
+    }
+    return false;
+}
+
+function submitLocalScore(type) {
+    const nameInp = document.getElementById("leaderboardName").value.trim();
+    if(!nameInp) { alert("Iltimos ism kiriting!"); return; }
+
+    const storageKey = `lb_${lessonKey}_${type}`;
+    let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    
+    scores.push({
+        name: nameInp,
+        score: gameScore,
+        duration: gameSeconds,
+        date: new Date().getTime()
+    });
+
+    scores.sort((a, b) => b.score - a.score || a.duration - b.duration);
+    scores = scores.slice(0, 10);
+    localStorage.setItem(storageKey, JSON.stringify(scores));
+
+    document.getElementById("leaderboardInputZone").style.display = "none";
+    showLocalLeaderboard(type);
+}
+
+function showLocalLeaderboard(type) {
+    const storageKey = `lb_${lessonKey}_${type}`;
+    const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const table = document.getElementById("lbTable");
+    
+    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Ism</th><th>Ball</th><th>Vaqt</th></tr>`;
+    
+    scores.forEach((row, idx) => {
+        const m = Math.floor(row.duration / 60);
+        const s = row.duration % 60;
+        table.innerHTML += `<tr>
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${idx+1}</td>
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold;">${row.name}</td>
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold; text-align:center; color:#2ecc71;">${row.score}</td>
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m}:${s<10?'0':''}${s}</td>
+        </tr>`;
+    });
+    document.getElementById("leaderboardDisplay").style.display = "block";
+}
+
+function resetAndRestart(type) {
+    currentGameIndex = 0;
+    gameScore = 0;
+    loadContent(type);
+}
+
+// KONTENTNI YUKLASH TIZIMI
+function loadContent(type) {
+    const textZone = document.getElementById("textContainer");
+    const iframeZone = document.getElementById("iframeViewer");
+
+    clearInterval(gameTimerInterval);
+    clearInterval(roundTimerInterval);
+
+    document.querySelectorAll(".material-btn, .game-card-btn").forEach(btn => btn.classList.remove("active"));
+    let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
+    if(targetBtn) targetBtn.classList.add("active");
+
+    textZone.style.display = "none";
+    iframeZone.style.display = "none";
+    iframeZone.src = "";
+
+    localGameData = currentLessonData.keywordsList || [];
+
+    if (type === 'text') {
+        textZone.innerHTML = currentLessonData.textHtml;
+        textZone.style.display = "block";
+    } 
+    else if (type === 'keywords') {
+        let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">
+            <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
+        localGameData.forEach(item => {
+            tableHtml += `<tr><td style="padding:10px; font-weight:bold; cursor:pointer;" onclick="speakWord('${item.word}')"><i class="fa-solid fa-volume-high"></i> ${item.word}</td><td style="padding:10px;">${item.translation}</td></tr>`;
+        });
+        tableHtml += `</table>`;
+        textZone.innerHTML = tableHtml;
+        textZone.style.display = "block";
+    }
+    else if (type === 'video' || type === 'test') {
+        iframeZone.src = type === 'video' ? currentLessonData.videoUrl : currentLessonData.testUrl;
+        iframeZone.style.display = "block";
+    } 
+    else {
+        textZone.style.display = "block";
+        if (localGameData.length === 0) {
+            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin ma'lumotlari mavjud emas!</p>`;
+            return;
+        }
+        
+        injectGameStyles();
+
+        textZone.innerHTML = `
+            <div class="ww-game-container">
+                <div class="ww-top-bar">
+                    <span id="wwTimer">0:00</span>
+                    <span id="wwScore">✓ 0</span>
+                </div>
+                <div class="ww-play-area" id="wwPlayArea"></div>
+                <div class="ww-bottom-bar">
+                    <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, '${type}')"><i class="fa-solid fa-backward-step"></i></button>
+                    <span class="ww-progress-text" id="wwProgressText"></span>
+                    <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, '${type}')"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+            </div>`;
+
+        startWordwallTimer();
+
+        if (type === 'anagrama') {
+            totalGameRounds = localGameData.length;
+            buildAnagramaGame();
+        } else if (type === 'typeanswer') {
+            totalGameRounds = localGameData.length;
+            buildTypeAnswerGame();
+        } else if (type === 'matchup') {
+            matchUpGroups = [];
+            for (let i = 0; i < localGameData.length; i += 5) {
+                matchUpGroups.push(localGameData.slice(i, i + 5));
+            }
+            totalGameRounds = matchUpGroups.length;
+            buildMatchupGame();
+        }
+    }
+}
+
+// 1️⃣ ANAGRAMA GAME
+let userAnagramBuilt = "";
+function buildAnagramaGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    
+    if (checkGameOver('anagrama', playArea)) return;
+
+    let item = localGameData[currentGameIndex];
+    let cleanWord = item.word.toUpperCase().replace(/[\[\]]/g, '').trim();
+    userAnagramBuilt = "";
+    
+    let lettersArr = cleanWord.split("");
+    let shuffled = [...lettersArr].sort(() => Math.random() - 0.5);
+
+    playArea.innerHTML = `
+        <div class="ww-target-title">${item.translation}</div>
+        <div class="ww-slots-row" id="slotsRow"></div>
+        <div class="ww-letters-row" id="lettersRow"></div>`;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    const slotsRow = document.getElementById("slotsRow");
+    const lettersRow = document.getElementById("lettersRow");
+
+    lettersArr.forEach(() => {
+        let slot = document.createElement("div");
+        slot.className = "ww-slot-box";
+        slotsRow.appendChild(slot);
+    });
+
+    shuffled.forEach((char) => {
+        let tile = document.createElement("div");
+        tile.className = "ww-letter-tile";
+        tile.innerText = char;
+        tile.onclick = () => {
+            if(tile.classList.contains('used')) return;
+            tile.classList.add('used');
+            
+            let emptySlot = Array.from(slotsRow.children).find(s => s.innerText === "");
+            if(emptySlot) {
+                emptySlot.innerText = char;
+                userAnagramBuilt += char;
+            }
+
+            if(userAnagramBuilt.length === cleanWord.length) {
+                if(userAnagramBuilt === cleanWord) {
+                    playSoundEffect(true); // OVOZ: TO'G'RI
+                    gameScore += calculateSpeedBonus();
+                    speakWord(cleanWord);
+                    slotsRow.style.borderColor = "#2ecc71";
+                    setTimeout(() => { currentGameIndex++; buildAnagramaGame(); }, 800);
+                } else {
+                    playSoundEffect(false); // OVOZ: XATO
+                    slotsRow.style.borderColor = "#e74c3c";
+                    setTimeout(() => {
+                        slotsRow.style.borderColor = "#ced4da";
+                        userAnagramBuilt = "";
+                        Array.from(slotsRow.children).forEach(s => s.innerText = "");
+                        Array.from(lettersRow.children).forEach(t => t.classList.remove('used'));
+                    }, 1000);
+                }
+            }
+        };
+        lettersRow.appendChild(tile);
+    });
+}
+
+// 2️⃣ TYPE ANSWER GAME
+function buildTypeAnswerGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+
+    if (checkGameOver('typeanswer', playArea)) return;
+
+    let item = localGameData[currentGameIndex];
+    let correctAns = item.word.toLowerCase().replace(/[\[\]]/g, '').trim();
+
+    playArea.innerHTML = `
+        <div class="ww-target-title">"${item.translation}"</div>
+        <input type="text" class="ww-input-field" id="wwTypeInp" placeholder="Inglizchasini yozing..." autocomplete="off" style="display:block; margin: 0 auto 15px;">
+        <button class="ww-action-btn" id="wwSubmitBtn">Tekshirish</button>`;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    const inp = document.getElementById("wwTypeInp");
+    const btn = document.getElementById("wwSubmitBtn");
+
+    btn.onclick = () => {
+        if(inp.value.toLowerCase().trim() === correctAns) {
+            playSoundEffect(true); // OVOZ: TO'G'RI
+            gameScore += calculateSpeedBonus();
+            inp.style.borderColor = "#2ecc71";
+            speakWord(correctAns);
+            setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(); }, 800);
+        } else {
+            playSoundEffect(false); // OVOZ: XATO
+            inp.style.borderColor = "#e74c3c";
+            setTimeout(() => { inp.style.borderColor = "#ced4da"; inp.value = ""; }, 1000);
+        }
+    };
+}
+
+// 3️⃣ MATNLI MATCH UP GAME
+let selectedMatch = { eng: null, uz: null };
+function buildMatchupGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+
+    if (checkGameOver('matchup', playArea)) return;
+
+    let currentGroup = matchUpGroups[currentGameIndex];
+    
+    let engList = [...currentGroup].sort(() => Math.random() - 0.5);
+    let uzList = [...currentGroup].sort(() => Math.random() - 0.5);
+
+    playArea.style.flexDirection = "row";
+    playArea.style.justifyContent = "space-around";
+    playArea.style.alignItems = "flex-start";
+
+    playArea.innerHTML = `
+        <div class="match-column" id="engCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>
+        <div class="match-column" id="uzCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>`;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    const engCol = document.getElementById("engCol");
+    const uzCol = document.getElementById("uzCol");
+
+    selectedMatch = { eng: null, uz: null };
+
+    engList.forEach(item => {
+        let block = document.createElement("div");
+        block.className = "match-block";
+        block.innerText = item.word;
+        block.onclick = () => {
+            if(block.classList.contains('matched')) return;
+            document.querySelectorAll("#engCol .match-block").forEach(b => b.classList.remove('selected'));
+            block.classList.add('selected');
+            selectedMatch.eng = item.word;
+            checkMatchPair();
+        };
+        engCol.appendChild(block);
+    });
+
+    uzList.forEach(item => {
+        let block = document.createElement("div");
+        block.className = "match-block";
+        block.innerText = item.translation;
+        block.onclick = () => {
+            if(block.classList.contains('matched')) return;
+            document.querySelectorAll("#uzCol .match-block").forEach(b => b.classList.remove('selected'));
+            block.classList.add('selected');
+            selectedMatch.uz = item.word; 
+            checkMatchPair();
+        };
+        uzCol.appendChild(block);
+    });
+}
+
+function checkMatchPair() {
+    if(selectedMatch.eng && selectedMatch.uz) {
+        let engBlock = Array.from(document.querySelectorAll("#engCol .match-block")).find(b => b.innerText === selectedMatch.eng);
+        let uzBlock = Array.from(document.querySelectorAll("#uzCol .match-block")).find(b => b.classList.contains('selected'));
+
+        if(selectedMatch.eng === selectedMatch.uz) {
+            playSoundEffect(true); // OVOZ: TO'G'RI PAIR
+            engBlock.className = "match-block matched";
+            uzBlock.className = "match-block matched";
+            gameScore += 10; 
+            speakWord(selectedMatch.eng);
+        } else {
+            playSoundEffect(false); // OVOZ: XATO PAIR
+            engBlock.classList.add('wrong');
+            uzBlock.classList.add('wrong');
+            setTimeout(() => {
+                engBlock.classList.remove('wrong', 'selected');
+                uzBlock.classList.remove('wrong', 'selected');
+            }, 800);
+        }
+        selectedMatch = { eng: null, uz: null };
+        document.getElementById("wwScore").innerText = `✓ ${gameScore}`;
+
+        let totalMatched = document.querySelectorAll(".match-block.matched").length;
+        if(totalMatched === matchUpGroups[currentGameIndex].length * 2) {
+            gameScore += calculateSpeedBonus(); 
+            setTimeout(() => { 
+                currentGameIndex++; 
+                const playArea = document.getElementById("wwPlayArea");
+                playArea.removeAttribute("style");
+                playArea.style.flexGrow = "1";
+                playArea.style.display = "flex";
+                playArea.style.flexDirection = "column";
+                playArea.style.justifyContent = "center";
+                playArea.style.alignItems = "center";
+                buildMatchupGame(); 
+            }, 1000);
+        }
+    }
+}
+
+function navWWGame(step, type) {
+    if (currentGameIndex + step >= 0 && currentGameIndex + step < totalGameRounds) {
+        currentGameIndex += step;
+        const playArea = document.getElementById("wwPlayArea");
+        playArea.removeAttribute("style");
+        playArea.style.flexGrow = "1";
+        playArea.style.display = "flex";
+        playArea.style.flexDirection = "column";
+        playArea.style.justifyContent = "center";
+        playArea.style.alignItems = "center";
+
+        if(type === 'anagrama') buildAnagramaGame();
+        if(type === 'typeanswer') buildTypeAnswerGame();
+        if(type === 'matchup') buildMatchupGame();
+    }
+}
+
+function speakWord(word) {
+    try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(word);
+        u.lang = 'en-US';
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+    } catch (e) {}
+}
+
+function toggleFullscreen() {
+    const windowEl = document.getElementById("displayWindow");
+    const topBar = document.querySelector(".top-materials-bar");
+    const divider = document.getElementById("gamesDivider");
+    const grid = document.getElementById("gamesGrid");
+    const btnIcon = document.getElementById("resizeBtn").querySelector("i");
+
+    if (!windowEl.classList.contains("fullscreen-active")) {
+        topBar.style.display = "none";
+        divider.style.display = "none";
+        grid.style.display = "none";
+        windowEl.classList.add("fullscreen-active");
+        btnIcon.className = "fa-solid fa-compress";
+    } else {
+        topBar.style.display = "flex";
+        divider.style.display = "flex";
+        grid.style.display = "grid";
+        windowEl.classList.remove("fullscreen-active");
+        btnIcon.className = "fa-solid fa-expand";
+    }
+}
+
+// STYLES INJECTION
+function injectGameStyles() {
+    if (document.getElementById("wwGameStyles")) return;
+    const style = document.createElement("style");
+    style.id = "wwGameStyles";
+    style.innerHTML = `
+        .ww-game-container { display:flex; flex-direction:column; height:450px; background:#fff; font-family:sans-serif; border:1px solid #ddd; border-radius:8px; overflow:hidden; box-sizing: border-box; }
+        .ww-top-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 15px; background:#f8f9fa; border-bottom:1px solid #e9ecef; font-size:18px; font-weight:bold; color:#333; }
+        .ww-play-area { flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px; background:#fafafa; position:relative; overflow-y: auto; }
+        .ww-bottom-bar { display:flex; justify-content:center; align-items:center; gap:25px; padding:10px; background:#f8f9fa; border-top:1px solid #e9ecef; }
+        
+        .ww-nav-btn { background:none; border:none; font-size:22px; color:#495057; cursor:pointer; }
+        .ww-nav-btn:disabled { color:#ccc; cursor:default; }
+        .ww-progress-text { font-size:16px; font-weight:bold; color:#495057; }
+        .ww-target-title { font-size:24px; font-weight:600; margin-bottom:20px; text-align:center; color:#2c3e50; }
+        
+        /* Anagrama */
+        .ww-slots-row { display:flex; justify-content:center; gap:8px; min-height:50px; margin-bottom:25px; flex-wrap:wrap; border-bottom: 2px dashed #b2bec3; padding-bottom: 8px; width:90%; }
+        .ww-slot-box { width:42px; height:42px; background:#fff; border:2px solid #dfe6e9; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; }
+        .ww-letters-row { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+        .ww-letter-tile { width:42px; height:42px; background:#3498db; color:white; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:bold; cursor:pointer; box-shadow:0 3px 0 #2980b9; user-select:none; }
+        .ww-letter-tile.used { opacity:0.15; cursor:default; box-shadow:none; transform:translateY(3px); }
+        
+        /* Input & Actions */
+        .ww-input-field { width:80%; max-width:260px; padding:10px; font-size:16px; border:2px solid #ced4da; border-radius:6px; text-align:center; outline:none; }
+        .ww-action-btn { background:#2ecc71; color:white; border:none; padding:10px 20px; font-size:15px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #27ae60; display:block; margin:0 auto;}
+        
+        /* Match Up Ustunlari */
+        .match-block { padding:12px; border:2px solid #34495e; background:#fff; border-radius:6px; text-align:center; font-weight:bold; cursor:pointer; transition:0.2s; user-select:none; font-size:14px; width:100%; box-sizing:border-box;}
+        .match-block.selected { background:#3498db; color:white; border-color:#2980b9; }
+        .match-block.matched { background:#2ecc71; color:white; border-color:#27ae60; cursor:default; opacity:0.8; }
+        .match-block.wrong { background:#e74c3c; color:white; border-color:#c0392b; }
+        
+        /* Result Screen */
+        .ww-result-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:#fff; padding:10px; box-sizing:border-box; }
+        .ww-result-trophy { font-size:55px; color:#f1c40f; margin-bottom:5px; }
+        .ww-result-stats { background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px; padding:12px; width:90%; max-width:280px; margin-bottom:15px; }
+        .ww-stat-row { display:flex; justify-content:space-between; margin:6px 0; font-size:15px; }
+        .ww-restart-btn { background:#34495e; color:white; border:none; padding:10px 20px; font-size:14px; border-radius:6px; cursor:pointer; }
+        
+        .ww-leaderboard-input-zone { width: 100%; text-align:center; }
+        #lbTable { width:100%; margin-top:10px; text-align:left; border-collapse:collapse; }
+        #lbTable th, #lbTable td { padding:6px; border:1px solid #ddd; }
+    `;
+    document.head.appendChild(style);
+}
+</script>
+</body>
+</html>
