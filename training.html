@@ -82,8 +82,15 @@ const lessonKey = `${bookCode}_${unitId}`;
 let currentLang = localStorage.getItem('selectedLang') || 'uz';
 if(currentLang === 'en') currentLang = 'uz'; 
 
-const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
-let currentLessonData = lessonDataFull[currentLang];
+// --- DATABASE XAVFSIZLIK QATLAMI ---
+const db = (typeof lessonsDatabase !== 'undefined') ? lessonsDatabase : {};
+const fallbackLesson = {
+    "uz": { "title": "Dars topilmadi", "gamesTitle": "O'YINLAR RO'YXATI", "textHtml": "<p style='padding:20px; color:red;'>database.js ichidan kalit yoki baza topilmadi!</p>", "keywordsList": [] },
+    "ru": { "title": "Урок не найден", "gamesTitle": "СПИСОК ИГР", "textHtml": "<p style='padding:20px; color:red;'>Ключ не найден в database.js!</p>", "keywordsList": [] }
+};
+const lessonDataFull = db[lessonKey] || db["ess1_1"] || fallbackLesson;
+let currentLessonData = lessonDataFull[currentLang] || lessonDataFull["uz"];
+// ----------------------------------
 
 let localGameData = [];
 let matchUpGroups = []; 
@@ -106,17 +113,17 @@ window.onload = function() {
 function toggleLessonLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('selectedLang', lang);
-    currentLessonData = lessonDataFull[lang];
+    currentLessonData = lessonDataFull[lang] || lessonDataFull["uz"];
     renderLessonContent();
     loadContent('text'); 
 }
 
 function renderLessonContent() {
-    document.getElementById("lessonTitle").innerText = currentLessonData.title;
-    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
+    document.getElementById("lessonTitle").innerText = currentLessonData.title || "Mavzu...";
+    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
 }
 
-// 🔊 PRO SOUND EFFECTS GENERATOR (Web Audio API)
+// 🔊 SOUND EFFECTS
 function playSoundEffect(isCorrect) {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -254,41 +261,4 @@ function showLocalLeaderboard(type) {
             <td style="padding:6px; border:1px solid #ddd; text-align:center;">${idx+1}</td>
             <td style="padding:6px; border:1px solid #ddd; font-weight:bold;">${row.name}</td>
             <td style="padding:6px; border:1px solid #ddd; font-weight:bold; text-align:center; color:#2ecc71;">${row.score}</td>
-            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m}:${s<10?'0':''}${s}</td>
-        </tr>`;
-    });
-    document.getElementById("leaderboardDisplay").style.display = "block";
-}
-
-function resetAndRestart(type) {
-    currentGameIndex = 0;
-    gameScore = 0;
-    loadContent(type);
-}
-
-function loadContent(type) {
-    const textZone = document.getElementById("textContainer");
-    const iframeZone = document.getElementById("iframeViewer");
-
-    clearInterval(gameTimerInterval);
-    clearInterval(roundTimerInterval);
-
-    document.querySelectorAll(".material-btn, .game-card-btn").forEach(btn => btn.classList.remove("active"));
-    let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
-    if(targetBtn) targetBtn.classList.add("active");
-
-    textZone.style.display = "none";
-    iframeZone.style.display = "none";
-    iframeZone.src = "";
-
-    localGameData = currentLessonData.keywordsList || [];
-
-    if (type === 'text') {
-        textZone.innerHTML = currentLessonData.textHtml;
-        textZone.style.display = "block";
-    } 
-    else if (type === 'keywords') {
-        let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">
-            <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
-        localGameData.forEach(item => {
-            tableHtml += `<tr><td style="padding:10px; font-weight:bold; cursor:pointer;" onclick="speakWord('${item.word}')"><i class="fa-solid fa-volume-high"></i> ${item.
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${
