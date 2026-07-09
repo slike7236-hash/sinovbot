@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -46,7 +47,6 @@
         </button>
 
         <div id="textContainer" class="scrollable-text-content"></div>
-        
         <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
     </div>
 </div>
@@ -70,16 +70,6 @@
         <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
         <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
     </button>
-    
-    <button class="game-card-btn wordsearch-g-btn" onclick="loadContent('wordsearch')">
-        <div class="game-icon"><i class="fa-solid fa-table-cells"></i></div>
-        <div class="game-info">Word search <i class="fa-solid fa-angle-right"></i></div>
-    </button>
-    
-    <button class="game-card-btn pair-g-btn" onclick="loadContent('pair')">
-        <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
-        <div class="game-info">Pair / Nopair <i class="fa-solid fa-angle-right"></i></div>
-    </button>
 </div>
 
 <script>
@@ -91,8 +81,24 @@ const lessonKey = `${bookCode}_${unitId}`;
 let currentLang = localStorage.getItem('selectedLang') || 'uz';
 if(currentLang === 'en') currentLang = 'uz'; 
 
-const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
-let currentLessonData = lessonDataFull[currentLang];
+const db = (typeof lessonsDatabase !== 'undefined') ? lessonsDatabase : {};
+const fallbackLesson = {
+    "uz": { "title": "Dars topilmadi", "gamesTitle": "O'YINLAR RO'YXATI", "textHtml": "<p>Baza ulanmagan yoki dars topilmadi.</p>", "keywordsList": [] },
+    "ru": { "title": "Урок не найден", "gamesTitle": "СПИСОК ИГР", "textHtml": "<p>База данных не найдена.</p>", "keywordsList": [] }
+};
+const lessonDataFull = db[lessonKey] || db["ess1_1"] || fallbackLesson;
+let currentLessonData = lessonDataFull[currentLang] || lessonDataFull["uz"];
+
+let localGameData = [];
+let matchUpGroups = []; 
+
+let currentGameIndex = 0;
+let totalGameRounds = 0; 
+let gameScore = 0;
+let gameTimerInterval = null;
+let gameSeconds = 0;
+let roundSeconds = 0;
+let roundTimerInterval = null;
 
 window.onload = function() {
     document.getElementById("langSelect").value = currentLang;
@@ -103,126 +109,525 @@ window.onload = function() {
 function toggleLessonLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('selectedLang', lang);
-    currentLessonData = lessonDataFull[lang];
+    currentLessonData = lessonDataFull[lang] || lessonDataFull["uz"];
     renderLessonContent();
     loadContent('text'); 
 }
 
 function renderLessonContent() {
-    document.getElementById("lessonTitle").innerText = currentLessonData.title;
-    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
+    document.getElementById("lessonTitle").innerText = currentLessonData.title || "Mavzu";
+    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
+}
+
+// 🔊 Ovoz chiqarish funksiyasi
+function speakWord(word) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); 
+        let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
+        if(!cleanText) return;
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.85; 
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+function playSoundEffect(isCorrect) {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        if (isCorrect) {
+            let osc1 = ctx.createOscillator();
+            let gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
+            osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+            gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start();
+            osc1.stop(ctx.currentTime + 0.3);
+        } else {
+            let osc2 = ctx.createOscillator();
+            let gain2 = ctx.createGain();
+            osc2.type = 'sawtooth';
+            osc2.frequency.setValueAtTime(120, ctx.currentTime);
+            gain2.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start();
+            osc2.stop(ctx.currentTime + 0.25);
+        }
+    } catch (e) {}
+}
+
+function startWordwallTimer() {
+    clearInterval(gameTimerInterval);
+    clearInterval(roundTimerInterval);
+    gameSeconds = 0;
+    roundSeconds = 0;
+    gameTimerInterval = setInterval(() => {
+        gameSeconds++;
+        const min = Math.floor(gameSeconds / 60);
+        const sec = gameSeconds % 60;
+        const timerEl = document.getElementById("wwTimer");
+        if(timerEl) timerEl.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }, 1000);
+    roundTimerInterval = setInterval(() => { roundSeconds++; }, 1000);
+}
+
+function calculateSpeedBonus() {
+    let bonus = 20; 
+    if (roundSeconds <= 7) bonus = 100;      
+    else if (roundSeconds <= 15) bonus = 60; 
+    roundSeconds = 0; 
+    return bonus;
+}
+
+function updateWWStats() {
+    const scoreEl = document.getElementById("wwScore");
+    const progressEl = document.getElementById("wwProgressText");
+    if(scoreEl) scoreEl.innerText = `✓ ${gameScore}`;
+    if(progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
+}
+
+function checkGameOver(type, container) {
+    if (currentGameIndex >= totalGameRounds) {
+        clearInterval(gameTimerInterval);
+        clearInterval(roundTimerInterval);
+        const min = Math.floor(gameSeconds / 60);
+        const sec = gameSeconds % 60;
+        container.innerHTML = `
+            <div class="ww-result-screen">
+                <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
+                <h2 style="margin: 10px 0; color: #2c3e50;">Mashg'ulot Yakunlandi!</h2>
+                <div class="ww-result-stats">
+                    <div class="ww-stat-row"><span>⏱️ Vaqt:</span> <strong>${min} m ${sec} s</strong></div>
+                    <div class="ww-stat-row"><span>🎯 Yakuniy Ball:</span> <strong>${gameScore}</strong></div>
+                </div>
+                <div class="ww-leaderboard-input-zone" id="leaderboardInputZone">
+                    <p style="font-size:14px; color:#555; margin-bottom:8px;">Reyting jadvali uchun ismingizni kiriting:</p>
+                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Ismingiz..." style="width:90%; margin-bottom:10px; display:inline-block;">
+                    <button class="ww-action-btn" onclick="submitLocalScore('${type}')">Natijani Saqlash</button>
+                </div>
+                <div id="leaderboardDisplay" style="margin-top:20px; width:100%; display:none;">
+                    <h3 style="font-size:16px; margin-bottom:5px; color:#2c3e50;">🏆 TOP 10 REYTING</h3>
+                    <table id="lbTable" style="width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;"></table>
+                </div>
+                <button class="ww-restart-btn" style="margin-top:20px; background:#95a5a6;" onclick="resetAndRestart('${type}')">Qayta boshlash <i class="fa-solid fa-arrow-rotate-right"></i></button>
+            </div>`;
+        return true;
+    }
+    return false;
+}
+
+function submitLocalScore(type) {
+    const nameInp = document.getElementById("leaderboardName").value.trim();
+    if(!nameInp) { alert("Iltimos ism kiriting!"); return; }
+    const storageKey = `lb_${lessonKey}_${type}`;
+    let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    scores.push({ name: nameInp, score: gameScore, duration: gameSeconds, date: new Date().getTime() });
+    scores.sort((a, b) => b.score - a.score || a.duration - b.duration);
+    scores = scores.slice(0, 10);
+    localStorage.setItem(storageKey, JSON.stringify(scores));
+    document.getElementById("leaderboardInputZone").style.display = "none";
+    showLocalLeaderboard(type);
+}
+
+function showLocalLeaderboard(type) {
+    const storageKey = `lb_${lessonKey}_${type}`;
+    const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const table = document.getElementById("lbTable");
+    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Ism</th><th>Ball</th><th>Vaqt</th></tr>`;
+    scores.forEach((row, idx) => {
+        const m = Math.floor(row.duration / 60);
+        const s = row.duration % 60;
+        table.innerHTML += `<tr>
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${idx+1}</td>
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold;">${row.name}</td>
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold; text-align:center; color:#2ecc71;">${row.score}</td>
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m}:${s<10?'0':''}${s}</td>
+        </tr>`;
+    });
+    document.getElementById("leaderboardDisplay").style.display = "block";
+}
+
+function resetAndRestart(type) {
+    currentGameIndex = 0;
+    gameScore = 0;
+    loadContent(type);
 }
 
 function loadContent(type) {
     const textZone = document.getElementById("textContainer");
     const iframeZone = document.getElementById("iframeViewer");
 
-    const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
-    allBtns.forEach(btn => btn.classList.remove("active"));
+    clearInterval(gameTimerInterval);
+    clearInterval(roundTimerInterval);
 
+    document.querySelectorAll(".material-btn, .game-card-btn").forEach(btn => btn.classList.remove("active"));
     let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
-    if(targetBtn) {
-        targetBtn.classList.add("active");
-    }
+    if(targetBtn) targetBtn.classList.add("active");
 
     textZone.style.display = "none";
     iframeZone.style.display = "none";
     iframeZone.src = "";
 
-    // 1. TEXT JONLASHTIRISH (AUDIO PLEYER SHU YERDA)
+    localGameData = currentLessonData.keywordsList || [];
+
     if (type === 'text') {
-        let audioHtml = '';
-        if (currentLessonData.audioUrl) {
-            audioHtml = `
-                <div class="sticky-player-wrapper">
-                    <div class="audio-player-container">
-                        <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
-                        <div class="player-controls">
-                            <button onclick="rewindAudio(-10)" class="p-btn"><i class="fa-solid fa-backward"></i></button>
-                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
-                            <button onclick="rewindAudio(10)" class="p-btn"><i class="fa-solid fa-forward"></i></button>
-                            
-                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
-                                <option value="0.75">0.75x</option>
-                                <option value="1.0" selected>1.0x</option>
-                                <option value="1.25">1.25x</option>
-                                <option value="1.5">1.5x</option>
-                            </select>
-                        </div>
-                        <div class="progress-wrapper">
-                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
-                        </div>
-                    </div>
-                </div>
-            `;
+        let rawHtml = currentLessonData.textHtml || "<p>Matn mavjud emas.</p>";
+        
+        // ✨ ENG KUCHLI YANGILANISH: Matn ichidagi har bitta alohida so'zni bosiladigan qilish
+        let tempDiv = document.createElement("div");
+        tempDiv.innerHTML = rawHtml;
+        
+        // Matndagi barcha text elementlarini topib, so'zlarini span'ga o'raymiz
+        let walk = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null, false);
+        let textNodes = [];
+        let node;
+        while(node = walk.nextNode()) {
+            if (node.parentNode.nodeName !== 'SCRIPT' && node.parentNode.nodeName !== 'STYLE') {
+                textNodes.push(node);
+            }
         }
-        textZone.innerHTML = audioHtml + currentLessonData.textHtml;
-        textZone.style.display = "block";
-        initAudioPlayerListeners(); 
-        initMobileTooltips(); 
-    } 
-    // 2. KEYWORDS JONLASHTIRISH
-    else if (type === 'keywords') {
-        if (currentLessonData.keywordsList && currentLessonData.keywordsList.length > 0) {
-            let tableHtml = `<div class="keywords-table-wrapper">
-                                <table class="keywords-custom-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Word</th>
-                                            <th>Translation</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>`;
-            currentLessonData.keywordsList.forEach(item => {
-                tableHtml += `<tr>
-                                <td class="kw-bold-word">
-                                    <div class="word-with-audio">
-                                        <button class="speak-btn" onclick="speakWord('${item.word.replace(/'/g, "\\'")}')">
-                                            <i class="fa-solid fa-volume-high"></i>
-                                        </button>
-                                        <span class="actual-word">${item.word}</span>
-                                    </div>
-                                </td>
-                                <td class="kw-translation">${item.translation}</td>
-                              </tr>`;
+        
+        textNodes.forEach(tNode => {
+            let words = tNode.nodeValue.split(/(\s+)/);
+            let fragment = document.createDocumentFragment();
+            words.forEach(w => {
+                if (w.trim().length > 0 && /[a-zA-Z]/.test(w)) {
+                    let span = document.createElement("span");
+                    span.className = "clickable-word";
+                    span.innerText = w;
+                    span.style.cursor = "pointer";
+                    span.setAttribute("onclick", `speakWord(this.innerText)`);
+                    fragment.appendChild(span);
+                } else {
+                    fragment.appendChild(document.createTextNode(w));
+                }
             });
-            tableHtml += `</tbody></table></div>`;
-            textZone.innerHTML = tableHtml;
-        } else {
-            textZone.innerHTML = `<p style="padding:20px; text-align:center;">Keywords topilmadi.</p>`;
-        }
+            tNode.parentNode.replaceChild(fragment, tNode);
+        });
+
+        textZone.innerHTML = tempDiv.innerHTML;
+        textZone.style.display = "block";
+    } 
+    else if (type === 'keywords') {
+        let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">
+            <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
+        localGameData.forEach(item => {
+            let escapedWord = item.word.replace(/'/g, "\\'");
+            tableHtml += `<tr>
+                <td style="padding:10px; font-weight:bold; cursor:pointer; color:#2c3e50;" onclick="speakWord('${escapedWord}')">
+                    <i class="fa-solid fa-volume-high" style="color:#3498db; margin-right:5px;"></i> ${item.word}
+                </td>
+                <td style="padding:10px; color:#555;">${item.translation}</td>
+            </tr>`;
+        });
+        tableHtml += `</table>`;
+        textZone.innerHTML = tableHtml;
         textZone.style.display = "block";
     }
-    // 3. VIDEO JONLASHTIRISH
-    else if (type === 'video') {
-        iframeZone.src = currentLessonData.videoUrl;
+    else if (type === 'video' || type === 'test') {
+        iframeZone.src = type === 'video' ? (currentLessonData.videoUrl || "") : (currentLessonData.testUrl || "");
         iframeZone.style.display = "block";
     } 
-    // 4. TEST JONLASHTIRISH
-    else if (type === 'test') {
-        iframeZone.src = currentLessonData.testUrl;
-        iframeZone.style.display = "block";
-    } 
-    // 5. GAMELAR JONLASHTIRISH
     else {
-        if (currentLessonData.games && currentLessonData.games[type]) {
-            iframeZone.src = currentLessonData.games[type];
-            iframeZone.style.display = "block";
+        textZone.style.display = "block";
+        if (localGameData.length === 0) {
+            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin ma'lumotlari mavjud emas!</p>`;
+            return;
+        }
+        
+        injectGameStyles();
+
+        textZone.innerHTML = `
+            <div class="ww-game-container">
+                <div class="ww-top-bar">
+                    <span id="wwTimer">0:00</span>
+                    <span id="wwScore">✓ 0</span>
+                </div>
+                <div class="ww-play-area" id="wwPlayArea"></div>
+                <div class="ww-bottom-bar">
+                    <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, '${type}')"><i class="fa-solid fa-backward-step"></i></button>
+                    <span class="ww-progress-text" id="wwProgressText"></span>
+                    <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, '${type}')"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+            </div>`;
+
+        startWordwallTimer();
+
+        if (type === 'anagrama') {
+            totalGameRounds = localGameData.length;
+            buildAnagramaGame();
+        } else if (type === 'typeanswer') {
+            totalGameRounds = localGameData.length;
+            buildTypeAnswerGame();
+        } else if (type === 'matchup') {
+            matchUpGroups = [];
+            for (let i = 0; i < localGameData.length; i += 5) {
+                matchUpGroups.push(localGameData.slice(i, i + 5));
+            }
+            totalGameRounds = matchUpGroups.length;
+            buildMatchupGame();
         }
     }
 }
 
-function initMobileTooltips() {
-    const tooltips = document.querySelectorAll('.keyword-tooltip');
-    tooltips.forEach(item => {
-        item.addEventListener('click', function(e) {
-            e.stopPropagation();
-            alert(this.getAttribute('data-tooltip'));
-        });
+// 1️⃣ ANAGRAMA GAME
+function buildAnagramaGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    if (checkGameOver('anagrama', playArea)) return;
+
+    let item = localGameData[currentGameIndex];
+    let cleanWord = item.word.toUpperCase().replace(/[\[\]]/g, '').trim();
+    let lettersArr = cleanWord.split("");
+    let shuffled = lettersArr.map((char, index) => ({ char, id: index })).sort(() => Math.random() - 0.5);
+
+    playArea.innerHTML = `
+        <div class="ww-target-title">${item.translation}</div>
+        <div class="ww-slots-row" id="slotsRow"></div>
+        <div class="ww-letters-row" id="lettersRow"></div>
+        <div class="ww-clear-container">
+            <button class="ww-clear-btn" onclick="clearAnagramSlots()">
+                <i class="fa-solid fa-trash-can"></i> Tozalash
+            </button>
+        </div>`;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    const slotsRow = document.getElementById("slotsRow");
+    const lettersRow = document.getElementById("lettersRow");
+
+    lettersArr.forEach(() => {
+        let slot = document.createElement("div");
+        slot.className = "ww-slot-box";
+        slot.onclick = () => {
+            if (slot.innerText === "") return;
+            let tileId = slot.getAttribute("data-tile-id");
+            let originalTile = document.getElementById(`tile-${tileId}`);
+            if (originalTile) originalTile.classList.remove('used');
+            slot.innerText = "";
+            slot.removeAttribute("data-tile-id");
+            checkAnagramResult(cleanWord);
+        };
+        slotsRow.appendChild(slot);
+    });
+
+    shuffled.forEach((obj) => {
+        let tile = document.createElement("div");
+        tile.className = "ww-letter-tile";
+        tile.id = `tile-${obj.id}`;
+        tile.innerText = obj.char;
+        tile.onclick = () => {
+            if(tile.classList.contains('used')) return;
+            let emptySlot = Array.from(slotsRow.children).find(s => s.innerText === "");
+            if(emptySlot) {
+                tile.classList.add('used');
+                emptySlot.innerText = obj.char;
+                emptySlot.setAttribute("data-tile-id", obj.id);
+                checkAnagramResult(cleanWord);
+            }
+        };
+        lettersRow.appendChild(tile);
     });
 }
 
-let isFull = false;
+function checkAnagramResult(cleanWord) {
+    const slotsRow = document.getElementById("slotsRow");
+    let currentWord = "";
+    let filledCount = 0;
+
+    Array.from(slotsRow.children).forEach(s => {
+        if (s.innerText !== "") {
+            currentWord += s.innerText;
+            filledCount++;
+        }
+    });
+
+    if(filledCount === cleanWord.length) {
+        if(currentWord === cleanWord) {
+            playSoundEffect(true);
+            gameScore += calculateSpeedBonus();
+            speakWord(cleanWord);
+            slotsRow.style.borderColor = "#2ecc71";
+            setTimeout(() => { currentGameIndex++; buildAnagramaGame(); }, 800);
+        } else {
+            playSoundEffect(false);
+            slotsRow.style.borderColor = "#e74c3c";
+            setTimeout(() => { slotsRow.style.borderColor = "#b2bec3"; }, 1000);
+        }
+    }
+}
+
+function clearAnagramSlots() {
+    const slotsRow = document.getElementById("slotsRow");
+    if (slotsRow) {
+        Array.from(slotsRow.children).forEach(slot => {
+            slot.innerText = "";
+            slot.removeAttribute("data-tile-id");
+        });
+        slotsRow.style.borderColor = "#b2bec3";
+    }
+    document.querySelectorAll(".ww-letter-tile").forEach(tile => {
+        tile.classList.remove('used');
+    });
+}
+
+// 2️⃣ TYPE ANSWER GAME
+function buildTypeAnswerGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    if (checkGameOver('typeanswer', playArea)) return;
+
+    let item = localGameData[currentGameIndex];
+    let correctAns = item.word.toLowerCase().replace(/[\[\]]/g, '').trim();
+
+    playArea.innerHTML = `
+        <div class="ww-target-title">"${item.translation}"</div>
+        <input type="text" class="ww-input-field" id="wwTypeInp" placeholder="Inglizchasini yozing..." autocomplete="off" style="display:block; margin: 0 auto 15px;">
+        <button class="ww-action-btn" id="wwSubmitBtn">Tekshirish</button>`;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    const inp = document.getElementById("wwTypeInp");
+    const btn = document.getElementById("wwSubmitBtn");
+
+    btn.onclick = () => {
+        if(inp.value.toLowerCase().trim() === correctAns) {
+            playSoundEffect(true);
+            gameScore += calculateSpeedBonus();
+            inp.style.borderColor = "#2ecc71";
+            speakWord(correctAns);
+            setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(); }, 800);
+        } else {
+            playSoundEffect(false);
+            inp.style.borderColor = "#e74c3c";
+            setTimeout(() => { inp.style.borderColor = "#ced4da"; inp.value = ""; }, 1000);
+        }
+    };
+}
+
+// 3️⃣ MATCH UP GAME
+let selectedMatch = { eng: null, uz: null };
+function buildMatchupGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    if (checkGameOver('matchup', playArea)) return;
+
+    let currentGroup = matchUpGroups[currentGameIndex];
+    let engList = [...currentGroup].sort(() => Math.random() - 0.5);
+    let uzList = [...currentGroup].sort(() => Math.random() - 0.5);
+
+    playArea.style.flexDirection = "row";
+    playArea.style.justifyContent = "space-around";
+    playArea.style.alignItems = "flex-start";
+
+    playArea.innerHTML = `
+        <div class="match-column" id="engCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>
+        <div class="match-column" id="uzCol" style="display:flex; flex-direction:column; gap:10px; width:45%;"></div>`;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    const engCol = document.getElementById("engCol");
+    const uzCol = document.getElementById("uzCol");
+    selectedMatch = { eng: null, uz: null };
+
+    engList.forEach(item => {
+        let block = document.createElement("div");
+        block.className = "match-block";
+        block.innerText = item.word;
+        block.onclick = () => {
+            if(block.classList.contains('matched')) return;
+            document.querySelectorAll("#engCol .match-block").forEach(b => b.classList.remove('selected'));
+            block.classList.add('selected');
+            selectedMatch.eng = item.word;
+            checkMatchPair();
+        };
+        engCol.appendChild(block);
+    });
+
+    uzList.forEach(item => {
+        let block = document.createElement("div");
+        block.className = "match-block";
+        block.innerText = item.translation;
+        block.onclick = () => {
+            if(block.classList.contains('matched')) return;
+            document.querySelectorAll("#uzCol .match-block").forEach(b => b.classList.remove('selected'));
+            block.classList.add('selected');
+            selectedMatch.uz = item.word; 
+            checkMatchPair();
+        };
+        uzCol.appendChild(block);
+    });
+}
+
+function checkMatchPair() {
+    if(selectedMatch.eng && selectedMatch.uz) {
+        let engBlock = Array.from(document.querySelectorAll("#engCol .match-block")).find(b => b.innerText === selectedMatch.eng);
+        let uzBlock = Array.from(document.querySelectorAll("#uzCol .match-block")).find(b => b.classList.contains('selected'));
+
+        if(selectedMatch.eng === selectedMatch.uz) {
+            playSoundEffect(true);
+            engBlock.className = "match-block matched";
+            uzBlock.className = "match-block matched";
+            gameScore += 10; 
+            speakWord(selectedMatch.eng);
+        } else {
+            playSoundEffect(false);
+            engBlock.classList.add('wrong');
+            uzBlock.classList.add('wrong');
+            setTimeout(() => {
+                engBlock.classList.remove('wrong', 'selected');
+                uzBlock.classList.remove('wrong', 'selected');
+            }, 800);
+        }
+        selectedMatch = { eng: null, uz: null };
+        document.getElementById("wwScore").innerText = `✓ ${gameScore}`;
+
+        let totalMatched = document.querySelectorAll(".match-block.matched").length;
+        if(totalMatched === matchUpGroups[currentGameIndex].length * 2) {
+            gameScore += calculateSpeedBonus(); 
+            setTimeout(() => { 
+                currentGameIndex++; 
+                const playArea = document.getElementById("wwPlayArea");
+                playArea.removeAttribute("style");
+                playArea.style.flexGrow = "1";
+                playArea.style.display = "flex";
+                playArea.style.flexDirection = "column";
+                playArea.style.justifyContent = "center";
+                playArea.style.alignItems = "center";
+                buildMatchupGame(); 
+            }, 1000);
+        }
+    }
+}
+
+function navWWGame(step, type) {
+    if (currentGameIndex + step >= 0 && currentGameIndex + step < totalGameRounds) {
+        currentGameIndex += step;
+        const playArea = document.getElementById("wwPlayArea");
+        playArea.removeAttribute("style");
+        playArea.style.flexGrow = "1";
+        playArea.style.display = "flex";
+        playArea.style.flexDirection = "column";
+        playArea.style.justifyContent = "center";
+        playArea.style.alignItems = "center";
+
+        if(type === 'anagrama') buildAnagramaGame();
+        if(type === 'typeanswer') buildTypeAnswerGame();
+        if(type === 'matchup') buildMatchupGame();
+    }
+}
+
 function toggleFullscreen() {
     const windowEl = document.getElementById("displayWindow");
     const topBar = document.querySelector(".top-materials-bar");
@@ -230,84 +635,68 @@ function toggleFullscreen() {
     const grid = document.getElementById("gamesGrid");
     const btnIcon = document.getElementById("resizeBtn").querySelector("i");
 
-    if (!isFull) {
+    if (!windowEl.classList.contains("fullscreen-active")) {
         topBar.style.display = "none";
         divider.style.display = "none";
         grid.style.display = "none";
         windowEl.classList.add("fullscreen-active");
         btnIcon.className = "fa-solid fa-compress";
-        isFull = true;
     } else {
         topBar.style.display = "flex";
         divider.style.display = "flex";
         grid.style.display = "grid";
         windowEl.classList.remove("fullscreen-active");
         btnIcon.className = "fa-solid fa-expand";
-        isFull = false;
     }
 }
 
-function speakWord(word) {
-    try {
-        let cleanWord = word.replace(/[\[\]]/g, '');
-        if (window.speechSynthesis.speaking) {
-            window.speechSynthesis.cancel();
-        }
-        const utterance = new SpeechSynthesisUtterance(cleanWord);
-        utterance.lang = 'en-US'; 
-        utterance.rate = 0.85; 
-        utterance.volume = 1.0; 
-        window.speechSynthesis.speak(utterance);
-    } catch (error) {
-        console.error("Audio xatolik:", error);
-    }
-}
+function injectGameStyles() {
+    if (document.getElementById("wwGameStyles")) return;
+    const style = document.createElement("style");
+    style.id = "wwGameStyles";
+    style.innerHTML = `
+        .ww-game-container { display:flex; flex-direction:column; height:450px; background:#fff; font-family:sans-serif; border:1px solid #ddd; border-radius:8px; overflow:hidden; box-sizing: border-box; }
+        .ww-top-bar { display:flex; justify-content:space-between; align-items:center; padding:10px 15px; background:#f8f9fa; border-bottom:1px solid #e9ecef; font-size:18px; font-weight:bold; color:#333; }
+        .ww-play-area { flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:15px; background:#fafafa; position:relative; overflow-y: auto; }
+        .ww-bottom-bar { display:flex; justify-content:center; align-items:center; gap:25px; padding:10px; background:#f8f9fa; border-top:1px solid #e9ecef; }
+        
+        .ww-nav-btn { background:none; border:none; font-size:22px; color:#495057; cursor:pointer; }
+        .ww-nav-btn:disabled { color:#ccc; cursor:default; }
+        .ww-progress-text { font-size:16px; font-weight:bold; color:#495057; }
+        .ww-target-title { font-size:24px; font-weight:600; margin-bottom:20px; text-align:center; color:#2c3e50; }
+        
+        .ww-slots-row { display:flex; justify-content:center; gap:6px; min-height:45px; margin-bottom:20px; flex-wrap:wrap; border-bottom: 2px dashed #b2bec3; padding-bottom: 8px; width:95%; box-sizing:border-box; }
+        .ww-slot-box { width:38px; height:38px; background:#fff; border:2px solid #dfe6e9; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; cursor:pointer; box-sizing:border-box; }
+        .ww-letters-row { display:flex; justify-content:center; gap:6px; flex-wrap:wrap; width:95%; box-sizing:border-box; }
+        .ww-letter-tile { width:38px; height:38px; background:#3498db; color:white; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:bold; cursor:pointer; box-shadow:0 3px 0 #2980b9; user-select:none; box-sizing:border-box; }
+        .ww-letter-tile.used { opacity:0.15; cursor:default; box-shadow:none; transform:translateY(3px); }
+        
+        .ww-clear-container { margin-top: 20px; width: 100%; text-align: center; }
+        .ww-clear-btn { background:#e74c3c; color:white; border:none; padding:8px 16px; font-size:14px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #c0392b; display:inline-block; transition: 0.1s; }
+        .ww-clear-btn:active { transform: translateY(3px); box-shadow: none; }
 
-function toggleAudio() {
-    const audio = document.getElementById("lessonAudio");
-    const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
-    if (audio.paused) {
-        audio.play();
-        btnIcon.className = "fa-solid fa-pause";
-    } else {
-        audio.pause();
-        btnIcon.className = "fa-solid fa-play";
-    }
-}
-
-function rewindAudio(seconds) {
-    const audio = document.getElementById("lessonAudio");
-    audio.currentTime += seconds;
-}
-
-function changeAudioSpeed(speed) {
-    const audio = document.getElementById("lessonAudio");
-    audio.playbackRate = parseFloat(speed);
-}
-
-function seekAudio(value) {
-    const audio = document.getElementById("lessonAudio");
-    const seekTo = audio.duration * (value / 100);
-    audio.currentTime = seekTo;
-}
-
-function initAudioPlayerListeners() {
-    const audio = document.getElementById("lessonAudio");
-    const progressBar = document.getElementById("audioProgress");
-    if(!audio || !progressBar) return;
-
-    audio.addEventListener("timeupdate", () => {
-        if(audio.duration) {
-            const percentage = (audio.currentTime / audio.duration) * 100;
-            progressBar.value = percentage;
-        }
-    });
-
-    audio.addEventListener("ended", () => {
-        const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
-        btnIcon.className = "fa-solid fa-play";
-        progressBar.value = 0;
-    });
+        .ww-input-field { width:80%; max-width:260px; padding:10px; font-size:16px; border:2px solid #ced4da; border-radius:6px; text-align:center; outline:none; }
+        .ww-action-btn { background:#2ecc71; color:white; border:none; padding:10px 20px; font-size:15px; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow:0 3px 0 #27ae60; display:block; margin:0 auto;}
+        
+        .match-block { padding:12px; border:2px solid #34495e; background:#fff; border-radius:6px; text-align:center; font-weight:bold; cursor:pointer; transition:0.2s; user-select:none; font-size:14px; width:100%; box-sizing:border-box;}
+        .match-block.selected { background:#3498db; color:white; border-color:#2980b9; }
+        .match-block.matched { background:#2ecc71; color:white; border-color:#27ae60; cursor:default; opacity:0.8; }
+        .match-block.wrong { background:#e74c3c; color:white; border-color:#c0392b; }
+        
+        .ww-result-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; width:100%; background:#fff; padding:10px; box-sizing:border-box; }
+        .ww-result-trophy { font-size:55px; color:#f1c40f; margin-bottom:5px; }
+        .ww-result-stats { background:#f8f9fa; border:1px solid #e9ecef; border-radius:8px; padding:12px; width:90%; max-width:280px; margin-bottom:15px; }
+        .ww-stat-row { display:flex; justify-content:space-between; margin:6px 0; font-size:15px; }
+        .ww-restart-btn { background:#34495e; color:white; border:none; padding:10px 20px; font-size:14px; border-radius:6px; cursor:pointer; }
+        
+        .ww-leaderboard-input-zone { width: 100%; text-align:center; }
+        #lbTable { width:100%; margin-top:10px; text-align:left; border-collapse:collapse; }
+        #lbTable th, #lbTable td { padding:6px; border:1px solid #ddd; }
+        
+        /* Matndagi bosiladigan so'zlar uchun ozgina vizual effekt */
+        .clickable-word:hover { background-color: #ffeaa7; border-radius: 4px; color: #2980b9; }
+    `;
+    document.head.appendChild(style);
 }
 </script>
 </body>
