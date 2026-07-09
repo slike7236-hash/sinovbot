@@ -40,25 +40,13 @@
 </div>
 
 <div class="main-layout">
-    <div id="displayWindow" class="display-window" style="position: relative;">
+    <div id="displayWindow" class="display-window">
         <button id="resizeBtn" class="resize-btn" onclick="toggleFullscreen()">
             <i class="fa-solid fa-expand"></i>
         </button>
 
-        <div id="floatingAudioPlayer" class="floating-audio-player" style="display: none;">
-            <button onclick="rewindAudio(-10)" title="10 soniya ortga"><i class="fa-solid fa-backward"></i></button>
-            <button id="playerPlayBtn" onclick="toggleAudioPlay()" class="play-main-btn" title="Play/Pause"><i class="fa-solid fa-play"></i></button>
-            <button onclick="rewindAudio(10)" title="10 soniya oldinga"><i class="fa-solid fa-forward"></i></button>
-            <select id="audioSpeedSelect" onchange="changeAudioSpeed(this.value)" title="Tezlik">
-                <option value="1">1.0x</option>
-                <option value="1.25">1.25x</option>
-                <option value="1.5">1.5x</option>
-                <option value="2">2.0x</option>
-            </select>
-            <audio id="mainAudioElement"></audio>
-        </div>
-
         <div id="textContainer" class="scrollable-text-content"></div>
+        
         <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
     </div>
 </div>
@@ -82,6 +70,16 @@
         <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
         <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
     </button>
+    
+    <button class="game-card-btn wordsearch-g-btn" onclick="loadContent('wordsearch')">
+        <div class="game-icon"><i class="fa-solid fa-table-cells"></i></div>
+        <div class="game-info">Word search <i class="fa-solid fa-angle-right"></i></div>
+    </button>
+    
+    <button class="game-card-btn pair-g-btn" onclick="loadContent('pair')">
+        <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
+        <div class="game-info">Pair / Nopair <i class="fa-solid fa-angle-right"></i></div>
+    </button>
 </div>
 
 <script>
@@ -93,27 +91,10 @@ const lessonKey = `${bookCode}_${unitId}`;
 let currentLang = localStorage.getItem('selectedLang') || 'uz';
 if(currentLang === 'en') currentLang = 'uz'; 
 
-const db = (typeof lessonsDatabase !== 'undefined') ? lessonsDatabase : {};
-const fallbackLesson = {
-    "uz": { "title": "Dars topilmadi", "gamesTitle": "O'YINLAR RO'YXATI", "textHtml": "<p>Baza ulanmagan yoki dars topilmadi.</p>", "keywordsList": [] },
-    "ru": { "title": "Урок не найден", "gamesTitle": "СПИСОК ИГР", "textHtml": "<p>База данных не найдена.</p>", "keywordsList": [] }
-};
-const lessonDataFull = db[lessonKey] || db["ess1_1"] || fallbackLesson;
-let currentLessonData = lessonDataFull[currentLang] || lessonDataFull["uz"];
-
-let localGameData = [];
-let matchUpGroups = []; 
-
-let currentGameIndex = 0;
-let totalGameRounds = 0; 
-let gameScore = 0;
-let gameTimerInterval = null;
-let gameSeconds = 0;
-let roundSeconds = 0;
-let roundTimerInterval = null;
+const lessonDataFull = lessonsDatabase[lessonKey] || lessonsDatabase["ess1_1"];
+let currentLessonData = lessonDataFull[currentLang];
 
 window.onload = function() {
-    injectGameStyles(); // Uslublarni boshida bir marta yuklaymiz
     document.getElementById("langSelect").value = currentLang;
     renderLessonContent();
     loadContent('text');
@@ -122,54 +103,212 @@ window.onload = function() {
 function toggleLessonLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('selectedLang', lang);
-    currentLessonData = lessonDataFull[lang] || lessonDataFull["uz"];
-    resetAudioPlayer();
+    currentLessonData = lessonDataFull[lang];
     renderLessonContent();
     loadContent('text'); 
 }
 
 function renderLessonContent() {
-    document.getElementById("lessonTitle").innerText = currentLessonData.title || "Mavzu";
-    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
+    document.getElementById("lessonTitle").innerText = currentLessonData.title;
+    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle;
 }
 
-// 🎵 MP3 MULTIMEDIA AUDIO PLAYER FUNKSIYALARI
-function initAudioPlayer() {
-    const audio = document.getElementById("mainAudioElement");
-    const playerContainer = document.getElementById("floatingAudioPlayer");
-    
-    if (currentLessonData && currentLessonData.audioUrl) {
-        audio.src = currentLessonData.audioUrl;
-        audio.load(); // Audioni yuklash majburiy
-        playerContainer.style.display = "flex"; 
-        document.getElementById("audioSpeedSelect").value = "1";
-        audio.playbackRate = 1;
-        updatePlayBtnIcon(false);
-    } else {
-        playerContainer.style.display = "none";
+function loadContent(type) {
+    const textZone = document.getElementById("textContainer");
+    const iframeZone = document.getElementById("iframeViewer");
+
+    const allBtns = document.querySelectorAll(".material-btn, .game-card-btn");
+    allBtns.forEach(btn => btn.classList.remove("active"));
+
+    let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
+    if(targetBtn) {
+        targetBtn.classList.add("active");
+    }
+
+    textZone.style.display = "none";
+    iframeZone.style.display = "none";
+    iframeZone.src = "";
+
+    // 1. TEXT JONLASHTIRISH (AUDIO PLEYER SHU YERDA)
+    if (type === 'text') {
+        let audioHtml = '';
+        if (currentLessonData.audioUrl) {
+            audioHtml = `
+                <div class="sticky-player-wrapper">
+                    <div class="audio-player-container">
+                        <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
+                        <div class="player-controls">
+                            <button onclick="rewindAudio(-10)" class="p-btn"><i class="fa-solid fa-backward"></i></button>
+                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
+                            <button onclick="rewindAudio(10)" class="p-btn"><i class="fa-solid fa-forward"></i></button>
+                            
+                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
+                                <option value="0.75">0.75x</option>
+                                <option value="1.0" selected>1.0x</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                            </select>
+                        </div>
+                        <div class="progress-wrapper">
+                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        textZone.innerHTML = audioHtml + currentLessonData.textHtml;
+        textZone.style.display = "block";
+        initAudioPlayerListeners(); 
+        initMobileTooltips(); 
+    } 
+    // 2. KEYWORDS JONLASHTIRISH
+    else if (type === 'keywords') {
+        if (currentLessonData.keywordsList && currentLessonData.keywordsList.length > 0) {
+            let tableHtml = `<div class="keywords-table-wrapper">
+                                <table class="keywords-custom-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Word</th>
+                                            <th>Translation</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+            currentLessonData.keywordsList.forEach(item => {
+                tableHtml += `<tr>
+                                <td class="kw-bold-word">
+                                    <div class="word-with-audio">
+                                        <button class="speak-btn" onclick="speakWord('${item.word.replace(/'/g, "\\'")}')">
+                                            <i class="fa-solid fa-volume-high"></i>
+                                        </button>
+                                        <span class="actual-word">${item.word}</span>
+                                    </div>
+                                </td>
+                                <td class="kw-translation">${item.translation}</td>
+                              </tr>`;
+            });
+            tableHtml += `</tbody></table></div>`;
+            textZone.innerHTML = tableHtml;
+        } else {
+            textZone.innerHTML = `<p style="padding:20px; text-align:center;">Keywords topilmadi.</p>`;
+        }
+        textZone.style.display = "block";
+    }
+    // 3. VIDEO JONLASHTIRISH
+    else if (type === 'video') {
+        iframeZone.src = currentLessonData.videoUrl;
+        iframeZone.style.display = "block";
+    } 
+    // 4. TEST JONLASHTIRISH
+    else if (type === 'test') {
+        iframeZone.src = currentLessonData.testUrl;
+        iframeZone.style.display = "block";
+    } 
+    // 5. GAMELAR JONLASHTIRISH
+    else {
+        if (currentLessonData.games && currentLessonData.games[type]) {
+            iframeZone.src = currentLessonData.games[type];
+            iframeZone.style.display = "block";
+        }
     }
 }
 
-function toggleAudioPlay() {
-    const audio = document.getElementById("mainAudioElement");
-    if (!audio.src) return;
+function initMobileTooltips() {
+    const tooltips = document.querySelectorAll('.keyword-tooltip');
+    tooltips.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            alert(this.getAttribute('data-tooltip'));
+        });
+    });
+}
+
+let isFull = false;
+function toggleFullscreen() {
+    const windowEl = document.getElementById("displayWindow");
+    const topBar = document.querySelector(".top-materials-bar");
+    const divider = document.getElementById("gamesDivider");
+    const grid = document.getElementById("gamesGrid");
+    const btnIcon = document.getElementById("resizeBtn").querySelector("i");
+
+    if (!isFull) {
+        topBar.style.display = "none";
+        divider.style.display = "none";
+        grid.style.display = "none";
+        windowEl.classList.add("fullscreen-active");
+        btnIcon.className = "fa-solid fa-compress";
+        isFull = true;
+    } else {
+        topBar.style.display = "flex";
+        divider.style.display = "flex";
+        grid.style.display = "grid";
+        windowEl.classList.remove("fullscreen-active");
+        btnIcon.className = "fa-solid fa-expand";
+        isFull = false;
+    }
+}
+
+function speakWord(word) {
+    try {
+        let cleanWord = word.replace(/[\[\]]/g, '');
+        if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.cancel();
+        }
+        const utterance = new SpeechSynthesisUtterance(cleanWord);
+        utterance.lang = 'en-US'; 
+        utterance.rate = 0.85; 
+        utterance.volume = 1.0; 
+        window.speechSynthesis.speak(utterance);
+    } catch (error) {
+        console.error("Audio xatolik:", error);
+    }
+}
+
+function toggleAudio() {
+    const audio = document.getElementById("lessonAudio");
+    const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
     if (audio.paused) {
-        audio.play().catch(e => console.log("Audio ijrosida xato:", e));
-        updatePlayBtnIcon(true);
+        audio.play();
+        btnIcon.className = "fa-solid fa-pause";
     } else {
         audio.pause();
-        updatePlayBtnIcon(false);
-    }
-}
-
-function updatePlayBtnIcon(isPlaying) {
-    const btn = document.getElementById("playerPlayBtn");
-    if (btn) {
-        btn.innerHTML = isPlaying ? `<i class="fa-solid fa-pause"></i>` : `<i class="fa-solid fa-play"></i>`;
+        btnIcon.className = "fa-solid fa-play";
     }
 }
 
 function rewindAudio(seconds) {
-    const audio = document.getElementById("mainAudioElement");
-    if(audio.src) {
-        audio.currentTime = Math.max(0, Math.min(audio.
+    const audio = document.getElementById("lessonAudio");
+    audio.currentTime += seconds;
+}
+
+function changeAudioSpeed(speed) {
+    const audio = document.getElementById("lessonAudio");
+    audio.playbackRate = parseFloat(speed);
+}
+
+function seekAudio(value) {
+    const audio = document.getElementById("lessonAudio");
+    const seekTo = audio.duration * (value / 100);
+    audio.currentTime = seekTo;
+}
+
+function initAudioPlayerListeners() {
+    const audio = document.getElementById("lessonAudio");
+    const progressBar = document.getElementById("audioProgress");
+    if(!audio || !progressBar) return;
+
+    audio.addEventListener("timeupdate", () => {
+        if(audio.duration) {
+            const percentage = (audio.currentTime / audio.duration) * 100;
+            progressBar.value = percentage;
+        }
+    });
+
+    audio.addEventListener("ended", () => {
+        const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
+        btnIcon.className = "fa-solid fa-play";
+        progressBar.value = 0;
+    });
+}
+</script>
+</body>
+</html>
