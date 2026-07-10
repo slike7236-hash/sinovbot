@@ -97,10 +97,15 @@ let gameSeconds = 0;
 let roundSeconds = 0;
 let roundTimerInterval = null;
 
+// Tanlangan elementlarni Match up o'yini uchun saqlash
+let selectedWordEl = null;
+let selectedTransEl = null;
+
 window.onload = function() {
     document.getElementById("langSelect").value = currentLang;
     renderLessonContent();
     loadContent('text');
+    injectGameStyles();
 }
 
 function toggleLessonLanguage(lang) {
@@ -116,7 +121,6 @@ function renderLessonContent() {
     document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
 }
 
-// 🔊 Ovoz chiqarish funksiyasi
 function speakWord(word) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel(); 
@@ -188,7 +192,8 @@ function updateWWStats() {
     const scoreEl = document.getElementById("wwScore");
     const progressEl = document.getElementById("wwProgressText");
     if(scoreEl) scoreEl.innerText = `✓ ${gameScore}`;
-    if(progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;}
+    if(progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
+}
 
 function checkGameOver(type, container) {
     if (currentGameIndex >= totalGameRounds) {
@@ -274,7 +279,6 @@ function loadContent(type) {
 
     localGameData = currentLessonData.keywordsList || [];
 
-    // 1. MATN VA STICKY AUDIO PLAYER INTEGRATSIYASI
     if (type === 'text') {
         let audioHtml = '';
         if (currentLessonData.audioUrl) {
@@ -333,11 +337,8 @@ function loadContent(type) {
             tNode.parentNode.replaceChild(fragment, tNode);
         });
 
-        // Audio pleyer va o'ralgan matn birga yuklanadi
         textZone.innerHTML = audioHtml + tempDiv.innerHTML;
         textZone.style.display = "block";
-
-        // Player hodisalarini ishga tushirish
         initAudioPlayerListeners();
     } 
     else if (type === 'keywords') {
@@ -366,9 +367,6 @@ function loadContent(type) {
             textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin ma'lumotlari mavjud emas!</p>`;
             return;
         }
-        
-        // Agar o'yinlar uchun injectGameStyles kerak bo'lsa, shu yerda chaqiriladi
-        if(typeof injectGameStyles === 'function') injectGameStyles();
 
         textZone.innerHTML = `            
             <div class="ww-game-container">                
@@ -403,7 +401,7 @@ function loadContent(type) {
     }
 }
 
-// ANAGRAMA O'YINI FUNKSIYALARI
+// 1. ANAGRAMA O'YINI
 function buildAnagramaGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
@@ -505,7 +503,149 @@ function clearAnagramSlots() {
     });
 }
 
-// 🎧 AUDIO PLAYER BOSHQARUV FUNKSIYALARI
+// 2. TYPE ANSWER O'YINI
+function buildTypeAnswerGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    if (checkGameOver('typeanswer', playArea)) return;
+
+    let item = localGameData[currentGameIndex];
+    playArea.innerHTML = `
+        <div class="ww-target-title">${item.translation}</div>
+        <div style="text-align:center; margin-top:20px;">
+            <input type="text" id="taInput" class="ww-input-field" placeholder="Javobni inglizcha yozing..." autocomplete="off">
+            <br><br>
+            <button class="ww-action-btn" onclick="checkTypeAnswer()">Tekshirish</button>
+        </div>
+    `;
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    document.getElementById("taInput").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") checkTypeAnswer();
+    });
+}
+
+function checkTypeAnswer() {
+    const inp = document.getElementById("taInput");
+    if(!inp) return;
+    let userAns = inp.value.trim().toLowerCase();
+    let item = localGameData[currentGameIndex];
+    let correctAns = item.word.toLowerCase().replace(/[\[\]]/g, '').trim();
+
+    if(userAns === correctAns) {
+        playSoundEffect(true);
+        gameScore += calculateSpeedBonus();
+        speakWord(item.word);
+        inp.style.borderColor = "#2ecc71";
+        inp.style.backgroundColor = "#e8f8f5";
+        setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(); }, 1000);
+    } else {
+        playSoundEffect(false);
+        inp.style.borderColor = "#e74c3c";
+        inp.style.backgroundColor = "#fce4d6";
+        setTimeout(() => {
+            inp.style.borderColor = "#b2bec3";
+            inp.style.backgroundColor = "#fff";
+        }, 1200);
+    }
+}
+
+// 3. MATCH UP O'YINI
+function buildMatchupGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    if (checkGameOver('matchup', playArea)) return;
+
+    let currentGroup = matchUpGroups[currentGameIndex];
+    selectedWordEl = null;
+    selectedTransEl = null;
+
+    let wordsList = currentGroup.map(g => g.word);
+    let transList = currentGroup.map(g => g.translation);
+
+    wordsList.sort(() => Math.random() - 0.5);
+    transList.sort(() => Math.random() - 0.5);
+
+    let leftColHtml = '<div class="ww-mu-col">';
+    wordsList.forEach(w => {
+        leftColHtml += `<div class="ww-mu-card" data-word="${w}" onclick="selectMUWord(this)">${w}</div>`;
+    });
+    leftColHtml += '</div>';
+
+    let rightColHtml = '<div class="ww-mu-col">';
+    transList.forEach(t => {
+        rightColHtml += `<div class="ww-mu-card" data-trans="${t}" onclick="selectMUTrans(this)">${t}</div>`;
+    });
+    rightColHtml += '</div>';
+
+    playArea.innerHTML = `
+        <div class="ww-mu-container">
+            ${leftColHtml}
+            ${rightColHtml}
+        </div>
+    `;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+}
+
+function selectMUWord(el) {
+    if(el.classList.contains('matched')) return;
+    if(selectedWordEl) selectedWordEl.classList.remove('selected');
+    selectedWordEl = el;
+    selectedWordEl.classList.add('selected');
+    checkMUMatch();
+}
+
+function selectMUTrans(el) {
+    if(el.classList.contains('matched')) return;
+    if(selectedTransEl) selectedTransEl.classList.remove('selected');
+    selectedTransEl = el;
+    selectedTransEl.classList.add('selected');
+    checkMUMatch();
+}
+
+function checkMUMatch() {
+    if(selectedWordEl && selectedTransEl) {
+        let w = selectedWordEl.getAttribute("data-word");
+        let t = selectedTransEl.getAttribute("data-trans");
+
+        let currentGroup = matchUpGroups[currentGameIndex];
+        let correctPair = currentGroup.find(item => item.word === w && item.translation === t);
+
+        if(correctPair) {
+            playSoundEffect(true);
+            speakWord(w);
+            selectedWordEl.className = "ww-mu-card matched";
+            selectedTransEl.className = "ww-mu-card matched";
+            gameScore += 10;
+            selectedWordEl = null;
+            selectedTransEl = null;
+
+            let playArea = document.getElementById("wwPlayArea");
+            let remaining = playArea.querySelectorAll(".ww-mu-card:not(.matched)");
+            if(remaining.length === 0) {
+                gameScore += calculateSpeedBonus();
+                setTimeout(() => { currentGameIndex++; buildMatchupGame(); }, 1000);
+            }
+        } else {
+            playSoundEffect(false);
+            selectedWordEl.classList.add('wrong');
+            selectedTransEl.classList.add('wrong');
+            let wEl = selectedWordEl;
+            let tEl = selectedTransEl;
+            selectedWordEl = null;
+            selectedTransEl = null;
+            setTimeout(() => {
+                wEl.classList.remove('selected', 'wrong');
+                tEl.classList.remove('selected', 'wrong');
+            }, 800);
+        }
+    }
+}
+
+// 🎧 AUDIO PLAYER FUNKSIYALARI
 function toggleAudio() {
     const audio = document.getElementById("lessonAudio");
     const btnIcon = document.getElementById("playPauseBtn").querySelector("i");
@@ -524,7 +664,6 @@ function rewindAudio(seconds) {
     if (audio) audio.currentTime += seconds;
 }
 
-// O'yinlar ichidagi navWWGame funksiyasi (xatolik bermasligi uchun qo'shildi)
 function navWWGame(dir, type) {
     currentGameIndex += dir;
     if(currentGameIndex < 0) currentGameIndex = 0;
@@ -563,8 +702,6 @@ function initAudioPlayerListeners() {
     });
 }
 
-// Ekranni kattashtirish/kichiklashtirish (Fullscreen)
-let isFull = false;
 function toggleFullscreen() {
     const windowEl = document.getElementById("displayWindow");
     const topBar = document.querySelector(".top-materials-bar");
@@ -587,6 +724,21 @@ function toggleFullscreen() {
         btnIcon.className = "fa-solid fa-expand";
         isFull = false;
     }
+}
+
+// CSS USLUBLARINI JS ORQALI INJECT QILISH (Xatoliklarsiz chiroyli chiqishi uchun)
+function injectGameStyles() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .ww-input-field { padding: 10px; font-size: 16px; border: 2px solid #b2bec3; border-radius: 8px; width: 60%; text-align: center; outline: none; transition: 0.3s; }
+        .ww-mu-container { display: flex; justify-content: space-between; gap: 20px; padding: 10px; height: 100%; }
+        .ww-mu-col { width: 50%; display: flex; flex-direction: column; gap: 10px; }
+        .ww-mu-card { background: #f8f9fa; border: 2px solid #dcdde1; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.2s; user-select: none; }
+        .ww-mu-card.selected { background: #ffeaa7; border-color: #f1c40f; }
+        .ww-mu-card.matched { background: #2ecc71; border-color: #27ae60; color: white; cursor: default; }
+        .ww-mu-card.wrong { background: #ff7675; border-color: #d63031; color: white; }
+    `;
+    document.head.appendChild(style);
 }
 </script>
 </body>
