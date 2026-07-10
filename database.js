@@ -31,7 +31,7 @@ const lessonsDatabase = {
     { word: "trick", translation: "hiyla, nayrang, fokus" },
     { word: "well", translation: "yaxshi" }
             ],
-            testUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf.../viewform?embedded=true",
+            testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=ess1_1",
             games: {
                 matchup: "https://wordwall.net/embed/play/73822/190/815",
                 anagrama: "https://wordwall.net/embed/e81cc7a0b7464816a93fbe8c913711fc?themeId=1&templateId=38&fontStackId=0",
