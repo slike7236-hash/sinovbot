@@ -97,11 +97,9 @@ let gameSeconds = 0;
 let roundSeconds = 0;
 let roundTimerInterval = null;
 
-// Selected elements for Match Up
 let selectedMatchWord = null;
 let selectedMatchTrans = null;
 
-// 🎨 Dinamik Wordwall mukammal CSS stillari (Ekranga sig'ish va tartiblash xatolari to'liq tuzatildi)
 function injectGameStyles() {
     if (document.getElementById("wordwall-dynamic-styles")) return;
     const styleNode = document.createElement("style");
@@ -112,7 +110,6 @@ function injectGameStyles() {
         .ww-play-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 260px; padding: 5px 0; box-sizing: border-box; }
         .ww-target-title { font-size: 19px; font-weight: 700; text-align: center; color: #2c3e50; margin-bottom: 15px; width: 100%; line-height: 1.4; }
         
-        /* Anagrama Slotlari va Harflari uchun mukammal flex */
         .ww-slots-row { display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 6px; margin-bottom: 15px; min-height: 50px; width: 100%; max-width: 100%; padding: 4px; box-sizing: border-box; }
         .ww-slot-box { width: 40px; height: 46px; border: 2.5px dashed #b2bec3; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; background: #fff; color: #2d3436; text-transform: uppercase; transition: all 0.2s ease; box-sizing: border-box; }
         .ww-slot-box.filled { border-style: solid; border-color: #2980b9; background: #ecf0f1; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
@@ -122,17 +119,14 @@ function injectGameStyles() {
         .ww-letter-tile:active { transform: translateY(3px); box-shadow: 0 1px 0 #2980b9; }
         .ww-letter-tile.used { opacity: 0.15; pointer-events: none; transform: scale(0.9); box-shadow: none; }
         
-        /* Boshqaruv tugmalari */
         .ww-ctrl-container { text-align: center; margin-bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 10px; }
         .ww-backspace-btn { background: #e67e22; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 0 #d35400; transition: all 0.1s; }
         .ww-backspace-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #d35400; }
         
-        /* Type Answer interfeysi */
         .ww-type-input-zone { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 320px; }
         .ww-answer-input { width: 100%; padding: 12px; font-size: 18px; border: 2px solid #bdc3c7; border-radius: 10px; text-align: center; font-weight: bold; outline: none; box-sizing: border-box; transition: border-color 0.2s; }
         .ww-answer-input:focus { border-color: #3498db; box-shadow: 0 0 5px rgba(52,152,218,0.3); }
         
-        /* Match Up mukammal Grid oynasi */
         .ww-matchup-container { display: flex; width: 100%; gap: 10px; justify-content: space-between; box-sizing: border-box; padding: 5px; }
         .ww-match-column { display: flex; flex-direction: column; gap: 8px; width: 48%; }
         .ww-match-item { background: #fff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 12px 8px; text-align: center; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s; user-select: none; word-break: break-word; min-height: 45px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
@@ -144,7 +138,6 @@ function injectGameStyles() {
         .ww-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
         .ww-progress-text { font-size: 15px; font-weight: 600; color: #7f8c8d; }
         
-        /* Natija oynasi */
         .ww-result-screen { text-align: center; padding: 20px 10px; width: 100%; box-sizing: border-box; }
         .ww-result-trophy { font-size: 55px; color: #f1c40f; margin-bottom: 12px; animation: bounce 1s infinite alternate; }
         .ww-result-stats { background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin: 15px 0; }
@@ -259,21 +252,21 @@ function checkGameOver(type, container) {
         container.innerHTML = `            
             <div class="ww-result-screen">                
                 <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>                
-                <h2 style="margin: 10px 0; color: #2c3e50;">Mashg'ulot Yakunlandi!</h2>                
+                <h2 style="margin: 10px 0; color: #2c3e50;">Activity Complete!</h2>                
                 <div class="ww-result-stats">                    
-                    <div class="ww-stat-row"><span>⏱️ Vaqt:</span> <strong>${min} m ${sec} s</strong></div>                    
-                    <div class="ww-stat-row"><span>🎯 Yakuniy Ball:</span> <strong>${gameScore}</strong></div>                
+                    <div class="ww-stat-row"><span>⏱️ Time:</span> <strong>${min} m ${sec} s</strong></div>                    
+                    <div class="ww-stat-row"><span>🎯 Score:</span> <strong>${gameScore}</strong></div>                
                 </div>                
                 <div class="ww-leaderboard-input-zone" id="leaderboardInputZone">                    
-                    <p style="font-size:14px; color:#555; margin-bottom:8px;">Reyting jadvali uchun ismingizni kiriting:</p>                    
-                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Ismingiz..." style="width:90%; margin-bottom:10px; display:inline-block;">                    
-                    <button class="ww-action-btn" onclick="submitLocalScore('${type}')">Natijani Saqlash</button>                
+                    <p style="font-size:14px; color:#555; margin-bottom:8px;">Enter your name for the leaderboard:</p>                    
+                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Your name..." style="width:90%; margin-bottom:10px; display:inline-block;">                    
+                    <button class="ww-action-btn" onclick="submitLocalScore('${type}')">Submit</button>                
                 </div>                
                 <div id="leaderboardDisplay" style="margin-top:20px; width:100%; display:none;">                    
-                    <h3 style="font-size:16px; margin-bottom:5px; color:#2c3e50;">🏆 TOP 10 REYTING</h3>                    
+                    <h3 style="font-size:16px; margin-bottom:5px; color:#2c3e50;">🏆 TOP 10 LEADERBOARD</h3>                    
                     <table id="lbTable" style="width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;"></table>                
                 </div>                
-                <button class="ww-restart-btn" style="margin-top:20px; background:#95a5a6;" onclick="resetAndRestart('${type}')">Qayta boshlash <i class="fa-solid fa-arrow-rotate-right"></i></button>            
+                <button class="ww-restart-btn" style="margin-top:20px; background:#95a5a6;" onclick="resetAndRestart('${type}')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>            
             </div>`;
         return true;
     }
@@ -282,7 +275,7 @@ function checkGameOver(type, container) {
 
 function submitLocalScore(type) {
     const nameInp = document.getElementById("leaderboardName").value.trim();
-    if(!nameInp) { alert("Iltimos ism kiriting!"); return; }
+    if(!nameInp) { alert("Please enter your name!"); return; }
     const storageKey = `lb_${lessonKey}_${type}`;
     let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
     scores.push({ name: nameInp, score: gameScore, duration: gameSeconds, date: new Date().getTime() });
@@ -297,7 +290,7 @@ function showLocalLeaderboard(type) {
     const storageKey = `lb_${lessonKey}_${type}`;
     const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
     const table = document.getElementById("lbTable");
-    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Ism</th><th>Ball</th><th>Vaqt</th></tr>`;
+    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Name</th><th>Score</th><th>Time</th></tr>`;
     scores.forEach((row, idx) => {
         const m = Math.floor(row.duration / 60);
         const s = row.duration % 60;
@@ -359,7 +352,7 @@ function loadContent(type) {
                 </div>`;
         }
 
-        let rawHtml = currentLessonData.textHtml || "<p>Matn mavjud emas.</p>";
+        let rawHtml = currentLessonData.textHtml || "<p>No text available.</p>";
         let tempDiv = document.createElement("div");
         tempDiv.innerHTML = rawHtml;
 
@@ -417,7 +410,7 @@ function loadContent(type) {
     else {
         textZone.style.display = "block";
         if (localGameData.length === 0) {
-            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">O'yin ma'lumotlari mavjud emas!</p>`;
+            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">No game data available!</p>`;
             return;
         }
         
@@ -456,8 +449,8 @@ function loadContent(type) {
     }
 }
 
-// 🔠 1. ANAGRAMA O'YINI (Tuzatilgan va Backspace qo'shilgan)
-let anagramTileOrder = []; // Harflarni ketma-ket o'chirish uchun massiv
+// 🔠 1. ANAGRAMA GAME
+let anagramTileOrder = [];
 
 function buildAnagramaGame() {
     const playArea = document.getElementById("wwPlayArea");
@@ -477,7 +470,7 @@ function buildAnagramaGame() {
         <div class="ww-letters-row" id="lettersRow"></div>        
         <div class="ww-ctrl-container">            
             <button class="ww-backspace-btn" onclick="backspaceAnagramSlot()">                
-                <i class="fa-solid fa-delete-left"></i> O'chirish            
+                <i class="fa-solid fa-delete-left"></i> Delete            
             </button>        
         </div>`;
 
@@ -557,7 +550,7 @@ function checkAnagramResult(cleanWord) {
     }
 }
 
-// ⌨️ 2. TYPE ANSWER O'YINI (To'liq yangi interfeys)
+// ⌨️ 2. TYPE ANSWER GAME
 function buildTypeAnswerGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
@@ -568,8 +561,8 @@ function buildTypeAnswerGame() {
     playArea.innerHTML = `
         <div class="ww-target-title" style="margin-bottom:30px;">${item.translation}</div>
         <div class="ww-type-input-zone">
-            <input type="text" id="typeAnswerInput" class="ww-answer-input" placeholder="Javobni yozing..." autocomplete="off">
-            <button class="ww-action-btn" style="width:100%; margin-top:5px;" onclick="checkTypeAnswerResult()">Tekshirish</button>
+            <input type="text" id="typeAnswerInput" class="ww-answer-input" placeholder="Type your answer..." autocomplete="off">
+            <button class="ww-action-btn" style="width:100%; margin-top:5px;" onclick="checkTypeAnswerResult()">Check</button>
         </div>`;
 
     updateWWStats();
@@ -603,16 +596,14 @@ function checkTypeAnswerResult() {
         playSoundEffect(false);
         inputField.style.borderColor = "#e74c3c";
         inputField.style.background = "#ffebee";
-        inputField.classList.add("shake-animation");
         setTimeout(() => { 
-            inputField.classList.remove("shake-animation"); 
             inputField.style.borderColor = "#bdc3c7";
             inputField.style.background = "#fff";
         }, 1000);
     }
 }
 
-// 🧩 3. MATCH UP O'YINI (To'liq yangi interfeys)
+// 🧩 3. MATCH UP GAME
 function buildMatchUpGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
@@ -623,12 +614,11 @@ function buildMatchUpGame() {
 
     let currentGroup = matchUpGroups[currentGameIndex];
     
-    // So'zlar va tarjimalarni alohida aralashtiramiz
     let wordsArr = currentGroup.map(item => item.word).sort(() => Math.random() - 0.5);
     let transArr = currentGroup.map(item => item.translation).sort(() => Math.random() - 0.5);
 
     let matchupHtml = `
-        <div class="ww-target-title" style="margin-bottom:15px;">So'zlarni tarjimasi bilan moslashtiring</div>
+        <div class="ww-target-title" style="margin-bottom:15px;">Match the words with their translations</div>
         <div class="ww-matchup-container">
             <div class="ww-match-column" id="matchWordsCol"></div>
             <div class="ww-match-column" id="matchTransCol"></div>
@@ -694,7 +684,6 @@ function checkMatchPair() {
         selectedMatchWord = null;
         selectedMatchTrans = null;
 
-        // Hammasi moslandimi tekshiramiz
         const totalItems = document.querySelectorAll(".ww-match-item").length;
         const matchedItems = document.querySelectorAll(".ww-match-item.matched").length;
 
