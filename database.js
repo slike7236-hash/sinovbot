@@ -644,9 +644,10 @@ keywordsList: [{ word: "appropriate", translation: "подходящий, уме
     testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=ess1_30",
     games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
   }
-},
-//Book 2 Essential Words
-    "ess2_1": {
+}, // <--- Vergul qo'shildi!
+
+// Book 2 Essential Words
+"ess2_1": {
   uz: {
     title: "THE TWELVE MONTHS",
     gamesTitle: "GAMELAR RO'YXATI",
