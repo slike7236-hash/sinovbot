@@ -2650,7 +2650,8 @@ ru: {
         testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=ess5_10",
         games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
     }
-},"ess5_11": {
+},
+"ess5_11": {
     uz: {
         title: "Unit 11 - Beethoven's Gift",
         gamesTitle: "GAMELAR RO'YXATI",
