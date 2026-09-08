@@ -67,6 +67,10 @@
         <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
         <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
     </button>
+    <button class="game-card-btn flashcard-g-btn" onclick="loadContent('flashcard')">
+    <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
+    <div class="game-info">Flashcard <i class="fa-solid fa-angle-right"></i></div>
+</button>
 </div>
 
 <script>
@@ -432,19 +436,23 @@ function loadContent(type) {
 
         startWordwallTimer();
 
-        if (type === 'anagrama') {
-            totalGameRounds = localGameData.length;
-            buildAnagramaGame();
-        } else if (type === 'typeanswer') {
-            totalGameRounds = localGameData.length;
-            buildTypeAnswerGame();
-        } else if (type === 'matchup') {
-            matchUpGroups = [];
-            for (let i = 0; i < localGameData.length; i += 5) {
-                matchUpGroups.push(localGameData.slice(i, i + 5));
-            }
-            totalGameRounds = matchUpGroups.length;
-            buildMatchUpGame();
+       if (type === 'anagrama') {
+    totalGameRounds = localGameData.length;
+    buildAnagramaGame();
+} else if (type === 'typeanswer') {
+    totalGameRounds = localGameData.length;
+    buildTypeAnswerGame();
+} else if (type === 'matchup') {
+    matchUpGroups = [];
+    for (let i = 0; i < localGameData.length; i += 5) {
+        matchUpGroups.push(localGameData.slice(i, i + 5));
+    }
+    totalGameRounds = matchUpGroups.length;
+    buildMatchUpGame();
+} else if (type === 'flashcard') {
+    totalGameRounds = localGameData.length;
+    buildFlashcardGame();
+}
         }
     }
 }
@@ -790,6 +798,60 @@ function toggleFullscreen() {
         btnIcon.className = "fa-solid fa-expand";
         isFull = false;
     }
+}
+    // 🎴 4. FLASHCARD GAME
+function buildFlashcardGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    if (checkGameOver('flashcard', playArea)) return;
+
+    let item = localGameData[currentGameIndex];
+    let escapedWord = item.word.replace(/'/g, "\\'");
+
+    playArea.innerHTML = `
+        <div class="ww-flashcard-card">
+            <button class="ww-fc-speaker-btn" onclick="speakWord('${escapedWord}')">
+                <i class="fa-solid fa-volume-high"></i>
+            </button>
+            <div class="ww-fc-word-text" id="fcWordText">${item.word}</div>
+            
+            <div id="fcOpenZone">
+                <button class="ww-fc-open-btn" onclick="revealFlashcardTranslation()">OPEN</button>
+            </div>
+            
+            <div id="fcActionZone" class="ww-fc-action-column" style="display:none;">
+                <button class="ww-fc-cross-btn" onclick="handleFlashcardResult(false)">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <button class="ww-fc-check-btn" onclick="handleFlashcardResult(true)">
+                    <i class="fa-solid fa-check"></i>
+                </button>
+            </div>
+
+            <div class="ww-fc-counter">${currentGameIndex + 1}/${totalGameRounds}</div>
+        </div>
+    `;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+}
+
+function revealFlashcardTranslation() {
+    let item = localGameData[currentGameIndex];
+    document.getElementById("fcWordText").innerText = item.translation;
+    document.getElementById("fcOpenZone").style.display = "none";
+    document.getElementById("fcActionZone").style.display = "flex";
+}
+
+function handleFlashcardResult(isCorrect) {
+    if (isCorrect) {
+        playSoundEffect(true);
+        gameScore += 10;
+    } else {
+        playSoundEffect(false);
+    }
+    currentGameIndex++;
+    buildFlashcardGame();
 }
 </script>
 </body>
