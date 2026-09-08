@@ -380,3 +380,97 @@ body {
     .games-grid { grid-template-columns: repeat(3, 1fr); max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
     .games-divider-zone { max-width: 600px; margin: 10px auto; width: 100%; }
 }
+.ww-flashcard-card {
+    width: 100%;
+    max-width: 320px;
+    height: 240px;
+    background: #ffffff;
+    border: 2.5px solid #3498db;
+    border-radius: 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    margin: 0 auto;
+    padding: 15px;
+    box-sizing: border-box;
+}
+.ww-fc-speaker-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #eef2f7;
+    border: none;
+    color: #3498db;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+.ww-fc-speaker-btn:hover { background: #d0e1f9; }
+.ww-fc-counter {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #7f8c8d;
+}
+.ww-fc-word-text {
+    font-size: 26px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-align: center;
+    word-break: break-word;
+}
+.ww-fc-open-btn {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #2980b9;
+}
+.ww-fc-open-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #2980b9; }
+.ww-fc-action-column {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.ww-fc-check-btn {
+    background: #2ecc71;
+    color: white;
+    border: none;
+    width: 42px;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #27ae60;
+}
+.ww-fc-cross-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    width: 42px;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #c0392b;
+}
