@@ -192,43 +192,41 @@ function renderLessonContent() {
     document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
 }
 
+// Ovozni tezkor ijro etish uchun ob'ektni xotirada saqlaymiz
+let currentAudio = null;
+
 function speakWord(word) {
     if (!word) return;
 
-    // So'zdan belgilar va ortiqcha bo'shliqlarni tozalash
     let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
     if (!cleanText) return;
 
-    // 1-USUL: SpeechSynthesis (Zamonaviy brauzerlar va Telegram uchun)
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Avvalgi ovozlarni to'xtatish
-        
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85;
-        utterance.volume = 1.0;
-
-        // Ovoz tili ro'yxatini qayta yuklash (Android WebView uchun zarur)
-        let voices = window.speechSynthesis.getVoices();
-        let englishVoice = voices.find(v => v.lang.includes('en'));
-        if (englishVoice) {
-            utterance.voice = englishVoice;
-        }
-
-        window.speechSynthesis.speak(utterance);
+    // Agar avvalgi ovoz hali tugamagan bo'lsa, uni darhol to'xtatamiz
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
     }
 
-    // 2-USUL: Muqobil Ochiq Audio API (Google bloklanganda ishlaydi)
-    const audioUrl = `https://api.dictionaryapi.dev/media/pronunciations/en/${encodeURIComponent(cleanText.toLowerCase())}-us.mp3`;
-    const audio = new Audio(audioUrl);
-    audio.volume = 1.0;
+    // 1-USTUVORLIK: Juda tezkor Youdao CDN audio manbasi (type=2 -> US accent)
+    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&type=2`;
+    
+    currentAudio = new Audio(audioUrl);
+    
+    // Tarmoq sekin bo'lsa kutib o'tirmasdan darhol pley qilish
+    let playPromise = currentAudio.play();
 
-    audio.play().catch(() => {
-        // Agar audio fayl topilmasa, zaxira TTS xizmatiga yo'naltirish
-        const fallbackUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&type=2`;
-        const fallbackAudio = new Audio(fallbackUrl);
-        fallbackAudio.play().catch(e => console.log("Ovoz ijro etib bo'lmadi:", e));
-    });
+    if (playPromise !== undefined) {
+        playPromise.catch(() => {
+            // Agar audio tarmoq sababli kechiksa, zudlik bilan mahalliy TTS ga o'tish
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        });
+    }
 }
 function playSoundEffect(isCorrect) {
     try {
