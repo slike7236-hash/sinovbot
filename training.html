@@ -748,55 +748,70 @@ function buildFlashcardGame() {
 
     playArea.innerHTML = `
         <div class="ww-fc-card">
-            <button class="ww-fc-speaker-btn" onclick="speakWord('${escapedWord}')">
-                <i class="fa-solid fa-volume-high"></i>
-            </button>
-            
+            <!-- So'z va Speaker qismi -->
             <div class="ww-fc-word-container">
-                <div class="ww-fc-word-text" id="fcWordText">${item.word}</div>
+                <span class="ww-fc-word-text" id="fcWordText">${item.word}</span>
+                <button class="ww-fc-speaker-inline-btn" id="fcSpeakerBtn" onclick="speakWord('${escapedWord}')">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
             </div>
             
-            <div class="ww-fc-bottom-zone">
-                <div id="fcOpenZone" style="width: 100%;">
-                    <button class="ww-fc-open-btn" onclick="revealFlashcardTranslation()">OPEN</button>
-                </div>
+            <!-- Pastdagi Harakat/OPEN/Action Paneli -->
+            <div class="ww-fc-footer-bar">
+                <button class="ww-fc-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'flashcard')">
+                    <i class="fa-solid fa-backward-step"></i>
+                </button>
                 
-                <div id="fcActionZone" class="ww-fc-action-zone" style="display:none;">
-                    <button class="ww-fc-btn ww-fc-cross-btn" onclick="handleFlashcardResult(false)">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                    <button class="ww-fc-btn ww-fc-check-btn" onclick="handleFlashcardResult(true)">
-                        <i class="fa-solid fa-check"></i>
-                    </button>
+                <div class="ww-fc-center-action">
+                    <div id="fcOpenZone" style="width: 100%;">
+                        <button class="ww-fc-open-btn" onclick="revealFlashcardTranslation()">OPEN</button>
+                    </div>
+                    
+                    <div id="fcActionZone" class="ww-fc-action-zone" style="display:none;">
+                        <button class="ww-fc-btn ww-fc-cross-btn" onclick="handleFlashcardResult(false)">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                        <button class="ww-fc-btn ww-fc-check-btn" onclick="handleFlashcardResult(true)">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    </div>
                 </div>
-            </div>
 
-            <div class="ww-fc-counter">${currentGameIndex + 1}/${totalGameRounds}</div>
+                <button class="ww-fc-nav-btn" id="wwNext" onclick="navWWGame(1, 'flashcard')">
+                    <i class="fa-solid fa-forward-step"></i>
+                </button>
+            </div>
         </div>
     `;
 
-    // Yuqoridagi paneldagi ballni Heart (❤️) shaklida yangilash
+    // Yuqoridagi paneldagi ball ko'rsatkichi
     const scoreEl = document.getElementById("wwScore");
     const progressEl = document.getElementById("wwProgressText");
     if (scoreEl) scoreEl.innerHTML = `${gameScore} ❤️`;
     if (progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
 
-    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+    const prevBtn = document.getElementById("wwPrev");
+    if (prevBtn) prevBtn.disabled = currentGameIndex === 0;
 }
 
 function revealFlashcardTranslation() {
     let item = localGameData[currentGameIndex];
     document.getElementById("fcWordText").innerText = item.translation;
+    
+    // Tarjima chiqqanda spiker tugmasini yashirish (ixtiyoriy)
+    const speakerBtn = document.getElementById("fcSpeakerBtn");
+    if (speakerBtn) speakerBtn.style.display = "none";
+
     document.getElementById("fcOpenZone").style.display = "none";
     document.getElementById("fcActionZone").style.display = "flex";
 }
 
 function handleFlashcardResult(isCorrect) {
     if (isCorrect) {
-        playSoundEffect(true);
-        gameScore += 1; // Har bir to'g'ri javob uchun +1 ❤️
+        if (typeof playSoundEffect === 'function') playSoundEffect(true);
+        gameScore += 1;
     } else {
-        playSoundEffect(false);
+        if (typeof playSoundEffect === 'function') playSoundEffect(false);
     }
     currentGameIndex++;
     buildFlashcardGame();
