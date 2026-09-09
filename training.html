@@ -193,15 +193,32 @@ function renderLessonContent() {
 }
 
 function speakWord(word) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); 
-        let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
-        if(!cleanText) return;
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'en-US';
-        utterance.rate = 0.85; 
-        window.speechSynthesis.speak(utterance);
-    }
+    if (!word) return;
+
+    // So'zdagi belgilarni tozalash (sizning kodingizdagi mantig'ingiz)
+    let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
+    if (!cleanText) return;
+
+    // Google TTS audio manbaini shakllantirish
+    const encodedText = encodeURIComponent(cleanText);
+    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en&client=tw-ob`;
+    
+    const audio = new Audio(audioUrl);
+    audio.volume = 1.0;
+
+    // Audioni ijro etish
+    audio.play().catch(error => {
+        console.error("Audio ijro etishda xatolik:", error);
+        
+        // Zaxira usul: agar audio bloklansa, Web Speech API ishlaydi
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        }
+    });
 }
 
 function playSoundEffect(isCorrect) {
