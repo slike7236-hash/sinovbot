@@ -195,32 +195,41 @@ function renderLessonContent() {
 function speakWord(word) {
     if (!word) return;
 
-    // So'zdagi belgilarni tozalash (sizning kodingizdagi mantig'ingiz)
+    // So'zdan belgilar va ortiqcha bo'shliqlarni tozalash
     let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
     if (!cleanText) return;
 
-    // Google TTS audio manbaini shakllantirish
-    const encodedText = encodeURIComponent(cleanText);
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodedText}&tl=en&client=tw-ob`;
-    
+    // 1-USUL: SpeechSynthesis (Zamonaviy brauzerlar va Telegram uchun)
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Avvalgi ovozlarni to'xtatish
+        
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.85;
+        utterance.volume = 1.0;
+
+        // Ovoz tili ro'yxatini qayta yuklash (Android WebView uchun zarur)
+        let voices = window.speechSynthesis.getVoices();
+        let englishVoice = voices.find(v => v.lang.includes('en'));
+        if (englishVoice) {
+            utterance.voice = englishVoice;
+        }
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // 2-USUL: Muqobil Ochiq Audio API (Google bloklanganda ishlaydi)
+    const audioUrl = `https://api.dictionaryapi.dev/media/pronunciations/en/${encodeURIComponent(cleanText.toLowerCase())}-us.mp3`;
     const audio = new Audio(audioUrl);
     audio.volume = 1.0;
 
-    // Audioni ijro etish
-    audio.play().catch(error => {
-        console.error("Audio ijro etishda xatolik:", error);
-        
-        // Zaxira usul: agar audio bloklansa, Web Speech API ishlaydi
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.lang = 'en-US';
-            utterance.rate = 0.85;
-            window.speechSynthesis.speak(utterance);
-        }
+    audio.play().catch(() => {
+        // Agar audio fayl topilmasa, zaxira TTS xizmatiga yo'naltirish
+        const fallbackUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&type=2`;
+        const fallbackAudio = new Audio(fallbackUrl);
+        fallbackAudio.play().catch(e => console.log("Ovoz ijro etib bo'lmadi:", e));
     });
 }
-
 function playSoundEffect(isCorrect) {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
