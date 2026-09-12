@@ -21,9 +21,9 @@
             <p class="menu-title" id="m-cate-title">Kategoriyalar</p>
             <div class="sub-menu">
                 <div class="menu-item" onclick="jumpToBookIndex(0)"><i class="fa-solid fa-book"></i> Essential Words</div>
-                <div class="menu-item" onclick="jumpToBookIndex(6)"><i class="fa-solid fa-graduation-cap"></i> Solution Books</div>
+                <div class="menu-item" style="display: none;" onclick="jumpToBookIndex(6)"><i class="fa-solid fa-graduation-cap"></i> Solution Books</div>
                 <div class="menu-item" onclick="jumpToBookIndex(11)"><i class="fa-solid fa-book-open"></i> Read and Understand</div>
-                <div class="menu-item" style="display: none;" onclick="jumpToBookIndex(15)"><i class="fa-solid fa-star"></i> IELTS Vocabularies</div>
+                <div class="menu-item" onclick="jumpToBookIndex(15)"><i class="fa-solid fa-star"></i> IELTS Vocabularies</div>
             </div>
 
             <div class="menu-sep"></div>
@@ -113,31 +113,31 @@
                 <button class="book-btn" id="btn-read-6">...</button>
             </div>
 
-            <div class="book-card">
+            <div class="book-card" style="display: none;">
                 <img src="solel.jpg" class="book-img" alt="Solution El">
                 <div class="book-title" id="t-book-7">Solution Elementary</div>
                 <div class="book-price" id="p-price-7">💰 25,000 so'm</div>
                 <button class="book-btn" id="btn-read-7">...</button>
             </div>
-            <div class="book-card">
+            <div class="book-card" style="display: none;">
                 <img src="solpre.jpg" class="book-img" alt="Solution Pre">
                 <div class="book-title" id="t-book-8">Solution Pre-Intermediate</div>
                 <div class="book-price" id="p-price-8">💰 25,000 so'm</div>
                 <button class="book-btn" id="btn-read-8">...</button>
             </div>
-            <div class="book-card">
+            <div class="book-card" style="display: none;">
                 <img src="solint.jpg" class="book-img" alt="Solution Int">
                 <div class="book-title" id="t-book-9">Solution Intermediate</div>
                 <div class="book-price" id="p-price-9">💰 25,000 so'm</div>
                 <button class="book-btn" id="btn-read-9">...</button>
             </div>
-            <div class="book-card">
+            <div class="book-card" style="display: none;">
                 <img src="solup.jpg" class="book-img" alt="Solution Upper">
                 <div class="book-title" id="t-book-10">Solution Upper-Intermediate</div>
                 <div class="book-price" id="p-price-10">💰 25,000 so'm</div>
                 <button class="book-btn" id="btn-read-10">...</button>
             </div>
-            <div class="book-card">
+            <div class="book-card" style="display: none;">
                 <img src="solad.jpg" class="book-img" alt="Solution Adv">
                 <div class="book-title" id="t-book-11">Solution Advanced</div>
                 <div class="book-price" id="p-price-11">💰 25,000 so'm</div>
@@ -169,7 +169,7 @@
                 <button class="book-btn" id="btn-read-15">...</button>
             </div>
 
-            <div class="book-card" style="display: none;">
+            <div class="book-card">
                 <img src="ielt.jpg" class="book-img" alt="IELTS Voc">
                 <div class="book-title" id="t-book-16">Vocabulary for IELTS</div>
                 <div class="book-price" id="p-price-16">💰 25,000 so'm</div>
@@ -238,16 +238,16 @@
     { id: 4, code: "ess4", nameUz: "Essential English Words 4", nameEn: "Essential English Words 4", priceUz: "💰 18,000 so'm / 3 oy", priceEn: "💰 $ 1.5 / 3 months", path: "chapters.html?book=ess4", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_4" },
     { id: 5, code: "ess5", nameUz: "Essential English Words 5", nameEn: "Essential English Words 5", priceUz: "💰 18,000 so'm / 3 oy", priceEn: "💰 $ 1.5 / 3 months", path: "chapters.html?book=ess5", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_5" },
     { id: 6, code: "ess6", nameUz: "Essential English Words 6", nameEn: "Essential English Words 6", priceUz: "💰 18,000 so'm / 3 oy", priceEn: "💰 $ 1.5 / 3 months", path: "chapters.html?book=ess6", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_6" },
-    { id: 7, code: "solel", status: "soon", nameUz: "Solution Elementary", nameEn: "Solution Elementary", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solel", link: "https://t.me/Payment_managerbot?start=Solution_Elementary" },
+    { id: 7, code: "solel", nameUz: "Solution Elementary", nameEn: "Solution Elementary", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solel", link: "https://t.me/Payment_managerbot?start=Solution_Elementary" },
     { id: 8, code: "solpre", nameUz: "Solution Pre-Intermediate", nameEn: "Solution Pre-Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solpre", link: "https://t.me/Payment_managerbot?start=Solution_Pre_Intermediate" },
     { id: 9, code: "solint", nameUz: "Solution Intermediate", nameEn: "Solution Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solint", link: "https://t.me/Payment_managerbot?start=Solution_Intermediate" },
     { id: 10, code: "solup", nameUz: "Solution Upper-Intermediate", nameEn: "Solution Upper-Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solup", link: "https://t.me/Payment_managerbot?start=Solution_Upper_Intermediate" },
     { id: 11, code: "solad", nameUz: "Solution Advanced", nameEn: "Solution Advanced", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solad", link: "https://t.me/Payment_managerbot?start=Solution_Advanced" },
-    { id: 12, code: "read1", nameUz: "Read & Understand 1", nameEn: "Read & Understand 1", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=read1", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_1" },
-    { id: 13, code: "read2", nameUz: "Read & Understand 2", nameEn: "Read & Understand 2", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=read2", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_2" },
-    { id: 14, code: "read3", nameUz: "Read & Understand 3", nameEn: "Read & Understand 3", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=read3", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_3" },
-    { id: 15, code: "read4", nameUz: "Read & Understand 4", nameEn: "Read & Understand 4", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=read4", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_4" },
-    { id: 16, code: "ielt", nameUz: "Vocabulary for IELTS", nameEn: "Vocabulary for IELTS", priceUz: "💰 30,000 so'm", priceEn: "💰 $ 2.5", path: "chapters.html?book=ielt", link: "https://t.me/Payment_managerbot?start=Vocabulary_for_IELTS" }
+    { id: 12, code: "read1", status: "soon", nameUz: "Read & Understand 1", nameEn: "Read & Understand 1", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=read1", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_1" },
+    { id: 13, code: "read2", status: "soon",nameUz: "Read & Understand 2", nameEn: "Read & Understand 2", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=read2", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_2" },
+    { id: 14, code: "read3", status: "soon",nameUz: "Read & Understand 3", nameEn: "Read & Understand 3", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=read3", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_3" },
+    { id: 15, code: "read4", status: "soon",nameUz: "Read & Understand 4", nameEn: "Read & Understand 4", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=read4", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_4" },
+    { id: 16, code: "ielt", status: "soon",nameUz: "Vocabulary for IELTS", nameEn: "Vocabulary for IELTS", priceUz: "💰 30,000 so'm", priceEn: "💰 $ 2.5", path: "chapters.html?book=ielt", link: "https://t.me/Payment_managerbot?start=Vocabulary_for_IELTS" }
 ];
 
         function toggleSidebar(open) {
