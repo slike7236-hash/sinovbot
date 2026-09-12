@@ -299,7 +299,7 @@
                 const titleLabel = document.getElementById(`t-book-${book.id}`);
                 
                 if (titleLabel) titleLabel.innerText = currentLang === 'uz' ? book.nameUz : book.nameEn;
-                if (priceLabel) priceLabel.innerText = currentLang === 'uz' ? "💰 18,000 so'm" : "💰 $ 1.5";
+                if (priceLabel) priceLabel.innerText = currentLang === 'uz' ? "💰 18,000 so'm /3 oy" : "💰 $ 1.5 /3 month";
                 if (!btn) return;
 
                 if (premiumUsers[userId] && premiumUsers[userId].includes(book.code)) {
