@@ -23,7 +23,7 @@
                 <div class="menu-item" onclick="jumpToBookIndex(0)"><i class="fa-solid fa-book"></i> Essential Words</div>
                 <div class="menu-item" onclick="jumpToBookIndex(6)"><i class="fa-solid fa-graduation-cap"></i> Solution Books</div>
                 <div class="menu-item" onclick="jumpToBookIndex(11)"><i class="fa-solid fa-book-open"></i> Read and Understand</div>
-                <div class="menu-item" onclick="jumpToBookIndex(15)"><i class="fa-solid fa-star"></i> IELTS Vocabularies</div>
+                <div class="menu-item" style="display: none;" onclick="jumpToBookIndex(15)"><i class="fa-solid fa-star"></i> IELTS Vocabularies</div>
             </div>
 
             <div class="menu-sep"></div>
@@ -169,7 +169,7 @@
                 <button class="book-btn" id="btn-read-15">...</button>
             </div>
 
-            <div class="book-card">
+            <div class="book-card style="display: none;">
                 <img src="ielt.jpg" class="book-img" alt="IELTS Voc">
                 <div class="book-title" id="t-book-16">Vocabulary for IELTS</div>
                 <div class="book-price" id="p-price-16">💰 25,000 so'm</div>
@@ -238,7 +238,7 @@
     { id: 4, code: "ess4", nameUz: "Essential English Words 4", nameEn: "Essential English Words 4", priceUz: "💰 18,000 so'm / 3 oy", priceEn: "💰 $ 1.5 / 3 months", path: "chapters.html?book=ess4", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_4" },
     { id: 5, code: "ess5", nameUz: "Essential English Words 5", nameEn: "Essential English Words 5", priceUz: "💰 18,000 so'm / 3 oy", priceEn: "💰 $ 1.5 / 3 months", path: "chapters.html?book=ess5", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_5" },
     { id: 6, code: "ess6", nameUz: "Essential English Words 6", nameEn: "Essential English Words 6", priceUz: "💰 18,000 so'm / 3 oy", priceEn: "💰 $ 1.5 / 3 months", path: "chapters.html?book=ess6", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_6" },
-    { id: 7, code: "solel", nameUz: "Solution Elementary", nameEn: "Solution Elementary", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solel", link: "https://t.me/Payment_managerbot?start=Solution_Elementary" },
+    { id: 7, code: "solel", status: "soon", nameUz: "Solution Elementary", nameEn: "Solution Elementary", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solel", link: "https://t.me/Payment_managerbot?start=Solution_Elementary" },
     { id: 8, code: "solpre", nameUz: "Solution Pre-Intermediate", nameEn: "Solution Pre-Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solpre", link: "https://t.me/Payment_managerbot?start=Solution_Pre_Intermediate" },
     { id: 9, code: "solint", nameUz: "Solution Intermediate", nameEn: "Solution Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solint", link: "https://t.me/Payment_managerbot?start=Solution_Intermediate" },
     { id: 10, code: "solup", nameUz: "Solution Upper-Intermediate", nameEn: "Solution Upper-Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solup", link: "https://t.me/Payment_managerbot?start=Solution_Upper_Intermediate" },
@@ -292,35 +292,45 @@
             }
         }
 
-        function checkBookAccess() {
+       function checkBookAccess() {
     booksData.forEach(book => {
         const btn = document.getElementById(`btn-read-${book.id}`);
         const priceLabel = document.getElementById(`p-price-${book.id}`);
         const titleLabel = document.getElementById(`t-book-${book.id}`);
         
         if (titleLabel) titleLabel.innerText = currentLang === 'uz' ? book.nameUz : book.nameEn;
-        
-        // MANA SHU QATOR O'ZGARTIRILDI:
         if (priceLabel) priceLabel.innerText = currentLang === 'uz' ? book.priceUz : book.priceEn;
-        
         if (!btn) return;
 
-        if (premiumUsers[userId] && premiumUsers[userId].includes(book.code)) {
+        // 1. TEZ ORADA CHIQADIGAN KITOBLAR UCHUN
+        if (book.status === "soon") {
+            btn.onclick = null; // Bosish hodisasini o'chirish
+            btn.disabled = true; // Tugmani faolsizlantirish
+            btn.style.backgroundColor = "#7f8c8d"; // Kulrang tus
+            btn.style.cursor = "not-allowed"; // Sichqoncha borganda taqiq belgisi
+            btn.innerText = currentLang === 'uz' ? "Tez orada... ⏳" : "Coming Soon... ⏳";
+        }
+        // 2. SOTIB OLINGAN KITOBLAR UCHUN
+        else if (premiumUsers[userId] && premiumUsers[userId].includes(book.code)) {
             btn.onclick = function() { window.location.href = book.path; };
+            btn.disabled = false;
+            btn.style.cursor = "pointer";
             btn.style.backgroundColor = "#27ae60"; 
             btn.innerText = currentLang === 'uz' ? "O'qishni boshlash ➔" : "Start Reading ➔";
-        } else {
-            // Modal oyna ochilganda ham to'g'ri narx ko'rinishi uchun narx parametrini uzatamiz
+        } 
+        // 3. SOTIB OLINMAGAN KITOBLAR UCHUN
+        else {
             btn.onclick = function() { 
                 const selectedPrice = currentLang === 'uz' ? book.priceUz : book.priceEn;
                 openBookModal(currentLang === 'uz' ? book.nameUz : book.nameEn, selectedPrice, book.link); 
             };
+            btn.disabled = false;
+            btn.style.cursor = "pointer";
             btn.style.backgroundColor = "#e74c3c"; 
             btn.innerText = currentLang === 'uz' ? "Sotib olish 🛒" : "Buy 🛒";
         }
     });
 }
-
         function triggerTelegramLink() {
             if (activeRedirectUrl) {
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
