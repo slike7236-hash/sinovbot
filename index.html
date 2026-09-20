@@ -292,7 +292,7 @@
             }
         }
 
-       function checkBookAccess() {
+      function checkBookAccess() {
     booksData.forEach(book => {
         const btn = document.getElementById(`btn-read-${book.id}`);
         const priceLabel = document.getElementById(`p-price-${book.id}`);
@@ -301,6 +301,26 @@
         if (titleLabel) titleLabel.innerText = currentLang === 'uz' ? book.nameUz : book.nameEn;
         if (priceLabel) priceLabel.innerText = currentLang === 'uz' ? book.priceUz : book.priceEn;
         if (!btn) return;
+
+        // Har bir kitob turining birinchi darsligi (ess1, solel, read1, ielt) uchun Demo port
+        const demoBooks = ["ess1", "solel", "read1", "ielt"];
+        
+        // Agar tugma oldin o'zgarmagan bo'lsa, demo container o'rab olamiz
+        let parentCard = btn.parentElement;
+        let demoBtn = parentCard.querySelector('.demo-btn-free');
+
+        if (demoBooks.includes(book.code) && !demoBtn) {
+            demoBtn = document.createElement('button');
+            demoBtn.className = 'book-btn demo-btn-free';
+            demoBtn.style.marginTop = "5px";
+            demoBtn.style.backgroundColor = "#2bc48a";
+            demoBtn.style.color = "#ffffff";
+            demoBtn.innerText = currentLang === 'uz' ? "Demo (Unit 1 Bepul) 🎁" : "Demo (Unit 1 Free) 🎁";
+            demoBtn.onclick = function() {
+                window.location.href = `training.html?book=${book.code}&unit=1`;
+            };
+            parentCard.appendChild(demoBtn);
+        }
 
         // 1. TEZ ORADA CHIQADIGAN KITOBLAR UCHUN
         if (book.status === "soon") {
