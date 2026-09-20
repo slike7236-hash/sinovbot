@@ -65,30 +65,25 @@
     </div>
 
     <script>
-    // 1. 180 ta unit uchun xatosiz aqlli baza
-   const booksDatabase = {
-    // 1-kitob: Dastlabki 7 tasining nomi o'zingizniki, qolgani raqamli
-    "ess1": {
-        title: "4000 Essential English Words 1",
+    // 1. 180 ta unit uchun xatosiz aqlli baza + DEMO KITOB
+const booksDatabase = {
+    // 🎁 Tekin Demo Kitob (Har bir kitobning 1-unitlari to'plami)
+    "demo": {
+        title: "🎁 Demo Kitob (Tekin Namuna)",
         units: [
-            { id: 1, name: "Unit 1" },
-            { id: 2, name: "Unit 2" },
-            { id: 3, name: "Unit 3" },
-            { id: 4, name: "Unit 4" },
-            { id: 5, name: "Unit 5" },
-            { id: 6, name: "Unit 6" },
-            { id: 7, name: "Unit 7" },
-            { id: 8, name: "Unit 8" }, { id: 9, name: "Unit 9" }, { id: 10, name: "Unit 10" },
-            { id: 11, name: "Unit 11" }, { id: 12, name: "Unit 12" }, { id: 13, name: "Unit 13" },
-            { id: 14, name: "Unit 14" }, { id: 15, name: "Unit 15" }, { id: 16, name: "Unit 16" },
-            { id: 17, name: "Unit 17" }, { id: 18, name: "Unit 18" }, { id: 19, name: "Unit 19" },
-            { id: 20, name: "Unit 20" }, { id: 21, name: "Unit 21" }, { id: 22, name: "Unit 22" },
-            { id: 23, name: "Unit 23" }, { id: 24, name: "Unit 24" }, { id: 25, name: "Unit 25" },
-            { id: 26, name: "Unit 26" }, { id: 27, name: "Unit 27" }, { id: 28, name: "Unit 28" },
-            { id: 29, name: "Unit 29" }, { id: 30, name: "Unit 30" }
+            { id: 1, name: "Unit 1 (Book 1) - The Lion and the Rabbit" },
+            { id: 2, name: "Unit 1 (Book 2) - Demo Lesson" },
+            { id: 3, name: "Unit 1 (Book 3) - Demo Lesson" },
+            { id: 4, name: "Unit 1 (Book 4) - Demo Lesson" },
+            { id: 5, name: "Unit 1 (Book 5) - Demo Lesson" },
+            { id: 6, name: "Unit 1 (Book 6) - Demo Lesson" }
         ]
     },
-    // 2-kitobdan 6-kitobgacha avtomatik 1 dan 30 gacha yaratish (Hech qanday xatosiz usul)
+    // 1-kitob
+    "ess1": {
+        title: "4000 Essential English Words 1",
+        units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` }))
+    },
     "ess2": { title: "4000 Essential English Words 2", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
     "ess3": { title: "4000 Essential English Words 3", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
     "ess4": { title: "4000 Essential English Words 4", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
@@ -96,123 +91,60 @@
     "ess6": { title: "4000 Essential English Words 6", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) }
 };
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const currentBookCode = urlParams.get('book') || "ess1";
+const urlParams = new URLSearchParams(window.location.search);
+const currentBookCode = urlParams.get('book') || "demo"; // Odatiy holda DEMO ochiladi
+
+let userProgressKey = `progress_${currentBookCode}`;
+if (!localStorage.getItem(userProgressKey)) {
+    localStorage.setItem(userProgressKey, 1);
+}
+let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 1;
+
+// SAHIFANI YUKLASH
+function initChaptersPage() {
+    const book = booksDatabase[currentBookCode];
+    if (!book) return;
+
+    document.getElementById("bookTitle").innerText = book.title;
+
+    const container = document.getElementById("chaptersContainer");
+    container.innerHTML = "";
+    book.units.forEach(unit => {
+        const card = document.createElement("a");
+        card.className = "chapter-card";
         
-        let userProgressKey = `progress_${currentBookCode}`;
-        if (!localStorage.getItem(userProgressKey)) {
-            localStorage.setItem(userProgressKey, 7);
-        }
-        let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 7;
-
-        // JONLI SOAT
-        function runLiveClockAndDate() {
-            const now = new Date();
-            let hrs = now.getHours().toString().padStart(2, '0');
-            let mins = now.getMinutes().toString().padStart(2, '0');
-            let secs = now.getSeconds().toString().padStart(2, '0');
-            document.getElementById('digitalClock').innerText = `${hrs}:${mins}:${secs}`;
-            
-            let day = now.getDate().toString().padStart(2, '0');
-            let month = (now.getMonth() + 1).toString().padStart(2, '0');
-            let year = now.getFullYear();
-            document.getElementById('liveDate').innerText = `${day}.${month}.${year}`;
+        // Demo kitob bo'lsa, tegishli kitoblarning 1-unitlariga yo'naltiriladi
+        if (currentBookCode === "demo") {
+            card.href = `training.html?book=ess${unit.id}&unit=1`;
+        } else {
+            card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
         }
 
-        // SLIDER
-        let currentSlide = 0;
-        function runAutoSlider() {
-            currentSlide++;
-            if (currentSlide > 3) currentSlide = 0;
-            const container = document.getElementById("slidesContainer");
-            if(container) container.style.transform = `translateX(-${currentSlide * 25}%)`;
-        }
+        card.innerHTML = `
+            <div class="chapter-info">
+                <div class="chapter-num">Mavzu ${unit.id}</div>
+                <div class="chapter-name">${unit.name}</div>
+            </div>
+            <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
+        `;
+        container.appendChild(card);
+    });
 
-        // TAYMER LOGIKASI
-        let pomodoroInterval = null;
-        let totalSeconds = 25 * 60;
-        let isRunning = false;
+    const totalUnits = book.units.length;
+    let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
+    if (progressPercent > 100) progressPercent = 100;
 
-        function updatePomodoroDisplay() {
-            let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
-            let secs = (totalSeconds % 60).toString().padStart(2, '0');
-            document.getElementById("pmoTime").innerText = `${mins}:${secs}`;
-        }
+    document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
 
-        function startPomodoro() {
-            if (isRunning) return;
-            isRunning = true;
-            pomodoroInterval = setInterval(() => {
-                if (totalSeconds > 0) {
-                    totalSeconds--;
-                    updatePomodoroDisplay();
-                } else {
-                    clearInterval(pomodoroInterval);
-                    isRunning = false;
-                    alert("Pomodoro tugadi! Biroz dam oling ☕");
-                    resetPomodoro();
-                }
-            }, 1000);
-        }
-
-        function pausePomodoro() {
-            clearInterval(pomodoroInterval);
-            isRunning = false;
-        }
-
-        function resetPomodoro() {
-            clearInterval(pomodoroInterval);
-            isRunning = false;
-            totalSeconds = 25 * 60;
-            updatePomodoroDisplay();
-        }
-
-        // SAHIFANI YUKLASH
-        function initChaptersPage() {
-            const book = booksDatabase[currentBookCode];
-            if (!book) return;
-
-            document.getElementById("bookTitle").innerText = book.title;
-
-            const container = document.getElementById("chaptersContainer");
-            container.innerHTML = "";
-            book.units.forEach(unit => {
-                const card = document.createElement("a");
-                card.className = "chapter-card";
-                card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
-                card.innerHTML = `
-                    <div class="chapter-info">
-                        <div class="chapter-num">Mavzu ${unit.id}</div>
-                        <div class="chapter-name">${unit.name}</div>
-                    </div>
-                    <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
-                `;
-                container.appendChild(card);
-            });
-
-            const totalUnits = book.units.length;
-            let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
-            if (progressPercent > 100) progressPercent = 100;
-
-            document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
-
-            const dotsContainer = document.getElementById("dotsContainer");
-            dotsContainer.innerHTML = "";
-            for (let i = 1; i <= totalUnits; i++) {
-                const dot = document.createElement("div");
-                dot.className = "dot";
-                if (i <= currentSavedLesson) dot.classList.add("active");
-                dotsContainer.appendChild(dot);
-            }
-        }
-
-        window.onload = function() {
-            initChaptersPage();
-            runLiveClockAndDate();
-            setInterval(runLiveClockAndDate, 1000);
-            setInterval(runAutoSlider, 8000);
-            updatePomodoroDisplay();
-        };
+    const dotsContainer = document.getElementById("dotsContainer");
+    dotsContainer.innerHTML = "";
+    for (let i = 1; i <= totalUnits; i++) {
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        if (i <= currentSavedLesson) dot.classList.add("active");
+        dotsContainer.appendChild(dot);
+    }
+}
     </script>
 </body>
 </html>
