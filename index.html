@@ -292,7 +292,7 @@
             }
         }
 
-      function checkBookAccess() {
+     function checkBookAccess() {
     booksData.forEach(book => {
         const btn = document.getElementById(`btn-read-${book.id}`);
         const priceLabel = document.getElementById(`p-price-${book.id}`);
@@ -302,14 +302,21 @@
         if (priceLabel) priceLabel.innerText = currentLang === 'uz' ? book.priceUz : book.priceEn;
         if (!btn) return;
 
-        // Har bir kitob turining birinchi darsligi (ess1, solel, read1, ielt) uchun Demo port
-        const demoBooks = ["ess1"];
-        
-        // Agar tugma oldin o'zgarmagan bo'lsa, demo container o'rab olamiz
+        // 1. Foydalanuvchi ushbu kitobni sotib olganligini aniqlaymiz
+        const isPurchased = premiumUsers[userId] && premiumUsers[userId].includes(book.code);
+
+        const demoBooks = ["ess1", "solel", "read1", "ielt"];
         let parentCard = btn.parentElement;
         let demoBtn = parentCard.querySelector('.demo-btn-free');
 
-        if (demoBooks.includes(book.code) && !demoBtn) {
+        // 2. AGAR KITOB SOTIB OLINGAN BO'LSA YOKI STATUSI "SOON" BO'LSA — DEMO TUGMANI YO'QOTAMIZ
+        if (isPurchased || book.status === "soon") {
+            if (demoBtn) {
+                demoBtn.remove(); // Mavjud bo'lsa, sirtdan o'chirib tashlaymiz
+            }
+        } 
+        // 3. AGAR SOTIB OLINMAGAN BO'LSA VA DEMO RO'YXATIDA BO'LSA — DEMO TUGMANI YARATAMIZ
+        else if (demoBooks.includes(book.code) && !demoBtn) {
             demoBtn = document.createElement('button');
             demoBtn.className = 'book-btn demo-btn-free';
             demoBtn.style.marginTop = "5px";
@@ -322,23 +329,25 @@
             parentCard.appendChild(demoBtn);
         }
 
-        // 1. TEZ ORADA CHIQADIGAN KITOBLAR UCHUN
+        // --- ASOSIY TUGMA HOLLATLARI ---
+
+        // A) TEZ ORADA CHIQADIGAN KITOBLAR UCHUN
         if (book.status === "soon") {
-            btn.onclick = null; // Bosish hodisasini o'chirish
-            btn.disabled = true; // Tugmani faolsizlantirish
-            btn.style.backgroundColor = "#7f8c8d"; // Kulrang tus
-            btn.style.cursor = "not-allowed"; // Sichqoncha borganda taqiq belgisi
+            btn.onclick = null;
+            btn.disabled = true;
+            btn.style.backgroundColor = "#7f8c8d";
+            btn.style.cursor = "not-allowed";
             btn.innerText = currentLang === 'uz' ? "Tez orada... ⏳" : "Coming Soon... ⏳";
         }
-        // 2. SOTIB OLINGAN KITOBLAR UCHUN
-        else if (premiumUsers[userId] && premiumUsers[userId].includes(book.code)) {
+        // B) SOTIB OLINGAN KITOBLAR UCHUN (Faqat yashil "O'qishni boshlash" tugmasi ko'rinadi)
+        else if (isPurchased) {
             btn.onclick = function() { window.location.href = book.path; };
             btn.disabled = false;
             btn.style.cursor = "pointer";
             btn.style.backgroundColor = "#27ae60"; 
             btn.innerText = currentLang === 'uz' ? "O'qishni boshlash ➔" : "Start Reading ➔";
         } 
-        // 3. SOTIB OLINMAGAN KITOBLAR UCHUN
+        // C) SOTIB OLINMAGAN KITOBLAR UCHUN (Qizil "Sotib olish" va Demo tugmasi birga turadi)
         else {
             btn.onclick = function() { 
                 const selectedPrice = currentLang === 'uz' ? book.priceUz : book.priceEn;
@@ -350,8 +359,7 @@
             btn.innerText = currentLang === 'uz' ? "Sotib olish 🛒" : "Buy 🛒";
         }
     });
-}
-        function triggerTelegramLink() {
+}        function triggerTelegramLink() {
             if (activeRedirectUrl) {
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
                     window.Telegram.WebApp.openTelegramLink(activeRedirectUrl);
