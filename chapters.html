@@ -101,50 +101,71 @@ if (!localStorage.getItem(userProgressKey)) {
 let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 1;
 
 // SAHIFANI YUKLASH
-function initChaptersPage() {
-    const book = booksDatabase[currentBookCode];
-    if (!book) return;
+// SAHIFANI YUKLASH
+        function initChaptersPage() {
+            const book = booksDatabase[currentBookCode];
+            if (!book) return;
 
-    document.getElementById("bookTitle").innerText = book.title;
+            document.getElementById("bookTitle").innerText = book.title;
 
-    const container = document.getElementById("chaptersContainer");
-    container.innerHTML = "";
-    book.units.forEach(unit => {
-        const card = document.createElement("a");
-        card.className = "chapter-card";
-        
-        // Demo kitob bo'lsa, tegishli kitoblarning 1-unitlariga yo'naltiriladi
-        if (currentBookCode === "demo") {
-            card.href = `training.html?book=ess${unit.id}&unit=1`;
-        } else {
-            card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
+            const container = document.getElementById("chaptersContainer");
+            container.innerHTML = "";
+            
+            // Foydalanuvchi ushbu kitobga premium obunaga egami yoki yo'qligini aniqlaymiz
+            const tg = window.Telegram ? window.Telegram.WebApp : null;
+            const currentUserId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "0";
+            
+            const userHasAccess = (typeof premiumUsers !== 'undefined' && premiumUsers[currentUserId] && premiumUsers[currentUserId].includes(currentBookCode));
+
+            book.units.forEach(unit => {
+                const card = document.createElement("a");
+                card.className = "chapter-card";
+
+                // 1-Unit barcha uchun DEMO bepul, qolgan unitlar premium egalariga ochiq
+                const isFreeUnit = (unit.id === 1);
+
+                if (isFreeUnit || userHasAccess) {
+                    card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
+                    card.innerHTML = `
+                        <div class="chapter-info">
+                            <div class="chapter-num">Mavzu ${unit.id} ${isFreeUnit ? '<span style="color:#2ecc71; font-size:12px; font-weight:bold;">(FREE DEMO)</span>' : ''}</div>
+                            <div class="chapter-name">${unit.name}</div>
+                        </div>
+                        <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
+                    `;
+                } else {
+                    card.href = "javascript:void(0);";
+                    card.style.opacity = "0.6";
+                    card.onclick = function() {
+                        alert("Ushbu mavzuni o'rganish uchun kitobni sotib olishingiz kerak!");
+                    };
+                    card.innerHTML = `
+                        <div class="chapter-info">
+                            <div class="chapter-num">Mavzu ${unit.id}</div>
+                            <div class="chapter-name">${unit.name}</div>
+                        </div>
+                        <div class="chapter-icon"><i class="fa-solid fa-lock" style="color: #e74c3c;"></i></div>
+                    `;
+                }
+
+                container.appendChild(card);
+            });
+
+            const totalUnits = book.units.length;
+            let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
+            if (progressPercent > 100) progressPercent = 100;
+
+            document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
+
+            const dotsContainer = document.getElementById("dotsContainer");
+            dotsContainer.innerHTML = "";
+            for (let i = 1; i <= totalUnits; i++) {
+                const dot = document.createElement("div");
+                dot.className = "dot";
+                if (i <= currentSavedLesson) dot.classList.add("active");
+                dotsContainer.appendChild(dot);
+            }
         }
-
-        card.innerHTML = `
-            <div class="chapter-info">
-                <div class="chapter-num">Mavzu ${unit.id}</div>
-                <div class="chapter-name">${unit.name}</div>
-            </div>
-            <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
-        `;
-        container.appendChild(card);
-    });
-
-    const totalUnits = book.units.length;
-    let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
-    if (progressPercent > 100) progressPercent = 100;
-
-    document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
-
-    const dotsContainer = document.getElementById("dotsContainer");
-    dotsContainer.innerHTML = "";
-    for (let i = 1; i <= totalUnits; i++) {
-        const dot = document.createElement("div");
-        dot.className = "dot";
-        if (i <= currentSavedLesson) dot.classList.add("active");
-        dotsContainer.appendChild(dot);
-    }
-}
     </script>
 </body>
 </html>
