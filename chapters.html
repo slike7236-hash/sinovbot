@@ -166,41 +166,39 @@ function initChaptersPage() {
     }
 }
 // BANNER/SLIDER ALMASHISH FUNKSIYASI (TO'G'RILANGAN ISHONCHLI VARIANT)
-// CHEKSIZ AYLANUVCHI (INFINITE LOOP) SLAYDER
 let currentSlide = 0;
 const realSlidesCount = 4; // Asosiy slaydlar soni
 
-// 1. Birinchi slayd nusxasini oxiriga qo'shib olish (Sahifa yuklanganda 1 marta ishlaydi)
+// 1. Birinchi slayd nusxasini oxiriga qo'shish
 function setupInfiniteSlider() {
     const container = document.getElementById("slidesContainer");
     if (container && container.children.length === realSlidesCount) {
         const firstSlideClone = container.children[0].cloneNode(true);
-        container.appendChild(firstSlideClone); // 1-slayd nusxasi 5-slayd bo'lib qo'shiladi
+        container.appendChild(firstSlideClone); // 5-slayd bo'lib qo'shiladi
     }
 }
 
-// 2. Bir tomonga cheksiz harakatlanish funksiyasi
+// 2. To'g'rilangan avto-surish funksiyasi
 function runAutoSlider() {
     const container = document.getElementById("slidesContainer");
     if (!container) return;
 
     currentSlide++;
-    
-    // Slayderni silliq surish (5 ta slayd bo'lgani uchun har biri 20% width)
-    container.style.transition = "transform 0.5s ease-in-out";
-    container.style.transform = `translateX(-${currentSlide * 20}%)`;
 
-    // Agar soxta (klonlangan) 1-slaydga yetib kelsa:
+    // Har bir slayd 100% bo'lgani uchun to'g'ridan-to'g'ri currentSlide * 100 ga suramiz
+    container.style.transition = "transform 0.5s ease-in-out";
+    container.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+    // Oxirgi (nusxa) slaydga yetganda qaytarish
     if (currentSlide === realSlidesCount) {
         setTimeout(() => {
-            // Animatsiyani vaqtincha o'chiramiz va sezdirmay haqiqiy 1-slaydga qaytaramiz
             container.style.transition = "none";
             currentSlide = 0;
             container.style.transform = `translateX(0%)`;
-        }, 500); // 0.5 sek animatsiya tugagach bajariladi
+        }, 500); // Animatsiya tugashi bilan sezilarsiz 0 ga o'tadi
     }
 }
-// SAHIFA YUKLANGANDA FUNKSIYANI CHAQIRISH (SHU QISM TUSHIB QOLGAN EDI)
+    // SAHIFA YUKLANGANDA FUNKSIYANI CHAQIRISH (SHU QISM TUSHIB QOLGAN EDI)
 // JONLI SOAT VA SANA
         function runLiveClockAndDate() {
             const now = new Date();
