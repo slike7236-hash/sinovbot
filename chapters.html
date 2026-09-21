@@ -174,28 +174,32 @@ function setupInfiniteSlider() {
     const container = document.getElementById("slidesContainer");
     if (container && container.children.length === realSlidesCount) {
         const firstSlideClone = container.children[0].cloneNode(true);
-        container.appendChild(firstSlideClone); // 5-slayd bo'lib qo'shiladi
+        container.appendChild(firstSlideClone); // 5-slayd (klon) bo'lib qo'shiladi
     }
 }
 
-// 2. To'g'rilangan avto-surish funksiyasi
+// 2. Cheksiz tekis siljish funksiyasi
 function runAutoSlider() {
     const container = document.getElementById("slidesContainer");
     if (!container) return;
 
     currentSlide++;
 
-    // Har bir slayd 100% bo'lgani uchun to'g'ridan-to'g'ri currentSlide * 100 ga suramiz
+    // Silliq surish
     container.style.transition = "transform 0.5s ease-in-out";
     container.style.transform = `translateX(-${currentSlide * 100}%)`;
 
-    // Oxirgi (nusxa) slaydga yetganda qaytarish
+    // Agar 5-chi (klonlangan) slaydga yetib kelgan bo'lsa
     if (currentSlide === realSlidesCount) {
         setTimeout(() => {
+            // Animatsiyani vaqtincha o'chiramiz
             container.style.transition = "none";
             currentSlide = 0;
             container.style.transform = `translateX(0%)`;
-        }, 500); // Animatsiya tugashi bilan sezilarsiz 0 ga o'tadi
+
+            // BRAUZERGA REFLOW BERING (Sakrashsiz darhol 0-slaydga qaytarish uchun):
+            void container.offsetHeight; 
+        }, 500); // 0.5s animatsiya tugagach bajariladi
     }
 }
     // SAHIFA YUKLANGANDA FUNKSIYANI CHAQIRISH (SHU QISM TUSHIB QOLGAN EDI)
