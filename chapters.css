@@ -50,17 +50,15 @@ body {
 .slider-wrapper {
     width: 100%;
     overflow: hidden;
-    position: relative;
 }
 
 .slides-container {
     display: flex;
-    width: 100%; /* JS orqali surish osonroq bo'lishi uchun 100% qilamiz */
-    transition: transform 0.5s ease-in-out;
+    width: 100%;
 }
 
 .slide {
-    min-width: 100%; /* Har bir slayd ekran kengligini 100% to'liq egallaydi */
+    min-width: 100%;
     box-sizing: border-box;
     text-align: center;
 }
