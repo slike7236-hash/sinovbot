@@ -48,25 +48,22 @@ body {
 
 /* REKLAMA BANNERI */
 .slider-wrapper {
-    position: relative; width: 100%; height: 110px; overflow: hidden;
-    border-bottom: 3px solid var(--accent-color);
+    width: 100%;
+    overflow: hidden;
+    position: relative;
 }
-.slides-container { display: flex; width: 400%; height: 100%; transition: transform 0.6s ease-in-out; }
+
+.slides-container {
+    display: flex;
+    width: 100%; /* JS orqali surish osonroq bo'lishi uchun 100% qilamiz */
+    transition: transform 0.5s ease-in-out;
+}
+
 .slide {
-    width: 25%; height: 100%; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; color: white; text-align: center;
-    padding: 0 20px; box-sizing: border-box; background-size: cover; background-position: center; position: relative;
+    min-width: 100%; /* Har bir slayd ekran kengligini 100% to'liq egallaydi */
+    box-sizing: border-box;
+    text-align: center;
 }
-.slide::before { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.65); z-index: 1; }
-.slide h2, .slide p { position: relative; z-index: 2; margin: 0; }
-.slide h2 { font-size: 15px; font-weight: bold; margin-bottom: 5px; }
-.slide p { font-size: 11px; color: #f1c40f; }
-
-.slide1 { background-image: url('https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=600'); }
-.slide2 { background-image: url('https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=600'); }
-.slide3 { background-image: url('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=600'); }
-.slide4 { background-image: url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=600'); }
-
 /* MAVZULAR RO'YXATI (Kompyuter va telefonga moslashuvchan maket) */
 .chapters-container { 
     max-width: 600px; /* Katta ekranda ham chiroyli markazda turishi uchun */
