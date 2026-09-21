@@ -165,7 +165,7 @@ function initChaptersPage() {
         dotsContainer.appendChild(dot);
     }
 }
-// BANNER/SLIDER ALMASHISH FUNKSIYASI (TUSHIB QOLGAN QISM)
+// BANNER/SLIDER ALMASHISH FUNKSIYASI (TO'G'RILANGAN ISHONCHLI VARIANT)
 let currentSlide = 0;
 const totalSlides = 4; // Jamiy 4 ta slide bor
 
@@ -177,7 +177,9 @@ function runAutoSlider() {
     const container = document.getElementById("slidesContainer");
     if (container) {
         container.style.transition = "transform 0.5s ease-in-out";
-        container.style.transform = `translateX(-${currentSlide * 100}%)`;
+        // 4 ta slayd bo'lgani uchun har bir slayd masofasi 25% ga teng:
+        const stepPercent = 100 / totalSlides; // 25%
+        container.style.transform = `translateX(-${currentSlide * stepPercent}%)`;
     }
 }
 // SAHIFA YUKLANGANDA FUNKSIYANI CHAQIRISH (SHU QISM TUSHIB QOLGAN EDI)
