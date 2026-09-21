@@ -167,9 +167,72 @@ function initChaptersPage() {
 }
 
 // SAHIFA YUKLANGANDA FUNKSIYANI CHAQIRISH (SHU QISM TUSHIB QOLGAN EDI)
-window.onload = function() {
-    initChaptersPage();
-};
+// JONLI SOAT VA SANA
+        function runLiveClockAndDate() {
+            const now = new Date();
+            let hrs = now.getHours().toString().padStart(2, '0');
+            let mins = now.getMinutes().toString().padStart(2, '0');
+            let secs = now.getSeconds().toString().padStart(2, '0');
+            
+            const clockEl = document.getElementById('digitalClock');
+            if (clockEl) clockEl.innerText = `${hrs}:${mins}:${secs}`;
+            
+            let day = now.getDate().toString().padStart(2, '0');
+            let month = (now.getMonth() + 1).toString().padStart(2, '0');
+            let year = now.getFullYear();
+            
+            const dateEl = document.getElementById('liveDate');
+            if (dateEl) dateEl.innerText = `${day}.${month}.${year}`;
+        }
+
+        // TAYMER (POMODORO) LOGIKASI
+        let pomodoroInterval = null;
+        let totalSeconds = 25 * 60;
+        let isRunning = false;
+
+        function updatePomodoroDisplay() {
+            let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            let secs = (totalSeconds % 60).toString().padStart(2, '0');
+            const pmoEl = document.getElementById("pmoTime");
+            if (pmoEl) pmoEl.innerText = `${mins}:${secs}`;
+        }
+
+        function startPomodoro() {
+            if (isRunning) return;
+            isRunning = true;
+            pomodoroInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updatePomodoroDisplay();
+                } else {
+                    clearInterval(pomodoroInterval);
+                    isRunning = false;
+                    alert("Pomodoro tugadi! Biroz dam oling ☕");
+                    resetPomodoro();
+                }
+            }, 1000);
+        }
+
+        function pausePomodoro() {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
+        }
+
+        function resetPomodoro() {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
+            totalSeconds = 25 * 60;
+            updatePomodoroDisplay();
+        }
+
+        // SAHIFANING ISHGA TUSHISHI (TAYMERLAR VA SOATNI KAFOLATLI ISHGATUSHIRISH)
+        document.addEventListener("DOMContentLoaded", function() {
+            initChaptersPage();
+            runLiveClockAndDate();
+            setInterval(runLiveClockAndDate, 1000); // Har sekundda soat yangilanadi
+            setInterval(runAutoSlider, 8000);
+            updatePomodoroDisplay();
+        });
 </script>
 </body>
 </html>
