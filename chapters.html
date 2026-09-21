@@ -166,20 +166,38 @@ function initChaptersPage() {
     }
 }
 // BANNER/SLIDER ALMASHISH FUNKSIYASI (TO'G'RILANGAN ISHONCHLI VARIANT)
+// CHEKSIZ AYLANUVCHI (INFINITE LOOP) SLAYDER
 let currentSlide = 0;
-const totalSlides = 4; // Jamiy 4 ta slide bor
+const realSlidesCount = 4; // Asosiy slaydlar soni
 
-function runAutoSlider() {
-    currentSlide++;
-    if (currentSlide >= totalSlides) {
-        currentSlide = 0;
-    }
+// 1. Birinchi slayd nusxasini oxiriga qo'shib olish (Sahifa yuklanganda 1 marta ishlaydi)
+function setupInfiniteSlider() {
     const container = document.getElementById("slidesContainer");
-    if (container) {
-        container.style.transition = "transform 0.5s ease-in-out";
-        // 4 ta slayd bo'lgani uchun har bir slayd masofasi 25% ga teng:
-        const stepPercent = 100 / totalSlides; // 25%
-        container.style.transform = `translateX(-${currentSlide * stepPercent}%)`;
+    if (container && container.children.length === realSlidesCount) {
+        const firstSlideClone = container.children[0].cloneNode(true);
+        container.appendChild(firstSlideClone); // 1-slayd nusxasi 5-slayd bo'lib qo'shiladi
+    }
+}
+
+// 2. Bir tomonga cheksiz harakatlanish funksiyasi
+function runAutoSlider() {
+    const container = document.getElementById("slidesContainer");
+    if (!container) return;
+
+    currentSlide++;
+    
+    // Slayderni silliq surish (5 ta slayd bo'lgani uchun har biri 20% width)
+    container.style.transition = "transform 0.5s ease-in-out";
+    container.style.transform = `translateX(-${currentSlide * 20}%)`;
+
+    // Agar soxta (klonlangan) 1-slaydga yetib kelsa:
+    if (currentSlide === realSlidesCount) {
+        setTimeout(() => {
+            // Animatsiyani vaqtincha o'chiramiz va sezdirmay haqiqiy 1-slaydga qaytaramiz
+            container.style.transition = "none";
+            currentSlide = 0;
+            container.style.transform = `translateX(0%)`;
+        }, 500); // 0.5 sek animatsiya tugagach bajariladi
     }
 }
 // SAHIFA YUKLANGANDA FUNKSIYANI CHAQIRISH (SHU QISM TUSHIB QOLGAN EDI)
