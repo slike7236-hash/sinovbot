@@ -79,6 +79,17 @@
     </button>
 </div>
 <script>
+    // Promise.withResolvers funksiyasi mavjud bo'lmagan brauzerlar uchun Polyfill
+if (typeof Promise.withResolvers !== 'function') {
+    Promise.withResolvers = function () {
+        let resolve, reject;
+        const promise = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
+        });
+        return { promise, resolve, reject };
+    };
+}
 // ==========================================
 // GLOBUS O'ZGARUVCHILAR
 // ==========================================
@@ -107,7 +118,6 @@ const fallbackGameData = [
 // 1. TEPADAGI MATERIAL TUGMALARI (Text, Video, Keywords, Test)
 // ==========================================
 function loadContent(contentType) {
-    // Har safar tepadagi tugmalar bosilganda taymer va o'yin oynasini yashiramiz
     clearIntervalTimer();
     
     const textCont = document.getElementById("textContainer");
@@ -116,12 +126,14 @@ function loadContent(contentType) {
 
     if (gameArea) gameArea.style.display = "none";
 
-    // Aktiv tugma dizaynini o'zgartirish
     document.querySelectorAll(".material-btn").forEach(btn => btn.classList.remove("active"));
     
     if (contentType === 'text') {
         if (textCont) textCont.style.display = "block";
-        if (iframeViewer) iframeViewer.style.display = "none";
+        if (iframeViewer) {
+            iframeViewer.style.display = "none";
+            iframeViewer.src = ""; // Videoni to'xtatish
+        }
         document.querySelector(".text-m-btn")?.classList.add("active");
         if (textCont) textCont.innerHTML = "<h2>Dars matni</h2><p>Bu yerda dars matni joylashadi...</p>";
     } 
@@ -129,17 +141,20 @@ function loadContent(contentType) {
         if (textCont) textCont.style.display = "none";
         if (iframeViewer) {
             iframeViewer.style.display = "block";
-            // Video havolasini kiriting
-            iframeViewer.src = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+            // Xatoliklarni kamaytirish uchun havola parametrlari sozlandi
+            iframeViewer.src = "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?enablejsapi=1&rel=0";
         }
         document.querySelector(".video-m-btn")?.classList.add("active");
     } 
     else if (contentType === 'keywords') {
         if (textCont) textCont.style.display = "block";
-        if (iframeViewer) iframeViewer.style.display = "none";
+        if (iframeViewer) {
+            iframeViewer.style.display = "none";
+            iframeViewer.src = "";
+        }
         document.querySelector(".keywords-m-btn")?.classList.add("active");
         
-        let wordsList = (typeof localGameData !== 'undefined' && localGameData.length > 0) ? localGameData : fallbackGameData;
+        let wordsList = (typeof localGameData !== 'undefined' && localGameData && localGameData.length > 0) ? localGameData : fallbackGameData;
         let html = "<h2>Kalit so'zlar</h2><ul>";
         wordsList.forEach(item => {
             html += `<li><b>${item.word}</b> - ${item.translation}</li>`;
@@ -149,12 +164,14 @@ function loadContent(contentType) {
     } 
     else if (contentType === 'test') {
         if (textCont) textCont.style.display = "block";
-        if (iframeViewer) iframeViewer.style.display = "none";
+        if (iframeViewer) {
+            iframeViewer.style.display = "none";
+            iframeViewer.src = "";
+        }
         document.querySelector(".test-m-btn")?.classList.add("active");
         if (textCont) textCont.innerHTML = "<h2>Mavzu yuzasidan testlar</h2><p>Test savollari yuklanmoqda...</p>";
     }
 }
-
 // ==========================================
 // 2. O'YINNI BOSH LASH VA START TUGMASI
 // ==========================================
