@@ -304,7 +304,7 @@ body {
     position: sticky;
     top: -15px;            
     background: #ffffff;   
-    padding: 5px 45px 12px 0; /* ⚠️ O'NG TOMONDAN TUGMA UCHUN 45px BO'SH JOY CO'YILDI */
+    padding: 5px 45px 12px 0;
     margin-bottom: 15px;
     z-index: 15;           
     border-bottom: 2px solid var(--card-border);
@@ -382,130 +382,133 @@ body {
 }
 
 /* ==========================================
-   YANGILANGAN FLASHCARD O'YINI STILLARI
+   FLASHCARD 2-RASMDAGI DIZAYN STILIKODLARI
    ========================================== */
 
-.fc-container {
+.fc-wrapper {
+    background-color: #1a2332;
+    border-radius: 18px;
+    padding: 20px 16px;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    gap: 16px;
     width: 100%;
-    max-width: 360px;
+    max-width: 380px;
     margin: 0 auto;
-    padding: 10px;
     box-sizing: border-box;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
-/* KARTA KO'RINISHI (FLIP EFFEKT BILAN) */
-.fc-card {
-    width: 100%;
-    height: 210px;
-    background: #ffffff;
-    border: 2px solid #3498db;
+/* O'RTADAGI OQ KARTA */
+.fc-main-card {
+    background-color: #ffffff;
+    border: 3px solid #3498db;
     border-radius: 16px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+    height: 190px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    position: relative;
     padding: 15px;
     box-sizing: border-box;
-    transition: all 0.2s ease-in-out;
+    transition: transform 0.15s ease, border-color 0.2s ease;
     user-select: none;
 }
 
-.fc-card:active {
+.fc-main-card:active {
     transform: scale(0.98);
 }
 
-.fc-card.translated {
+.fc-main-card.translated {
     border-color: #9b59b6;
-    background: #faf5fc;
+    background-color: #fcf8ff;
 }
 
-/* MARKAZDAGI MATN */
-.fc-word-text {
-    font-size: 26px;
+/* SO'Z ATROFIDAGI SARIQ BADGE */
+.fc-word-badge {
+    background-color: #fef08a;
+    color: #1e293b;
+    font-size: 28px;
     font-weight: 800;
-    color: #2c3e50;
+    padding: 10px 24px;
+    border-radius: 14px;
     text-align: center;
     word-break: break-word;
-    transition: color 0.2s;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* DYNAMIK / SPEAKER TUGMASI (O'NG YUQORIDA) */
-.fc-sound-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    background: #ebf5fb;
-    border: 1.5px solid #3498db;
-    color: #3498db;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    font-size: 16px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-}
-
-.fc-sound-btn:active {
-    transform: scale(0.92);
-    background: #3498db;
-    color: white;
-}
-
-/* ESLATMA YAZUV (PASTDA) */
-.fc-hint-text {
-    position: absolute;
-    bottom: 12px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #bdc3c7;
-}
-
-/* BILAMAN / BILMADIM TUGMALAR PANELI */
-.fc-actions {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    margin-top: 18px;
+/* TUGMALAR QATORI */
+.fc-action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
+    width: 100%;
 }
 
 .fc-btn {
-    flex: 1;
-    padding: 12px;
     border: none;
-    border-radius: 10px;
+    border-radius: 12px;
+    padding: 14px 10px;
     font-size: 15px;
-    font-weight: bold;
-    color: white;
+    font-weight: 800;
+    color: #ffffff;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: transform 0.1s, box-shadow 0.1s;
-}
-
-.fc-btn-wrong {
-    background: #e74c3c;
-    box-shadow: 0 4px 0 #c0392b;
-}
-
-.fc-btn-correct {
-    background: #2ecc71;
-    box-shadow: 0 4px 0 #27ae60;
+    transition: filter 0.15s, transform 0.1s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
 }
 
 .fc-btn:active {
     transform: translateY(2px);
-    box-shadow: none;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+}
+
+/* YASIL TUGMA (I KNOW) */
+.fc-btn-know {
+    background-color: #2ecc71;
+}
+
+.fc-btn-know:hover {
+    background-color: #27ae60;
+}
+
+/* QIZIL TUGMA (I DON'T KNOW) */
+.fc-btn-dontknow {
+    background-color: #e74c3c;
+}
+
+.fc-btn-dontknow:hover {
+    background-color: #c0392b;
+}
+
+/* QAYTA ESHITISH TUGMASI */
+.fc-listen-btn {
+    background-color: #0984e3;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 60%;
+    margin: 0 auto;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+}
+
+.fc-listen-btn:hover {
+    background-color: #74b9ff;
+}
+
+.fc-listen-btn:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.2);
 }
