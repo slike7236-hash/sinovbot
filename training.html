@@ -45,14 +45,16 @@
             <i class="fa-solid fa-expand"></i>
         </button>
 
+        <!-- Matn va testlar uchun -->
         <div id="textContainer" class="scrollable-text-content"></div>
-        <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
         
-        <!-- O'YINLAR SHU YERDA CHIQADI -->
+        <!-- Video uchun -->
+        <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen style="display:none; width:100%; height:100%; border:none;"></iframe>
+        
+        <!-- O'yinlar uchun -->
         <div id="wwPlayArea" style="display: none; width: 100%; height: 100%; overflow-y: auto;"></div>
     </div>
 </div>
-
 <div class="games-divider-zone" id="gamesDivider">
     <span id="gamesTitleText">GAMELAR RO'YXATI</span>
 </div>
@@ -92,39 +94,100 @@ let gameAnswersLog = [];
 let selectedMatchWord = null;
 let selectedMatchTrans = null;
 
+// Zaxira uchun namuna lug'at (agar localGameData bo'sh bo'lsa ishlatiladi)
+const fallbackGameData = [
+    { word: "Environment", translation: "Atrof-muhit" },
+    { word: "Pollution", translation: "Ifloslanish" },
+    { word: "Protect", translation: "Himoya qilmoq" },
+    { word: "Recycle", translation: "Qayta ishlamoq" },
+    { word: "Nature", translation: "Tabiat" }
+];
+
 // ==========================================
-// 1. O'YINNI BOSH LASH VA ISM KIRITISH
+// 1. TEPADAGI MATERIAL TUGMALARI (Text, Video, Keywords, Test)
+// ==========================================
+function loadContent(contentType) {
+    // Har safar tepadagi tugmalar bosilganda taymer va o'yin oynasini yashiramiz
+    clearIntervalTimer();
+    
+    const textCont = document.getElementById("textContainer");
+    const iframeViewer = document.getElementById("iframeViewer");
+    const gameArea = document.getElementById("wwPlayArea");
+
+    if (gameArea) gameArea.style.display = "none";
+
+    // Aktiv tugma dizaynini o'zgartirish
+    document.querySelectorAll(".material-btn").forEach(btn => btn.classList.remove("active"));
+    
+    if (contentType === 'text') {
+        if (textCont) textCont.style.display = "block";
+        if (iframeViewer) iframeViewer.style.display = "none";
+        document.querySelector(".text-m-btn")?.classList.add("active");
+        if (textCont) textCont.innerHTML = "<h2>Dars matni</h2><p>Bu yerda dars matni joylashadi...</p>";
+    } 
+    else if (contentType === 'video') {
+        if (textCont) textCont.style.display = "none";
+        if (iframeViewer) {
+            iframeViewer.style.display = "block";
+            // Video havolasini kiriting
+            iframeViewer.src = "https://www.youtube.com/embed/dQw4w9WgXcQ";
+        }
+        document.querySelector(".video-m-btn")?.classList.add("active");
+    } 
+    else if (contentType === 'keywords') {
+        if (textCont) textCont.style.display = "block";
+        if (iframeViewer) iframeViewer.style.display = "none";
+        document.querySelector(".keywords-m-btn")?.classList.add("active");
+        
+        let wordsList = (typeof localGameData !== 'undefined' && localGameData.length > 0) ? localGameData : fallbackGameData;
+        let html = "<h2>Kalit so'zlar</h2><ul>";
+        wordsList.forEach(item => {
+            html += `<li><b>${item.word}</b> - ${item.translation}</li>`;
+        });
+        html += "</ul>";
+        if (textCont) textCont.innerHTML = html;
+    } 
+    else if (contentType === 'test') {
+        if (textCont) textCont.style.display = "block";
+        if (iframeViewer) iframeViewer.style.display = "none";
+        document.querySelector(".test-m-btn")?.classList.add("active");
+        if (textCont) textCont.innerHTML = "<h2>Mavzu yuzasidan testlar</h2><p>Test savollari yuklanmoqda...</p>";
+    }
+}
+
+// ==========================================
+// 2. O'YINNI BOSH LASH VA START TUGMASI
 // ==========================================
 function startWWGame(gameType) {
     currentGameType = gameType;
 
-    // Matn va video oynalarini yashiramiz
+    // Matn va videolarni yashiramiz
     const textCont = document.getElementById("textContainer");
     const iframeViewer = document.getElementById("iframeViewer");
     if (textCont) textCont.style.display = "none";
     if (iframeViewer) iframeViewer.style.display = "none";
 
-    // O'yin konteynerini olamiz va ko'rsatamiz
+    // O'yin konteynerini olamiz
     let gameContainer = document.getElementById("wwPlayArea");
     if (!gameContainer) {
         const displayWin = document.getElementById("displayWindow");
         gameContainer = document.createElement("div");
         gameContainer.id = "wwPlayArea";
-        gameContainer.style.width = "100%";
-        gameContainer.style.height = "100%";
-        gameContainer.style.overflowY = "auto";
         if (displayWin) displayWin.appendChild(gameContainer);
     }
     gameContainer.style.display = "block";
+    gameContainer.style.width = "100%";
+    gameContainer.style.height = "100%";
+    gameContainer.style.overflowY = "auto";
 
-    // Ism kiritish oynasini chiqarish
+    // Ism kiritish oynasi
     gameContainer.innerHTML = `
-        <div class="ww-start-screen" style="padding: 20px; text-align: center;">
-            <div class="ww-start-title" style="font-size: 20px; font-weight: bold; margin-bottom: 10px;">O'yinni boshlash</div>
+        <div class="ww-start-screen" style="padding: 30px 10px; text-align: center;">
+            <div class="ww-start-title" style="font-size: 22px; font-weight: bold; margin-bottom: 10px; color: #2c3e50;">O'yinni boshlash</div>
             <p style="font-size:14px; color:#666; margin-bottom: 15px;">Ism va familiyangizni kiriting:</p>
-            <input type="text" id="wwUserNameInput" class="ww-name-input" placeholder="Ism Familiya" value="${userName}" style="padding: 10px; width: 80%; max-width: 300px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px;">
+            <input type="text" id="wwUserNameInput" class="ww-name-input" placeholder="Ism Familiya" value="${userName}" style="padding: 10px 15px; width: 80%; max-width: 280px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; outline: none;">
             <br>
-            <button class="ww-start-btn" onclick="confirmStartGame()" style="padding: 10px 25px; background: #27ae60; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">START <i class="fa-solid fa-play"></i></button>
+            <button class="ww-start-btn" onclick="confirmStartGame()" style="padding: 10px 25px; background: #27ae60; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">START <i class="fa-solid fa-play"></i></button>
         </div>
     `;
 }
@@ -137,24 +200,23 @@ function confirmStartGame() {
     gameScore = 0;
     gameAnswersLog = [];
 
-    initGameData(currentGameType);
-}
-
-function initGameData(type) {
-    if (typeof localGameData !== 'undefined' && localGameData.length > 0) {
-        totalGameRounds = localGameData.length;
+    // Lug'at ma'lumotlarini tekshirish
+    if (typeof localGameData === 'undefined' || !localGameData || localGameData.length === 0) {
+        window.activeDataset = fallbackGameData;
     } else {
-        totalGameRounds = 10;
+        window.activeDataset = localGameData;
     }
 
-    if (type === 'flashcard') buildFlashcardGame();
-    else if (type === 'matchup') buildMatchUpGame();
-    else if (type === 'typeanswer') buildTypeAnswerGame();
-    else if (type === 'anagram') buildTypeAnswerGame();
+    totalGameRounds = window.activeDataset.length;
+
+    // O'yin turini ishga tushirish
+    if (currentGameType === 'flashcard') buildFlashcardGame();
+    else if (currentGameType === 'matchup') buildMatchUpGame();
+    else if (currentGameType === 'typeanswer' || currentGameType === 'anagram') buildTypeAnswerGame();
 }
 
 // ==========================================
-// 2. TAYMER VA TEPA PANEL
+// 3. TAYMER VA HISOBLASH
 // ==========================================
 function clearIntervalTimer() {
     if (gameTimer) {
@@ -195,7 +257,7 @@ function renderTopBarHtml(title, showTimer = true) {
 }
 
 // ==========================================
-// 3. FLASHCARD O'YINI
+// 4. FLASHCARD O'YINI
 // ==========================================
 function buildFlashcardGame() {
     const playArea = document.getElementById("wwPlayArea");
@@ -206,13 +268,13 @@ function buildFlashcardGame() {
         return;
     }
 
-    let item = localGameData[currentGameIndex];
+    let item = window.activeDataset[currentGameIndex];
     let escapedWord = item.word.replace(/'/g, "\\'");
 
     playArea.innerHTML = `
         ${renderTopBarHtml('Flashcard', true)}
         <div class="ww-fc-card" style="text-align: center; padding: 20px;">
-            <div class="ww-fc-word-container" style="font-size: 24px; font-weight: bold; margin-bottom: 30px;">
+            <div class="ww-fc-word-container" style="font-size: 24px; font-weight: bold; margin-bottom: 30px; color: #2c3e50;">
                 <span class="ww-fc-word-text" id="fcWordText">${item.word}</span>
                 <button class="ww-fc-speaker-inline-btn" id="fcSpeakerBtn" onclick="speakWord('${escapedWord}')" style="background: none; border: none; color: #3498db; font-size: 20px; cursor: pointer; margin-left: 10px;">
                     <i class="fa-solid fa-volume-high"></i>
@@ -220,20 +282,20 @@ function buildFlashcardGame() {
             </div>
                         
             <div class="ww-fc-footer-bar" style="display: flex; justify-content: space-around; align-items: center;">
-                <button class="ww-fc-nav-btn" id="wwPrev" onclick="navWWGame(-1)" style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc;"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="ww-fc-nav-btn" onclick="navWWGame(-1)" style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; cursor:pointer;"><i class="fa-solid fa-backward-step"></i></button>
                                 
                 <div class="ww-fc-center-action">
                     <div id="fcOpenZone">
                         <button class="ww-fc-open-btn" onclick="revealFlashcardTranslation()" style="padding: 10px 25px; background: #3498db; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">OPEN</button>
                     </div>
                                         
-                    <div id="fcActionZone" class="ww-fc-action-zone" style="display:none; gap: 15px;">
-                        <button class="ww-fc-btn ww-fc-cross-btn" onclick="handleFlashcardResult(false)" style="padding: 10px 20px; background: #e74c3c; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
-                        <button class="ww-fc-btn ww-fc-check-btn" onclick="handleFlashcardResult(true)" style="padding: 10px 20px; background: #27ae60; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-check"></i></button>
+                    <div id="fcActionZone" style="display:none; gap: 15px;">
+                        <button onclick="handleFlashcardResult(false)" style="padding: 10px 20px; background: #e74c3c; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
+                        <button onclick="handleFlashcardResult(true)" style="padding: 10px 20px; background: #27ae60; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-check"></i></button>
                     </div>
                 </div>
 
-                <button class="ww-fc-nav-btn" id="wwNext" onclick="navWWGame(1)" style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc;"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="ww-fc-nav-btn" onclick="navWWGame(1)" style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; cursor:pointer;"><i class="fa-solid fa-forward-step"></i></button>
             </div>
         </div>
     `;
@@ -248,7 +310,7 @@ function buildFlashcardGame() {
 }
 
 function revealFlashcardTranslation() {
-    let item = localGameData[currentGameIndex];
+    let item = window.activeDataset[currentGameIndex];
     document.getElementById("fcWordText").innerText = item.translation;
     const speakerBtn = document.getElementById("fcSpeakerBtn");
     if (speakerBtn) speakerBtn.style.display = "none";
@@ -259,14 +321,12 @@ function revealFlashcardTranslation() {
 
 function handleFlashcardResult(isCorrect) {
     clearIntervalTimer();
-    let item = localGameData[currentGameIndex];
+    let item = window.activeDataset[currentGameIndex];
 
     if (isCorrect) {
-        if (typeof playSoundEffect === 'function') playSoundEffect(true);
         gameScore += 1;
         logAnswer(item.word, item.translation, "To'g'ri bildi", 'correct');
     } else {
-        if (typeof playSoundEffect === 'function') playSoundEffect(false);
         logAnswer(item.word, item.translation, "Xato bildi", 'incorrect');
     }
     
@@ -282,33 +342,23 @@ function navWWGame(dir) {
 }
 
 // ==========================================
-// 4. MATCH UP O'YINI
+// 5. MATCH UP O'YINI
 // ==========================================
 function buildMatchUpGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
 
-    if (typeof matchUpGroups === 'undefined' || currentGameIndex >= matchUpGroups.length) {
-        showFinalResult();
-        return;
-    }
-
-    selectedMatchWord = null;
-    selectedMatchTrans = null;
-
-    let currentGroup = matchUpGroups[currentGameIndex];
-    if (!currentGroup) return;
-
-    let wordsArr = currentGroup.map(item => item.word).sort(() => Math.random() - 0.5);
-    let transArr = currentGroup.map(item => item.translation).sort(() => Math.random() - 0.5);
+    let dataset = window.activeDataset;
+    let wordsArr = [...dataset].map(item => item.word).sort(() => Math.random() - 0.5);
+    let transArr = [...dataset].map(item => item.translation).sort(() => Math.random() - 0.5);
 
     playArea.innerHTML = `
         ${renderTopBarHtml('Match Up', false)}
         <div style="padding:10px;">
-            <div class="ww-target-title" style="text-align:center; font-weight:bold; margin-bottom:15px;">Match the words with their translations</div>
-            <div class="ww-matchup-container" style="display: flex; justify-content: space-between; gap: 10px;">
-                <div class="ww-match-column" id="matchWordsCol" style="flex:1; display:flex; flex-direction:column; gap:8px;"></div>
-                <div class="ww-match-column" id="matchTransCol" style="flex:1; display:flex; flex-direction:column; gap:8px;"></div>
+            <div style="text-align:center; font-weight:bold; margin-bottom:15px;">So'zlarni tarjimasi bilan moslang</div>
+            <div style="display: flex; justify-content: space-between; gap: 10px;">
+                <div id="matchWordsCol" style="flex:1; display:flex; flex-direction:column; gap:8px;"></div>
+                <div id="matchTransCol" style="flex:1; display:flex; flex-direction:column; gap:8px;"></div>
             </div>
         </div>
     `;
@@ -324,9 +374,8 @@ function buildMatchUpGame() {
         div.setAttribute("data-word", word);
         div.onclick = () => {
             if (div.classList.contains('matched')) return;
-            document.querySelectorAll("#matchWordsCol .ww-match-item").forEach(el => { el.style.background = "#fff"; el.classList.remove('selected'); });
+            document.querySelectorAll("#matchWordsCol .ww-match-item").forEach(el => { if(!el.classList.contains('matched')) el.style.background = "#fff"; });
             div.style.background = "#e0f7fa";
-            div.classList.add('selected');
             selectedMatchWord = div;
             checkMatchPair();
         };
@@ -341,9 +390,8 @@ function buildMatchUpGame() {
         div.setAttribute("data-trans", trans);
         div.onclick = () => {
             if (div.classList.contains('matched')) return;
-            document.querySelectorAll("#matchTransCol .ww-match-item").forEach(el => { el.style.background = "#fff"; el.classList.remove('selected'); });
+            document.querySelectorAll("#matchTransCol .ww-match-item").forEach(el => { if(!el.classList.contains('matched')) el.style.background = "#fff"; });
             div.style.background = "#e0f7fa";
-            div.classList.add('selected');
             selectedMatchTrans = div;
             checkMatchPair();
         };
@@ -357,20 +405,18 @@ function checkMatchPair() {
     let wordVal = selectedMatchWord.getAttribute("data-word");
     let transVal = selectedMatchTrans.getAttribute("data-trans");
 
-    let currentGroup = matchUpGroups[currentGameIndex];
-    let matchFound = currentGroup.some(item => item.word === wordVal && item.translation === transVal);
+    let matchFound = window.activeDataset.some(item => item.word === wordVal && item.translation === transVal);
 
     if (matchFound) {
-        if (typeof playSoundEffect === 'function') playSoundEffect(true);
         speakWord(wordVal);
-                
         selectedMatchWord.style.background = "#2ecc71";
         selectedMatchWord.style.color = "#fff";
         selectedMatchTrans.style.background = "#2ecc71";
         selectedMatchTrans.style.color = "#fff";
+        
         selectedMatchWord.classList.add('matched');
         selectedMatchTrans.classList.add('matched');
-                
+
         logAnswer(wordVal, transVal, transVal, 'correct');
 
         selectedMatchWord = null;
@@ -380,11 +426,9 @@ function checkMatchPair() {
         const matchedItems = document.querySelectorAll(".ww-match-item.matched").length;
 
         if (totalItems === matchedItems) {
-            gameScore += 10;
-            setTimeout(() => { currentGameIndex++; buildMatchUpGame(); }, 1000);
+            setTimeout(() => { showFinalResult(); }, 1000);
         }
     } else {
-        if (typeof playSoundEffect === 'function') playSoundEffect(false);
         let wBtn = selectedMatchWord;
         let tBtn = selectedMatchTrans;
         wBtn.style.background = "#e74c3c";
@@ -407,7 +451,7 @@ function checkMatchPair() {
 }
 
 // ==========================================
-// 5. TYPE ANSWER O'YINI (45 soniya)
+// 6. TYPE ANSWER O'YINI
 // ==========================================
 function buildTypeAnswerGame() {
     const playArea = document.getElementById("wwPlayArea");
@@ -418,15 +462,15 @@ function buildTypeAnswerGame() {
         return;
     }
 
-    let item = localGameData[currentGameIndex];
+    let item = window.activeDataset[currentGameIndex];
 
     playArea.innerHTML = `
         ${renderTopBarHtml('Type Answer', true)}
-        <div class="ww-interactive-area" style="text-align:center; padding:20px;">
+        <div style="text-align:center; padding:20px;">
             <div style="font-size:18px; font-weight:bold; color:#2c3e50; margin-bottom:15px;">${item.translation}</div>
-            <input type="text" id="wwTypeInput" class="ww-type-input" placeholder="So'zni yozing..." autocomplete="off" style="padding:10px; border-radius:6px; border:1px solid #ccc; width:80%; max-width:250px; margin-bottom:15px;">
+            <input type="text" id="wwTypeInput" placeholder="So'zni yozing..." autocomplete="off" style="padding:10px; border-radius:6px; border:1px solid #ccc; width:80%; max-width:250px; margin-bottom:15px; outline:none;">
             <br>
-            <button class="ww-start-btn" onclick="submitTypeAnswer()" style="padding:8px 20px; background:#27ae60; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Tekshirish</button>
+            <button onclick="submitTypeAnswer()" style="padding:8px 20px; background:#27ae60; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Tekshirish</button>
         </div>
     `;
 
@@ -441,14 +485,12 @@ function submitTypeAnswer() {
     clearIntervalTimer();
     let input = document.getElementById("wwTypeInput");
     let userVal = input ? input.value.trim().toLowerCase() : "";
-    let item = localGameData[currentGameIndex];
+    let item = window.activeDataset[currentGameIndex];
 
     if (userVal === item.word.toLowerCase()) {
-        if (typeof playSoundEffect === 'function') playSoundEffect(true);
         gameScore += 1;
         logAnswer(item.word, item.translation, userVal, 'correct');
     } else {
-        if (typeof playSoundEffect === 'function') playSoundEffect(false);
         logAnswer(item.word, item.translation, userVal || "Javobsiz", 'incorrect');
     }
 
@@ -457,7 +499,7 @@ function submitTypeAnswer() {
 }
 
 // ==========================================
-// 6. NATIJA VA FINISH
+// 7. NATIJA VA FINISH
 // ==========================================
 function logAnswer(word, translation, userAns, status) {
     gameAnswersLog.push({ word, translation, userAns, status });
@@ -481,15 +523,15 @@ function showFinalResult() {
     let percentage = Math.round((correctCount / totalAsked) * 100);
 
     playArea.innerHTML = `
-        <div class="ww-result-container" style="text-align:center; padding:20px;">
+        <div style="text-align:center; padding:20px;">
             <div style="font-size:18px; font-weight:bold;">Natija: ${userName}</div>
             
-            <div class="ww-result-score-circle" style="width:90px; height:90px; border-radius:50%; background:#27ae60; color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; margin:15px auto;">
+            <div style="width:90px; height:90px; border-radius:50%; background:#27ae60; color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; margin:15px auto;">
                 <span style="font-size:22px; font-weight:bold;">${percentage}%</span>
                 <span style="font-size:10px;">O'zlashtirish</span>
             </div>
 
-            <div class="ww-result-stats-grid" style="display:flex; justify-content:space-around; margin-bottom:15px; font-weight:bold;">
+            <div style="display:flex; justify-content:space-around; margin-bottom:15px; font-weight:bold;">
                 <div style="color:#27ae60;">To'g'ri: ${correctCount}</div>
                 <div style="color:#e74c3c;">Xato: ${incorrectCount}</div>
                 <div style="color:#f39c12;">O'tkazildi: ${skippedCount}</div>
@@ -545,6 +587,11 @@ function speakWord(text) {
         window.speechSynthesis.speak(utterance);
     }
 }
-    </script>
+
+// Boshlang'ich holatda Matn tugmasini faollashtirish
+document.addEventListener("DOMContentLoaded", function() {
+    loadContent('text');
+});
+</script>
 </body>
 </html>
