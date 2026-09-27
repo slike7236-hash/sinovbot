@@ -380,150 +380,173 @@ body {
     .games-grid { grid-template-columns: repeat(3, 1fr); max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
     .games-divider-zone { max-width: 600px; margin: 10px auto; width: 100%; }
 }
-/* FLASHCARD ASOSIY KARTA */
-.ww-fc-card {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 250px;
-    background: #ffffff;
+/* ==========================================
+   FLASHCARD GAME STYLES (EXACT DESIGN)
+   ========================================== */
+
+/* Ichki scrollbarni yashirish va oyna sig'imini to'g'rilash */
+#textContainer {
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+/* Asosiy dark mode konteyner */
+.ww-game-container {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    padding: 16px;
+    box-sizing: border-box;
+    background-color: #0f172a !important; /* To'q ko'k fon */
+    border-radius: 16px;
+    color: #ffffff;
+    width: 100%;
+    height: 100%;
+    min-height: 380px;
+    margin: 0 auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Yuqori hisob va taymer paneli */
+.ww-top-bar {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: 20px 15px 10px 15px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #e2e8f0;
+    padding: 8px 14px;
+    background: #1e293b;
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.fc-timer-badge {
+    background: #ef4444;
+    color: #ffffff;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* O'rtadagi oq karta */
+.fc-card-box {
+    background: #ffffff !important;
+    border: 3px solid #3b82f6;
+    border-radius: 16px;
+    width: 100%;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 14px;
+    padding: 10px;
     box-sizing: border-box;
 }
 
-/* MARKAZDAGI SO'Z VA SPEAKER */
-.ww-fc-word-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-}
-
-.ww-fc-word-text {
-    font-size: 22px;
+.fc-word-highlight {
+    background: #fef08a;
+    color: #1e3a8a;
+    font-size: 28px;
     font-weight: 800;
-    color: #2c3e50;
+    padding: 8px 20px;
+    border-radius: 10px;
     text-align: center;
-    word-break: break-word;
+    letter-spacing: 0.5px;
 }
 
-.ww-fc-speaker-inline-btn {
-    background: #eef2f7;
-    border: none;
-    color: #3498db;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    font-size: 16px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s, transform 0.1s;
-}
-
-.ww-fc-speaker-inline-btn:active {
-    transform: scale(0.95);
-    background: #d0e1f9;
-}
-
-/* PASTKI HARAKAT VA OPEN/ACTION ZONASI */
-.ww-fc-footer-bar {
+/* Know va Don't know tugmalari */
+.fc-buttons-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
     width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
 }
 
-.ww-fc-center-action {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.ww-fc-nav-btn {
-    background: #95a5a6;
-    color: white;
-    border: none;
-    width: 42px;
-    height: 38px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.ww-fc-nav-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* OPEN TUGMASI */
-.ww-fc-open-btn {
-    width: 100%;
-    max-width: 110px;
-    margin: 0 auto;
-    display: block;
-    background: #3498db;
-    color: white;
-    border: none;
-    padding: 8px 0;
-    border-radius: 8px;
-    font-size: 14px;
+.fc-btn-know {
+    background: #22c55e !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 12px 8px;
+    border-radius: 12px;
+    font-size: 15px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 3px 0 #2980b9;
-}
-
-.ww-fc-open-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #2980b9;
-}
-
-/* X VA CHECK TUGMALARI */
-.ww-fc-action-zone {
     display: flex;
-    gap: 12px;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: 2px;
+    box-shadow: 0 4px 0 #15803d;
+    transition: transform 0.1s, background-color 0.2s;
 }
 
-.ww-fc-btn {
-    width: 44px;
-    height: 40px;
-    border: none;
-    border-radius: 8px;
-    font-size: 18px;
-    color: white;
+.fc-btn-dontknow {
+    background: #ef4444 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 12px 8px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 2px;
+    box-shadow: 0 4px 0 #b91c1c;
+    transition: transform 0.1s, background-color 0.2s;
 }
 
-.ww-fc-cross-btn {
-    background: #e74c3c;
-    box-shadow: 0 3px 0 #c0392b;
+.fc-btn-replay {
+    background: #0284c7 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 0 #0369a1;
+    transition: transform 0.1s;
 }
 
-.ww-fc-check-btn {
-    background: #2ecc71;
-    box-shadow: 0 3px 0 #27ae60;
+.fc-btn-know:active, .fc-btn-dontknow:active, .fc-btn-replay:active {
+    transform: translateY(3px);
+    box-shadow: none !important;
 }
 
-.ww-fc-btn:active {
-    transform: translateY(2px);
-    box-shadow: none;
+/* Pastki navigatsiya paneli */
+.ww-bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #334155;
+    padding-top: 8px;
+    margin-top: 4px;
+    width: 100%;
+}
+
+.ww-nav-btn {
+    background: #334155 !important;
+    color: #ffffff !important;
+    border: none !important;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.ww-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
