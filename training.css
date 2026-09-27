@@ -380,150 +380,132 @@ body {
     .games-grid { grid-template-columns: repeat(3, 1fr); max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
     .games-divider-zone { max-width: 600px; margin: 10px auto; width: 100%; }
 }
-/* FLASHCARD ASOSIY KARTA */
-.ww-fc-card {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 250px;
-    background: #ffffff;
+
+/* ==========================================
+   YANGILANGAN FLASHCARD O'YINI STILLARI
+   ========================================== */
+
+.fc-container {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     align-items: center;
-    padding: 20px 15px 10px 15px;
+    justify-content: center;
+    width: 100%;
+    max-width: 360px;
+    margin: 0 auto;
+    padding: 10px;
     box-sizing: border-box;
 }
 
-/* MARKAZDAGI SO'Z VA SPEAKER */
-.ww-fc-word-container {
-    flex: 1;
+/* KARTA KO'RINISHI (FLIP EFFEKT BILAN) */
+.fc-card {
+    width: 100%;
+    height: 210px;
+    background: #ffffff;
+    border: 2px solid #3498db;
+    border-radius: 16px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    width: 100%;
+    cursor: pointer;
+    position: relative;
+    padding: 15px;
+    box-sizing: border-box;
+    transition: all 0.2s ease-in-out;
+    user-select: none;
 }
 
-.ww-fc-word-text {
-    font-size: 22px;
+.fc-card:active {
+    transform: scale(0.98);
+}
+
+.fc-card.translated {
+    border-color: #9b59b6;
+    background: #faf5fc;
+}
+
+/* MARKAZDAGI MATN */
+.fc-word-text {
+    font-size: 26px;
     font-weight: 800;
     color: #2c3e50;
     text-align: center;
     word-break: break-word;
+    transition: color 0.2s;
 }
 
-.ww-fc-speaker-inline-btn {
-    background: #eef2f7;
-    border: none;
+/* DYNAMIK / SPEAKER TUGMASI (O'NG YUQORIDA) */
+.fc-sound-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #ebf5fb;
+    border: 1.5px solid #3498db;
     color: #3498db;
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     font-size: 16px;
     cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s, transform 0.1s;
-}
-
-.ww-fc-speaker-inline-btn:active {
-    transform: scale(0.95);
-    background: #d0e1f9;
-}
-
-/* PASTKI HARAKAT VA OPEN/ACTION ZONASI */
-.ww-fc-footer-bar {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 5px;
-}
-
-.ww-fc-center-action {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.ww-fc-nav-btn {
-    background: #95a5a6;
-    color: white;
-    border: none;
-    width: 42px;
-    height: 38px;
-    border-radius: 8px;
-    font-size: 14px;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s;
 }
 
-.ww-fc-nav-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* OPEN TUGMASI */
-.ww-fc-open-btn {
-    width: 100%;
-    max-width: 110px;
-    margin: 0 auto;
-    display: block;
+.fc-sound-btn:active {
+    transform: scale(0.92);
     background: #3498db;
     color: white;
-    border: none;
-    padding: 8px 0;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 3px 0 #2980b9;
 }
 
-.ww-fc-open-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #2980b9;
+/* ESLATMA YAZUV (PASTDA) */
+.fc-hint-text {
+    position: absolute;
+    bottom: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #bdc3c7;
 }
 
-/* X VA CHECK TUGMALARI */
-.ww-fc-action-zone {
+/* BILAMAN / BILMADIM TUGMALAR PANELI */
+.fc-actions {
     display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 18px;
     gap: 12px;
-    justify-content: center;
-    align-items: center;
 }
 
-.ww-fc-btn {
-    width: 44px;
-    height: 40px;
+.fc-btn {
+    flex: 1;
+    padding: 12px;
     border: none;
-    border-radius: 8px;
-    font-size: 18px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: bold;
     color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+    transition: transform 0.1s, box-shadow 0.1s;
 }
 
-.ww-fc-cross-btn {
+.fc-btn-wrong {
     background: #e74c3c;
-    box-shadow: 0 3px 0 #c0392b;
+    box-shadow: 0 4px 0 #c0392b;
 }
 
-.ww-fc-check-btn {
+.fc-btn-correct {
     background: #2ecc71;
-    box-shadow: 0 3px 0 #27ae60;
+    box-shadow: 0 4px 0 #27ae60;
 }
 
-.ww-fc-btn:active {
+.fc-btn:active {
     transform: translateY(2px);
     box-shadow: none;
 }
