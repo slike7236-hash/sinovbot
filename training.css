@@ -469,167 +469,107 @@ body {
     box-shadow: 0 1px 0 var(--card-border);
 }
 
-/* FLASHCARD KARTA DIZAYNI */
-/* CONTAINER & GENERAL */
-.ww-fc-container {
-    width: 100%;
-    height: 100%;
-    min-height: 380px;
-    background: #f8f9fa;
-    border-radius: 12px;
-    box-sizing: border-box;
+/* FLASHCARD CONTAINER & CARDS */
+.ww-fc-card {
     position: relative;
-    overflow: hidden;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.ww-fc-screen {
     width: 100%;
     height: 100%;
-    padding: 15px;
-    box-sizing: border-box;
+    min-height: 280px;
+    background: #ffffff;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
+    padding: 15px;
+    box-sizing: border-box;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
-/* 1. START SCREEN */
-.ww-fc-start-card {
-    background: #ffffff;
-    padding: 25px 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    text-align: center;
+/* START & RESULT PANELS */
+.ww-fc-start-box, .ww-fc-result-box {
     width: 100%;
-    max-width: 340px;
+    max-width: 320px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 15px;
+    box-sizing: border-box;
 }
 
-.ww-fc-start-card h2 {
-    margin: 0 0 10px 0;
-    color: #2c3e50;
-    font-size: 22px;
-}
-
-.ww-fc-start-card p {
-    font-size: 13px;
-    color: #7f8c8d;
-    margin-bottom: 15px;
-}
-
-.ww-fc-input-group input {
+.ww-fc-input {
     width: 100%;
     padding: 10px 12px;
-    border: 2px solid #e2e8f0;
+    border: 2px solid #cbd5e1;
     border-radius: 8px;
     font-size: 14px;
     box-sizing: border-box;
     outline: none;
-    transition: border-color 0.2s;
+    margin: 12px 0;
 }
 
-.ww-fc-input-group input:focus {
+.ww-fc-input:focus {
     border-color: #3498db;
 }
 
-.ww-fc-start-btn {
+.ww-fc-start-btn, .ww-fc-action-main-btn {
     width: 100%;
-    margin-top: 15px;
-    padding: 11px;
+    padding: 10px;
     background: #2ecc71;
-    color: white;
+    color: #ffffff;
     border: none;
     border-radius: 8px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: bold;
     cursor: pointer;
     box-shadow: 0 3px 0 #27ae60;
 }
 
-.ww-fc-start-btn:active {
+.ww-fc-start-btn:active, .ww-fc-action-main-btn:active {
     transform: translateY(2px);
     box-shadow: none;
 }
 
-/* 2. GAME SCREEN */
-.ww-fc-header-bar {
+/* HEADER STATS & TIMER */
+.ww-fc-header-info {
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
-}
-
-.ww-fc-stat-box {
     font-size: 13px;
     font-weight: bold;
     color: #34495e;
-    background: #ffffff;
-    padding: 5px 10px;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 6px;
 }
 
-.fc-badge-success { color: #2ecc71; }
-.fc-badge-danger { color: #e74c3c; }
-
-/* 15 SECOND TIMER BAR */
-.ww-fc-progress-container {
+.ww-fc-timer-bar-bg {
     width: 100%;
-    height: 18px;
+    height: 12px;
     background: #e2e8f0;
-    border-radius: 9px;
-    position: relative;
+    border-radius: 6px;
     overflow: hidden;
-    margin-bottom: 12px;
+    position: relative;
+    margin-bottom: 10px;
 }
 
-.ww-fc-progress-bar {
+.ww-fc-timer-bar-fill {
     height: 100%;
     width: 100%;
     background: #3498db;
-    transition: width 0.1s linear, background-color 0.3s;
+    transition: width 0.2s linear;
 }
 
-.ww-fc-timer-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 11px;
-    font-weight: bold;
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-}
-
-/* FLASHCARD MAIN CARD */
-.ww-fc-card {
-    position: relative;
-    width: 100%;
-    flex: 1;
-    min-height: 200px;
-    background: #ffffff;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 15px 15px 15px;
-    box-sizing: border-box;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-
+/* WORD & SPEAKER */
 .ww-fc-word-container {
     flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
 }
 
 .ww-fc-word-text {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 800;
     color: #2c3e50;
     text-align: center;
@@ -640,8 +580,8 @@ body {
     background: #eef2f7;
     border: none;
     color: #3498db;
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     font-size: 16px;
     cursor: pointer;
@@ -649,28 +589,29 @@ body {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transition: background 0.2s, transform 0.1s;
 }
 
 .ww-fc-speaker-inline-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.95);
     background: #d0e1f9;
 }
 
-/* BUTTONS BAR */
+/* FOOTER BUTTONS (I DON'T KNOW / I KNOW) */
 .ww-fc-footer-bar {
     width: 100%;
     display: flex;
-    gap: 12px;
-    justify-content: center;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 5px;
 }
 
-.ww-fc-action-btn {
+.ww-fc-know-btn, .ww-fc-dontknow-btn {
     flex: 1;
-    padding: 10px 0;
+    padding: 10px 6px;
     border: none;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: bold;
     color: white;
     cursor: pointer;
@@ -678,148 +619,66 @@ body {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    transition: transform 0.1s;
 }
 
-.fc-btn-dontknow {
+.ww-fc-dontknow-btn {
     background: #e74c3c;
     box-shadow: 0 3px 0 #c0392b;
 }
 
-.fc-btn-know {
+.ww-fc-know-btn {
     background: #2ecc71;
     box-shadow: 0 3px 0 #27ae60;
 }
 
-.ww-fc-action-btn:active {
+.ww-fc-know-btn:active, .ww-fc-dontknow-btn:active {
     transform: translateY(2px);
     box-shadow: none;
 }
 
-/* 3. RESULT SCREEN */
-.ww-fc-result-card {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    text-align: center;
-    width: 100%;
-    max-height: 100%;
-    overflow-y: auto;
-    box-sizing: border-box;
-}
-
-.ww-fc-trophy-icon {
-    font-size: 36px;
-    color: #f1c40f;
-    margin-bottom: 5px;
-}
-
-.ww-fc-result-card h3 {
-    margin: 0;
-    color: #2c3e50;
-}
-
-.ww-fc-player-name {
-    font-size: 14px;
-    color: #7f8c8d;
-    margin: 4px 0 12px 0;
-    font-weight: 600;
-}
-
-.ww-fc-score-circle {
-    width: 70px;
-    height: 70px;
+/* RESULT VIEW & DETAILS */
+.ww-fc-circle-score {
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background: #ebf5fb;
     border: 3px solid #3498db;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 12px auto;
-    font-size: 18px;
-    font-weight: 800;
+    margin: 8px auto;
+    font-size: 16px;
+    font-weight: bold;
     color: #2980b9;
 }
 
-.ww-fc-result-stats {
+.ww-fc-stats-row {
     display: flex;
     justify-content: space-around;
-    font-size: 13px;
-    margin-bottom: 15px;
-    padding: 8px;
+    font-size: 12px;
     background: #f8f9fa;
-    border-radius: 8px;
-}
-
-.text-success { color: #2ecc71; }
-.text-danger { color: #e74c3c; }
-.text-info { color: #3498db; }
-
-.ww-fc-result-actions {
-    display: flex;
-    gap: 10px;
-}
-
-.ww-fc-details-btn, .ww-fc-restart-btn {
-    flex: 1;
-    padding: 9px 0;
-    border: none;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.ww-fc-details-btn {
-    background: #34495e;
-    color: white;
-}
-
-.ww-fc-restart-btn {
-    background: #3498db;
-    color: white;
-}
-
-/* BATAFSIL LIST */
-.ww-fc-details-container {
-    margin-top: 15px;
-    text-align: left;
-    border-top: 1px solid #e2e8f0;
-    padding-top: 10px;
-}
-
-.ww-fc-details-container h4 {
-    margin: 0 0 8px 0;
-    font-size: 13px;
-    color: #2c3e50;
+    padding: 8px;
+    border-radius: 6px;
+    margin: 10px 0;
 }
 
 .ww-fc-details-list {
     list-style: none;
     padding: 0;
-    margin: 0;
-    max-height: 130px;
+    margin: 10px 0 0 0;
+    max-height: 120px;
     overflow-y: auto;
+    text-align: left;
+    border-top: 1px solid #e2e8f0;
 }
 
 .ww-fc-details-list li {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    padding: 6px 8px;
+    font-size: 11px;
+    padding: 5px 0;
     border-bottom: 1px solid #f1f5f9;
 }
 
-.fc-tag {
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 10px;
-    font-weight: bold;
-    color: white;
-}
-
-.fc-tag-correct { background: #2ecc71; }
-.fc-tag-wrong { background: #e74c3c; }
-.fc-tag-timeout { background: #f39c12; }
+.fc-tag-correct { color: #2ecc71; font-weight: bold; }
+.fc-tag-wrong { color: #e74c3c; font-weight: bold; }
