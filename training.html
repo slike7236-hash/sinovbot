@@ -45,340 +45,638 @@
             <i class="fa-solid fa-expand"></i>
         </button>
 
-        <!-- Matn va testlar uchun -->
         <div id="textContainer" class="scrollable-text-content"></div>
-        
-        <!-- Video uchun -->
-        <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen style="display:none; width:100%; height:100%; border:none;"></iframe>
-        
-        <!-- O'yinlar uchun -->
-        <div id="wwPlayArea" style="display: none; width: 100%; height: 100%; overflow-y: auto;"></div>
+        <iframe id="iframeViewer" class="iframe-display" src="" allowfullscreen></iframe>
     </div>
 </div>
+
 <div class="games-divider-zone" id="gamesDivider">
     <span id="gamesTitleText">GAMELAR RO'YXATI</span>
 </div>
 
-<!-- GAMELAR RO'YXATI PANELI -->
 <div class="games-grid" id="gamesGrid">
-    <button class="game-card-btn matchup-g-btn" onclick="startWWGame('matchup')">
-        <span class="game-icon">🧩</span>
-        <span class="game-info">Match up <i class="fa-solid fa-chevron-right"></i></span>
+    <button class="game-card-btn matchup-g-btn" onclick="loadContent('matchup')">
+        <div class="game-icon"><i class="fa-solid fa-puzzle-piece"></i></div>
+        <div class="game-info">Match up <i class="fa-solid fa-angle-right"></i></div>
+    </button>        
+    <button class="game-card-btn anagrama-g-btn" onclick="loadContent('anagrama')">
+        <div class="game-icon"><i class="fa-solid fa-shuffle"></i></div>
+        <div class="game-info">Anagrama <i class="fa-solid fa-angle-right"></i></div>
+    </button>        
+    <button class="game-card-btn typeanswer-g-btn" onclick="loadContent('typeanswer')">
+        <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
+        <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
     </button>
-    <button class="game-card-btn anagrama-g-btn" onclick="startWWGame('anagram')">
-        <span class="game-icon">🔤</span>
-        <span class="game-info">Anagrama <i class="fa-solid fa-chevron-right"></i></span>
-    </button>
-    <button class="game-card-btn typeanswer-g-btn" onclick="startWWGame('typeanswer')">
-        <span class="game-icon">⌨️</span>
-        <span class="game-info">Type answer <i class="fa-solid fa-chevron-right"></i></span>
-    </button>
-    <button class="game-card-btn pair-g-btn" onclick="startWWGame('flashcard')">
-        <span class="game-icon">🎴</span>
-        <span class="game-info">Flashcard <i class="fa-solid fa-chevron-right"></i></span>
+    <button class="game-card-btn flashcard-g-btn" onclick="loadContent('flashcard')">
+        <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
+        <div class="game-info">Flashcard <i class="fa-solid fa-angle-right"></i></div>
     </button>
 </div>
 <script>
-    // Promise.withResolvers funksiyasi mavjud bo'lmagan brauzerlar uchun Polyfill
-if (typeof Promise.withResolvers !== 'function') {
-    Promise.withResolvers = function () {
-        let resolve, reject;
-        const promise = new Promise((res, rej) => {
-            resolve = res;
-            reject = rej;
-        });
-        return { promise, resolve, reject };
-    };
-}
-// ==========================================
-// GLOBUS O'ZGARUVCHILAR
-// ==========================================
-let userName = "";
-let currentGameType = "";
+const urlParams = new URLSearchParams(window.location.search);
+const bookCode = urlParams.get('book') || "ess1";
+const unitId = urlParams.get('unit') || "1";
+const lessonKey = `${bookCode}_${unitId}`;
+
+let currentLang = localStorage.getItem('selectedLang') || 'uz';
+if(currentLang === 'en') currentLang = 'uz'; 
+
+const db = (typeof lessonsDatabase !== 'undefined') ? lessonsDatabase : {};
+const fallbackLesson = {    
+    "uz": { 
+        "title": "Dars topilmadi", 
+        "gamesTitle": "O'YINLAR RO'YXATI", 
+        "textHtml": "<p>Baza ulanmagan yoki dars topilmadi.</p>", 
+        "keywordsList": [
+            { "word": "apple", "translation": "olma" },
+            { "word": "book", "translation": "kitob" },
+            { "word": "cat", "translation": "mushuk" }
+        ] 
+    },    
+    "ru": { 
+        "title": "Урок не найден", 
+        "gamesTitle": "СПИСОК ИГР", 
+        "textHtml": "<p>База данных не найдена.</p>", 
+        "keywordsList": [
+            { "word": "apple", "translation": "яблоко" },
+            { "word": "book", "translation": "книга" },
+            { "word": "cat", "translation": "кошка" }
+        ] 
+    }
+};
+
+const lessonDataFull = db[lessonKey] || fallbackLesson;
+let currentLessonData = lessonDataFull[currentLang] || lessonDataFull["uz"];
+
+let localGameData = [];
+let matchUpGroups = []; 
+
 let currentGameIndex = 0;
-let totalGameRounds = 0;
+let totalGameRounds = 0; 
 let gameScore = 0;
-let gameTimer = null;
-let timerSeconds = 0;
-let gameAnswersLog = []; 
+let gameTimerInterval = null;
+let gameSeconds = 0;
+let roundSeconds = 0;
+let roundTimerInterval = null;
 
 let selectedMatchWord = null;
 let selectedMatchTrans = null;
 
-// Zaxira uchun namuna lug'at (agar localGameData bo'sh bo'lsa ishlatiladi)
-const fallbackGameData = [
-    { word: "Environment", translation: "Atrof-muhit" },
-    { word: "Pollution", translation: "Ifloslanish" },
-    { word: "Protect", translation: "Himoya qilmoq" },
-    { word: "Recycle", translation: "Qayta ishlamoq" },
-    { word: "Nature", translation: "Tabiat" }
-];
-
-// ==========================================
-// 1. TEPADAGI MATERIAL TUGMALARI (Text, Video, Keywords, Test)
-// ==========================================
-function loadContent(contentType) {
-    clearIntervalTimer();
-    
-    const textCont = document.getElementById("textContainer");
-    const iframeViewer = document.getElementById("iframeViewer");
-    const gameArea = document.getElementById("wwPlayArea");
-
-    if (gameArea) gameArea.style.display = "none";
-
-    document.querySelectorAll(".material-btn").forEach(btn => btn.classList.remove("active"));
-    
-    if (contentType === 'text') {
-        if (textCont) textCont.style.display = "block";
-        if (iframeViewer) {
-            iframeViewer.style.display = "none";
-            iframeViewer.src = ""; // Videoni to'xtatish
-        }
-        document.querySelector(".text-m-btn")?.classList.add("active");
-        if (textCont) textCont.innerHTML = "<h2>Dars matni</h2><p>Bu yerda dars matni joylashadi...</p>";
-    } 
-    else if (contentType === 'video') {
-        if (textCont) textCont.style.display = "none";
-        if (iframeViewer) {
-            iframeViewer.style.display = "block";
-            // Xatoliklarni kamaytirish uchun havola parametrlari sozlandi
-            iframeViewer.src = "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?enablejsapi=1&rel=0";
-        }
-        document.querySelector(".video-m-btn")?.classList.add("active");
-    } 
-    else if (contentType === 'keywords') {
-        if (textCont) textCont.style.display = "block";
-        if (iframeViewer) {
-            iframeViewer.style.display = "none";
-            iframeViewer.src = "";
-        }
-        document.querySelector(".keywords-m-btn")?.classList.add("active");
+function injectGameStyles() {
+    if (document.getElementById("wordwall-dynamic-styles")) return;
+    const styleNode = document.createElement("style");
+    styleNode.id = "wordwall-dynamic-styles";
+    styleNode.innerHTML = `
+        .ww-game-container { font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; min-height: 400px; justify-content: space-between; padding: 12px; box-sizing: border-box; background: #fdfdfd; width: 100%; }
+        .ww-top-bar { display: flex; justify-content: space-between; font-size: 16px; font-weight: bold; color: #2c3e50; padding: 8px 14px; background: #eef2f7; border-radius: 10px; margin-bottom: 12px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+        .ww-play-area { flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; min-height: 260px; padding: 5px 0; box-sizing: border-box; }
+        .ww-target-title { font-size: 19px; font-weight: 700; text-align: center; color: #2c3e50; margin-bottom: 15px; width: 100%; line-height: 1.4; }
         
-        let wordsList = (typeof localGameData !== 'undefined' && localGameData && localGameData.length > 0) ? localGameData : fallbackGameData;
-        let html = "<h2>Kalit so'zlar</h2><ul>";
-        wordsList.forEach(item => {
-            html += `<li><b>${item.word}</b> - ${item.translation}</li>`;
-        });
-        html += "</ul>";
-        if (textCont) textCont.innerHTML = html;
-    } 
-    else if (contentType === 'test') {
-        if (textCont) textCont.style.display = "block";
-        if (iframeViewer) {
-            iframeViewer.style.display = "none";
-            iframeViewer.src = "";
-        }
-        document.querySelector(".test-m-btn")?.classList.add("active");
-        if (textCont) textCont.innerHTML = "<h2>Mavzu yuzasidan testlar</h2><p>Test savollari yuklanmoqda...</p>";
-    }
-}
-// ==========================================
-// 2. O'YINNI BOSH LASH VA START TUGMASI
-// ==========================================
-function startWWGame(gameType) {
-    currentGameType = gameType;
-
-    // Matn va videolarni yashiramiz
-    const textCont = document.getElementById("textContainer");
-    const iframeViewer = document.getElementById("iframeViewer");
-    if (textCont) textCont.style.display = "none";
-    if (iframeViewer) iframeViewer.style.display = "none";
-
-    // O'yin konteynerini olamiz
-    let gameContainer = document.getElementById("wwPlayArea");
-    if (!gameContainer) {
-        const displayWin = document.getElementById("displayWindow");
-        gameContainer = document.createElement("div");
-        gameContainer.id = "wwPlayArea";
-        if (displayWin) displayWin.appendChild(gameContainer);
-    }
-    gameContainer.style.display = "block";
-    gameContainer.style.width = "100%";
-    gameContainer.style.height = "100%";
-    gameContainer.style.overflowY = "auto";
-
-    // Ism kiritish oynasi
-    gameContainer.innerHTML = `
-        <div class="ww-start-screen" style="padding: 30px 10px; text-align: center;">
-            <div class="ww-start-title" style="font-size: 22px; font-weight: bold; margin-bottom: 10px; color: #2c3e50;">O'yinni boshlash</div>
-            <p style="font-size:14px; color:#666; margin-bottom: 15px;">Ism va familiyangizni kiriting:</p>
-            <input type="text" id="wwUserNameInput" class="ww-name-input" placeholder="Ism Familiya" value="${userName}" style="padding: 10px 15px; width: 80%; max-width: 280px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; outline: none;">
-            <br>
-            <button class="ww-start-btn" onclick="confirmStartGame()" style="padding: 10px 25px; background: #27ae60; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px;">START <i class="fa-solid fa-play"></i></button>
-        </div>
+        .ww-slots-row { display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 6px; margin-bottom: 15px; min-height: 50px; width: 100%; max-width: 100%; padding: 4px; box-sizing: border-box; }
+        .ww-slot-box { width: 40px; height: 46px; border: 2.5px dashed #b2bec3; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; background: #fff; color: #2d3436; text-transform: uppercase; transition: all 0.2s ease; box-sizing: border-box; }
+        .ww-slot-box.filled { border-style: solid; border-color: #2980b9; background: #ecf0f1; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        
+        .ww-letters-row { display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 8px; width: 100%; max-width: 100%; margin-bottom: 15px; padding: 4px; box-sizing: border-box; }
+        .ww-letter-tile { width: 42px; height: 46px; border-radius: 8px; background: #3498db; color: white; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: bold; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 0 #2980b9; user-select: none; transition: transform 0.1s, box-shadow 0.1s; box-sizing: border-box; }
+        .ww-letter-tile:active { transform: translateY(3px); box-shadow: 0 1px 0 #2980b9; }
+        .ww-letter-tile.used { opacity: 0.15; pointer-events: none; transform: scale(0.9); box-shadow: none; }
+        
+        .ww-ctrl-container { text-align: center; margin-bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+        .ww-backspace-btn { background: #e67e22; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 3px 0 #d35400; transition: all 0.1s; }
+        .ww-backspace-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #d35400; }
+        
+        .ww-type-input-zone { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 320px; }
+        .ww-answer-input { width: 100%; padding: 12px; font-size: 18px; border: 2px solid #bdc3c7; border-radius: 10px; text-align: center; font-weight: bold; outline: none; box-sizing: border-box; transition: border-color 0.2s; }
+        .ww-answer-input:focus { border-color: #3498db; box-shadow: 0 0 5px rgba(52,152,218,0.3); }
+        
+        .ww-matchup-container { display: flex; width: 100%; gap: 10px; justify-content: space-between; box-sizing: border-box; padding: 5px; }
+        .ww-match-column { display: flex; flex-direction: column; gap: 8px; width: 48%; }
+        .ww-match-item { background: #fff; border: 2px solid #bdc3c7; border-radius: 8px; padding: 12px 8px; text-align: center; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s; user-select: none; word-break: break-word; min-height: 45px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; }
+        .ww-match-item.selected { background: #e3f2fd; border-color: #2196f3; box-shadow: 0 0 8px rgba(33,150,243,0.4); transform: scale(1.02); }
+        .ww-match-item.matched { background: #2ecc71 !important; color: white !important; border-color: #27ae60 !important; cursor: default; box-shadow: none; pointer-events: none; }
+        
+        .ww-bottom-bar { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 10px; width: 100%; }
+        .ww-nav-btn { background: #95a5a6; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .ww-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .ww-progress-text { font-size: 15px; font-weight: 600; color: #7f8c8d; }
+        
+        .ww-result-screen { text-align: center; padding: 20px 10px; width: 100%; box-sizing: border-box; }
+        .ww-result-trophy { font-size: 55px; color: #f1c40f; margin-bottom: 12px; animation: bounce 1s infinite alternate; }
+        .ww-result-stats { background: #fff; border-radius: 10px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin: 15px 0; }
+        .ww-stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 16px; border-bottom: 1px dashed #f1f2f6; padding-bottom: 6px; }
+        .ww-input-field { padding: 10px; border: 2px solid #ddd; border-radius: 8px; outline: none; font-size: 15px; text-align: center; }
+        .ww-action-btn { background: #2ecc71; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 3px 0 #27ae60; }
+        .ww-restart-btn { background: #34495e; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: bold; box-shadow: 0 3px 0 #2c3e50; }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
     `;
+    document.head.appendChild(styleNode);
 }
 
-function confirmStartGame() {
-    const input = document.getElementById("wwUserNameInput");
-    userName = (input && input.value.trim() !== "") ? input.value.trim() : "Mehmon";
+window.onload = function() {
+    document.getElementById("langSelect").value = currentLang;
+    renderLessonContent();
+    loadContent('text');
+}
 
+function toggleLessonLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('selectedLang', lang);
+    currentLessonData = lessonDataFull[lang] || lessonDataFull["uz"];
+    renderLessonContent();
+    loadContent('text'); 
+}
+
+function renderLessonContent() {
+    document.getElementById("lessonTitle").innerText = currentLessonData.title || "Mavzu";
+    document.getElementById("gamesTitleText").innerText = currentLessonData.gamesTitle || "GAMELAR RO'YXATI";
+}
+
+// Ovozni tezkor ijro etish uchun ob'ektni xotirada saqlaymiz
+let currentAudio = null;
+
+function speakWord(word) {
+    if (!word) return;
+
+    let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
+    if (!cleanText) return;
+
+    // Agar avvalgi ovoz hali tugamagan bo'lsa, uni darhol to'xtatamiz
+    if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+    }
+
+    // 1-USTUVORLIK: Juda tezkor Youdao CDN audio manbasi (type=2 -> US accent)
+    const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&type=2`;
+    
+    currentAudio = new Audio(audioUrl);
+    
+    // Tarmoq sekin bo'lsa kutib o'tirmasdan darhol pley qilish
+    let playPromise = currentAudio.play();
+
+    if (playPromise !== undefined) {
+        playPromise.catch(() => {
+            // Agar audio tarmoq sababli kechiksa, zudlik bilan mahalliy TTS ga o'tish
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.9;
+                window.speechSynthesis.speak(utterance);
+            }
+        });
+    }
+}
+function playSoundEffect(isCorrect) {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        if (isCorrect) {
+            let osc1 = ctx.createOscillator();
+            let gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
+            osc1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
+            gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start();
+            osc1.stop(ctx.currentTime + 0.3);
+        } else {
+            let osc2 = ctx.createOscillator();
+            let gain2 = ctx.createGain();
+            osc2.type = 'sawtooth';
+            osc2.frequency.setValueAtTime(120, ctx.currentTime);
+            gain2.gain.setValueAtTime(0.2, ctx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+            osc2.connect(gain2);
+            gain2.connect(ctx.destination);
+            osc2.start();
+            osc2.stop(ctx.currentTime + 0.25);
+        }
+    } catch (e) {}
+}
+
+function startWordwallTimer() {
+    clearInterval(gameTimerInterval);
+    clearInterval(roundTimerInterval);
+    gameSeconds = 0;
+    roundSeconds = 0;
+    gameTimerInterval = setInterval(() => {
+        gameSeconds++;
+        const min = Math.floor(gameSeconds / 60);
+        const sec = gameSeconds % 60;
+        const timerEl = document.getElementById("wwTimer");
+        if(timerEl) timerEl.innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+    }, 1000);
+    roundTimerInterval = setInterval(() => { roundSeconds++; }, 1000);
+}
+
+function calculateSpeedBonus() {
+    let bonus = 20; 
+    if (roundSeconds <= 8) bonus = 100;          
+    else if (roundSeconds <= 16) bonus = 60;     
+    roundSeconds = 0;     
+    return bonus;
+}
+
+function updateWWStats() {
+    const scoreEl = document.getElementById("wwScore");
+    const progressEl = document.getElementById("wwProgressText");
+    if(scoreEl) scoreEl.innerText = `✓ ${gameScore}`;
+    if(progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
+}
+
+function checkGameOver(type, container) {
+    if (currentGameIndex >= totalGameRounds) {
+        clearInterval(gameTimerInterval);
+        clearInterval(roundTimerInterval);
+        const min = Math.floor(gameSeconds / 60);
+        const sec = gameSeconds % 60;
+        container.innerHTML = `            
+            <div class="ww-result-screen">                
+                <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>                
+                <h2 style="margin: 10px 0; color: #2c3e50;">Activity Complete!</h2>                
+                <div class="ww-result-stats">                    
+                    <div class="ww-stat-row"><span>⏱️ Time:</span> <strong>${min} m ${sec} s</strong></div>                    
+                    <div class="ww-stat-row"><span>🎯 Score:</span> <strong>${gameScore}</strong></div>                
+                </div>                
+                <div class="ww-leaderboard-input-zone" id="leaderboardInputZone">                    
+                    <p style="font-size:14px; color:#555; margin-bottom:8px;">Enter your name for the leaderboard:</p>                    
+                    <input type="text" id="leaderboardName" class="ww-input-field" placeholder="Your name..." style="width:90%; margin-bottom:10px; display:inline-block;">                    
+                    <button class="ww-action-btn" onclick="submitLocalScore('${type}')">Submit</button>                
+                </div>                
+                <div id="leaderboardDisplay" style="margin-top:20px; width:100%; display:none;">                    
+                    <h3 style="font-size:16px; margin-bottom:5px; color:#2c3e50;">🏆 TOP 10 LEADERBOARD</h3>                    
+                    <table id="lbTable" style="width:100%; border-collapse:collapse; margin-top:10px; font-size:14px;"></table>                
+                </div>                
+                <button class="ww-restart-btn" style="margin-top:20px; background:#95a5a6;" onclick="resetAndRestart('${type}')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>            
+            </div>`;
+        return true;
+    }
+    return false;
+}
+
+function submitLocalScore(type) {
+    const nameInp = document.getElementById("leaderboardName").value.trim();
+    if(!nameInp) { alert("Please enter your name!"); return; }
+    const storageKey = `lb_${lessonKey}_${type}`;
+    let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    scores.push({ name: nameInp, score: gameScore, duration: gameSeconds, date: new Date().getTime() });
+    scores.sort((a, b) => b.score - a.score || a.duration - b.duration);
+    scores = scores.slice(0, 10);
+    localStorage.setItem(storageKey, JSON.stringify(scores));
+    document.getElementById("leaderboardInputZone").style.display = "none";
+    showLocalLeaderboard(type);
+}
+
+function showLocalLeaderboard(type) {
+    const storageKey = `lb_${lessonKey}_${type}`;
+    const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    const table = document.getElementById("lbTable");
+    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Name</th><th>Score</th><th>Time</th></tr>`;
+    scores.forEach((row, idx) => {
+        const m = Math.floor(row.duration / 60);
+        const s = row.duration % 60;
+        table.innerHTML += `<tr>            
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${idx+1}</td>            
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold;">${row.name}</td>            
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold; text-align:center; color:#2ecc71;">${row.score}</td>            
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m}:${s<10?'0':''}${s}</td>        
+        </tr>`;
+    });
+    document.getElementById("leaderboardDisplay").style.display = "block";
+}
+
+function resetAndRestart(type) {
     currentGameIndex = 0;
     gameScore = 0;
-    gameAnswersLog = [];
-
-    // Lug'at ma'lumotlarini tekshirish
-    if (typeof localGameData === 'undefined' || !localGameData || localGameData.length === 0) {
-        window.activeDataset = fallbackGameData;
-    } else {
-        window.activeDataset = localGameData;
-    }
-
-    totalGameRounds = window.activeDataset.length;
-
-    // O'yin turini ishga tushirish
-    if (currentGameType === 'flashcard') buildFlashcardGame();
-    else if (currentGameType === 'matchup') buildMatchUpGame();
-    else if (currentGameType === 'typeanswer' || currentGameType === 'anagram') buildTypeAnswerGame();
+    loadContent(type);
 }
 
-// ==========================================
-// 3. TAYMER VA HISOBLASH
-// ==========================================
-function clearIntervalTimer() {
-    if (gameTimer) {
-        clearInterval(gameTimer);
-        gameTimer = null;
-    }
-}
+function loadContent(type) {
+    const textZone = document.getElementById("textContainer");
+    const iframeZone = document.getElementById("iframeViewer");
 
-function startCountdown(seconds, onTimeout) {
-    clearIntervalTimer();
-    timerSeconds = seconds;
-    updateTimerDisplay();
+    clearInterval(gameTimerInterval);
+    clearInterval(roundTimerInterval);
 
-    gameTimer = setInterval(() => {
-        timerSeconds--;
-        updateTimerDisplay();
+    document.querySelectorAll(".material-btn, .game-card-btn").forEach(btn => btn.classList.remove("active"));
+    let targetBtn = document.querySelector("." + type + "-m-btn") || document.querySelector("." + type + "-g-btn");
+    if(targetBtn) targetBtn.classList.add("active");
 
-        if (timerSeconds <= 0) {
-            clearIntervalTimer();
-            if (typeof onTimeout === 'function') onTimeout();
+    textZone.style.display = "none";
+    iframeZone.style.display = "none";
+    iframeZone.src = "";
+
+    localGameData = currentLessonData.keywordsList || [];
+
+    if (type === 'text') {
+        let audioHtml = '';
+        if (currentLessonData.audioUrl) {
+            audioHtml = `
+                <div class="sticky-player-wrapper" style="margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <div class="audio-player-container">
+                        <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
+                        <div class="player-controls" style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:8px;">
+                            <button onclick="rewindAudio(-10)" class="p-btn" style="background:none; border:none; font-size:18px; cursor:pointer;"><i class="fa-solid fa-backward"></i></button>
+                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play" style="background:#3498db; color:white; border:none; width:36px; height:36px; border-radius:50%; font-size:16px; cursor:pointer;"><i class="fa-solid fa-play"></i></button>
+                            <button onclick="rewindAudio(10)" class="p-btn" style="background:none; border:none; font-size:18px; cursor:pointer;"><i class="fa-solid fa-forward"></i></button>
+                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select" style="padding:4px; border-radius:4px;">
+                                <option value="0.75">0.75x</option>
+                                <option value="1.0" selected>1.0x</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                            </select>
+                        </div>
+                        <div class="progress-wrapper">
+                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)" style="width:100%;">
+                        </div>
+                    </div>
+                </div>`;
         }
-    }, 1000);
+
+        let rawHtml = currentLessonData.textHtml || "<p>No text available.</p>";
+        let tempDiv = document.createElement("div");
+        tempDiv.innerHTML = rawHtml;
+
+        let walk = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null, false);
+        let textNodes = [];
+        let node;
+        while(node = walk.nextNode()) {
+            if (node.parentNode.nodeName !== 'SCRIPT' && node.parentNode.nodeName !== 'STYLE') {
+                textNodes.push(node);
+            }
+        }
+
+        textNodes.forEach(tNode => {
+            let words = tNode.nodeValue.split(/(\s+)/);
+            let fragment = document.createDocumentFragment();
+            words.forEach(w => {
+                if (w.trim().length > 0 && /[a-zA-Z]/.test(w)) {
+                    let span = document.createElement("span");
+                    span.className = "clickable-word";
+                    span.innerText = w;
+                    span.style.cursor = "pointer";
+                    span.setAttribute("onclick", `speakWord(this.innerText)`);
+                    fragment.appendChild(span);
+                } else {
+                    fragment.appendChild(document.createTextNode(w));
+                }
+            });
+            tNode.parentNode.replaceChild(fragment, tNode);
+        });
+
+        textZone.innerHTML = audioHtml + tempDiv.innerHTML;
+        textZone.style.display = "block";
+        initAudioPlayerListeners();
+    } 
+    else if (type === 'keywords') {
+        let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">            
+            <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
+        localGameData.forEach(item => {
+            let escapedWord = item.word.replace(/'/g, "\\'");
+            tableHtml += `<tr>                
+                <td style="padding:10px; font-weight:bold; cursor:pointer; color:#2c3e50;" onclick="speakWord('${escapedWord}')">                    
+                    <i class="fa-solid fa-volume-high" style="color:#3498db; margin-right:5px;"></i> ${item.word}                
+                </td>                
+                <td style="padding:10px; color:#555;">${item.translation}</td>            
+            </tr>`;
+        });
+        tableHtml += `</table>`;
+        textZone.innerHTML = tableHtml;
+        textZone.style.display = "block";
+    }
+    else if (type === 'video' || type === 'test') {
+        iframeZone.src = type === 'video' ? (currentLessonData.videoUrl || "") : (currentLessonData.testUrl || "");
+        iframeZone.style.display = "block";
+    } 
+    else {
+        textZone.style.display = "block";
+        if (localGameData.length === 0) {
+            textZone.innerHTML = `<p style="padding:20px; text-align:center; color:#e74c3c;">No game data available!</p>`;
+            return;
+        }
+        
+        injectGameStyles();
+
+        textZone.innerHTML = `            
+            <div class="ww-game-container">                
+                <div class="ww-top-bar">                    
+                    <span id="wwTimer">0:00</span>                    
+                    <span id="wwScore">✓ 0</span>                
+                </div>                
+                <div class="ww-play-area" id="wwPlayArea"></div>                
+                <div class="ww-bottom-bar">                    
+                    <button class="ww-nav-btn" id="wwPrev" onclick="navWWGame(-1, '${type}')"><i class="fa-solid fa-backward-step"></i></button>                    
+                    <span class="ww-progress-text" id="wwProgressText"></span>                    
+                    <button class="ww-nav-btn" id="wwNext" onclick="navWWGame(1, '${type}')"><i class="fa-solid fa-forward-step"></i></button>                
+                </div>            
+            </div>`;
+
+        startWordwallTimer();
+
+        if (type === 'anagrama') {
+            totalGameRounds = localGameData.length;
+            buildAnagramaGame();
+        } else if (type === 'typeanswer') {
+            totalGameRounds = localGameData.length;
+            buildTypeAnswerGame();
+        } else if (type === 'matchup') {
+            matchUpGroups = [];
+            for (let i = 0; i < localGameData.length; i += 5) {
+                matchUpGroups.push(localGameData.slice(i, i + 5));
+            }
+            totalGameRounds = matchUpGroups.length;
+            buildMatchUpGame();
+        } else if (type === 'flashcard') {
+            totalGameRounds = localGameData.length;
+            buildFlashcardGame();
+        }
+    }
 }
 
-function updateTimerDisplay() {
-    const el = document.getElementById("wwTimerDisplay");
-    if (el) el.innerText = `${timerSeconds}s`;
-}
+// 🔠 1. ANAGRAMA GAME
+let anagramTileOrder = [];
 
-function renderTopBarHtml(title, showTimer = true) {
-    return `
-        <div class="ww-game-top-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #f8f9fa; border-bottom: 1px solid #ddd; margin-bottom: 15px;">
-            <span style="font-weight: bold;">${title} (${currentGameIndex + 1}/${totalGameRounds})</span>
-            ${showTimer ? `<div class="ww-timer-badge" style="background: #e74c3c; color: #fff; padding: 4px 10px; border-radius: 12px; font-weight: bold;"><i class="fa-solid fa-clock"></i> <span id="wwTimerDisplay">${timerSeconds}s</span></div>` : ''}
-            <button class="ww-finish-btn" onclick="finishWWGame()" style="background: #e74c3c; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">FINISH</button>
-        </div>
-    `;
-}
-
-// ==========================================
-// 4. FLASHCARD O'YINI
-// ==========================================
-function buildFlashcardGame() {
+function buildAnagramaGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
+    if (checkGameOver('anagrama', playArea)) return;
 
-    if (currentGameIndex >= totalGameRounds) {
-        showFinalResult();
-        return;
-    }
+    let item = localGameData[currentGameIndex];
+    let cleanWord = item.word.toUpperCase().replace(/[\[\]]/g, '').trim();
+    let lettersArr = cleanWord.split("");
+    let shuffled = lettersArr.map((char, index) => ({ char, id: index })).sort(() => Math.random() - 0.5);
+    
+    anagramTileOrder = []; 
 
-    let item = window.activeDataset[currentGameIndex];
-    let escapedWord = item.word.replace(/'/g, "\\'");
+    playArea.innerHTML = `        
+        <div class="ww-target-title">${item.translation}</div>        
+        <div class="ww-slots-row" id="slotsRow"></div>        
+        <div class="ww-letters-row" id="lettersRow"></div>        
+        <div class="ww-ctrl-container">            
+            <button class="ww-backspace-btn" onclick="backspaceAnagramSlot()">                
+                <i class="fa-solid fa-delete-left"></i> Delete            
+            </button>        
+        </div>`;
 
-    playArea.innerHTML = `
-        ${renderTopBarHtml('Flashcard', true)}
-        <div class="ww-fc-card" style="text-align: center; padding: 20px;">
-            <div class="ww-fc-word-container" style="font-size: 24px; font-weight: bold; margin-bottom: 30px; color: #2c3e50;">
-                <span class="ww-fc-word-text" id="fcWordText">${item.word}</span>
-                <button class="ww-fc-speaker-inline-btn" id="fcSpeakerBtn" onclick="speakWord('${escapedWord}')" style="background: none; border: none; color: #3498db; font-size: 20px; cursor: pointer; margin-left: 10px;">
-                    <i class="fa-solid fa-volume-high"></i>
-                </button>
-            </div>
-                        
-            <div class="ww-fc-footer-bar" style="display: flex; justify-content: space-around; align-items: center;">
-                <button class="ww-fc-nav-btn" onclick="navWWGame(-1)" style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; cursor:pointer;"><i class="fa-solid fa-backward-step"></i></button>
-                                
-                <div class="ww-fc-center-action">
-                    <div id="fcOpenZone">
-                        <button class="ww-fc-open-btn" onclick="revealFlashcardTranslation()" style="padding: 10px 25px; background: #3498db; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">OPEN</button>
-                    </div>
-                                        
-                    <div id="fcActionZone" style="display:none; gap: 15px;">
-                        <button onclick="handleFlashcardResult(false)" style="padding: 10px 20px; background: #e74c3c; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
-                        <button onclick="handleFlashcardResult(true)" style="padding: 10px 20px; background: #27ae60; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-check"></i></button>
-                    </div>
-                </div>
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
 
-                <button class="ww-fc-nav-btn" onclick="navWWGame(1)" style="padding: 10px 15px; border-radius: 8px; border: 1px solid #ccc; cursor:pointer;"><i class="fa-solid fa-forward-step"></i></button>
-            </div>
-        </div>
-    `;
+    const slotsRow = document.getElementById("slotsRow");
+    const lettersRow = document.getElementById("lettersRow");
 
-    speakWord(item.word);
+    lettersArr.forEach(() => {
+        let slot = document.createElement("div");
+        slot.className = "ww-slot-box";
+        slotsRow.appendChild(slot);
+    });
 
-    startCountdown(15, () => {
-        logAnswer(item.word, item.translation, "Vaqt tugadi", 'skipped');
-        currentGameIndex++;
-        buildFlashcardGame();
+    shuffled.forEach((obj) => {
+        let tile = document.createElement("div");
+        tile.className = "ww-letter-tile";
+        tile.id = `tile-${obj.id}`;
+        tile.innerText = obj.char;
+        tile.onclick = () => {
+            if(tile.classList.contains('used')) return;
+            let emptySlot = Array.from(slotsRow.children).find(s => s.innerText === "");
+            if(emptySlot) {
+                tile.classList.add('used');
+                emptySlot.innerText = obj.char;
+                emptySlot.classList.add('filled');
+                emptySlot.setAttribute("data-tile-id", obj.id);
+                anagramTileOrder.push(emptySlot); 
+                checkAnagramResult(cleanWord);
+            }
+        };
+        lettersRow.appendChild(tile);
     });
 }
 
-function revealFlashcardTranslation() {
-    let item = window.activeDataset[currentGameIndex];
-    document.getElementById("fcWordText").innerText = item.translation;
-    const speakerBtn = document.getElementById("fcSpeakerBtn");
-    if (speakerBtn) speakerBtn.style.display = "none";
-
-    document.getElementById("fcOpenZone").style.display = "none";
-    document.getElementById("fcActionZone").style.display = "flex";
-}
-
-function handleFlashcardResult(isCorrect) {
-    clearIntervalTimer();
-    let item = window.activeDataset[currentGameIndex];
-
-    if (isCorrect) {
-        gameScore += 1;
-        logAnswer(item.word, item.translation, "To'g'ri bildi", 'correct');
-    } else {
-        logAnswer(item.word, item.translation, "Xato bildi", 'incorrect');
+function backspaceAnagramSlot() {
+    if (anagramTileOrder.length === 0) return;
+    let lastFilledSlot = anagramTileOrder.pop(); 
+    if (lastFilledSlot) {
+        let tileId = lastFilledSlot.getAttribute("data-tile-id");
+        let originalTile = document.getElementById(`tile-${tileId}`);
+        if (originalTile) originalTile.classList.remove('used');
+        
+        lastFilledSlot.innerText = "";
+        lastFilledSlot.classList.remove('filled');
+        lastFilledSlot.removeAttribute("data-tile-id");
+        
+        const slotsRow = document.getElementById("slotsRow");
+        slotsRow.style.borderColor = "#b2bec3";
     }
+}
+
+function checkAnagramResult(cleanWord) {
+    const slotsRow = document.getElementById("slotsRow");
+    let currentWord = "";
+    let filledCount = 0;
+
+    Array.from(slotsRow.children).forEach(s => {
+        if (s.innerText !== "") {
+            currentWord += s.innerText;
+            filledCount++;
+        }
+    });
+
+    if(filledCount === cleanWord.length) {
+        if(currentWord === cleanWord) {
+            playSoundEffect(true);
+            gameScore += calculateSpeedBonus();
+            speakWord(cleanWord);
+            slotsRow.style.border = "2px solid #2ecc71";
+            setTimeout(() => { currentGameIndex++; buildAnagramaGame(); }, 800);
+        } else {
+            playSoundEffect(false);
+            slotsRow.style.border = "2px solid #e74c3c";
+        }
+    }
+}
+
+// ⌨️ 2. TYPE ANSWER GAME
+function buildTypeAnswerGame() {
+    const playArea = document.getElementById("wwPlayArea");
+    if (!playArea) return;
+    if (checkGameOver('typeanswer', playArea)) return;
+
+    let item = localGameData[currentGameIndex];
     
-    currentGameIndex++;
-    buildFlashcardGame();
+    playArea.innerHTML = `
+        <div class="ww-target-title" style="margin-bottom:30px;">${item.translation}</div>
+        <div class="ww-type-input-zone">
+            <input type="text" id="typeAnswerInput" class="ww-answer-input" placeholder="Type your answer..." autocomplete="off">
+            <button class="ww-action-btn" style="width:100%; margin-top:5px;" onclick="checkTypeAnswerResult()">Check</button>
+        </div>`;
+
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
+
+    const inputField = document.getElementById("typeAnswerInput");
+    inputField.focus();
+    inputField.addEventListener("keyup", function(event) {
+        if (event.key === "Enter") {
+            checkTypeAnswerResult();
+        }
+    });
 }
 
-function navWWGame(dir) {
-    clearIntervalTimer();
-    currentGameIndex += dir;
-    if (currentGameIndex < 0) currentGameIndex = 0;
-    buildFlashcardGame();
+function checkTypeAnswerResult() {
+    let item = localGameData[currentGameIndex];
+    const inputField = document.getElementById("typeAnswerInput");
+    if (!inputField) return;
+
+    let userAnswer = inputField.value.trim().toLowerCase();
+    let correctAnswer = item.word.toLowerCase().replace(/[\[\]]/g, '').trim();
+
+    if (userAnswer === correctAnswer) {
+        playSoundEffect(true);
+        gameScore += calculateSpeedBonus();
+        speakWord(item.word);
+        inputField.style.borderColor = "#2ecc71";
+        inputField.style.background = "#e8f5e9";
+        setTimeout(() => { currentGameIndex++; buildTypeAnswerGame(); }, 1000);
+    } else {
+        playSoundEffect(false);
+        inputField.style.borderColor = "#e74c3c";
+        inputField.style.background = "#ffebee";
+        setTimeout(() => { 
+            inputField.style.borderColor = "#bdc3c7";
+            inputField.style.background = "#fff";
+        }, 1000);
+    }
 }
 
-// ==========================================
-// 5. MATCH UP O'YINI
-// ==========================================
+// 🧩 3. MATCH UP GAME
 function buildMatchUpGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
+    if (checkGameOver('matchup', playArea)) return;
 
-    let dataset = window.activeDataset;
-    let wordsArr = [...dataset].map(item => item.word).sort(() => Math.random() - 0.5);
-    let transArr = [...dataset].map(item => item.translation).sort(() => Math.random() - 0.5);
+    selectedMatchWord = null;
+    selectedMatchTrans = null;
 
-    playArea.innerHTML = `
-        ${renderTopBarHtml('Match Up', false)}
-        <div style="padding:10px;">
-            <div style="text-align:center; font-weight:bold; margin-bottom:15px;">So'zlarni tarjimasi bilan moslang</div>
-            <div style="display: flex; justify-content: space-between; gap: 10px;">
-                <div id="matchWordsCol" style="flex:1; display:flex; flex-direction:column; gap:8px;"></div>
-                <div id="matchTransCol" style="flex:1; display:flex; flex-direction:column; gap:8px;"></div>
-            </div>
-        </div>
-    `;
+    let currentGroup = matchUpGroups[currentGameIndex];
+    if(!currentGroup) return;
+
+    let wordsArr = currentGroup.map(item => item.word).sort(() => Math.random() - 0.5);
+    let transArr = currentGroup.map(item => item.translation).sort(() => Math.random() - 0.5);
+
+    let matchupHtml = `
+        <div class="ww-target-title" style="margin-bottom:15px;">Match the words with their translations</div>
+        <div class="ww-matchup-container">
+            <div class="ww-match-column" id="matchWordsCol"></div>
+            <div class="ww-match-column" id="matchTransCol"></div>
+        </div>`;
+        
+    playArea.innerHTML = matchupHtml;
+    updateWWStats();
+    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
 
     const wordsCol = document.getElementById("matchWordsCol");
     const transCol = document.getElementById("matchTransCol");
@@ -387,12 +685,11 @@ function buildMatchUpGame() {
         let div = document.createElement("div");
         div.className = "ww-match-item";
         div.innerText = word;
-        div.style.cssText = "padding: 10px; border: 1px solid #ccc; border-radius: 6px; text-align: center; cursor: pointer; background: #fff;";
         div.setAttribute("data-word", word);
         div.onclick = () => {
-            if (div.classList.contains('matched')) return;
-            document.querySelectorAll("#matchWordsCol .ww-match-item").forEach(el => { if(!el.classList.contains('matched')) el.style.background = "#fff"; });
-            div.style.background = "#e0f7fa";
+            if(div.classList.contains('matched')) return;
+            document.querySelectorAll("#matchWordsCol .ww-match-item").forEach(el => el.classList.remove('selected'));
+            div.classList.add('selected');
             selectedMatchWord = div;
             checkMatchPair();
         };
@@ -403,12 +700,11 @@ function buildMatchUpGame() {
         let div = document.createElement("div");
         div.className = "ww-match-item";
         div.innerText = trans;
-        div.style.cssText = "padding: 10px; border: 1px solid #ccc; border-radius: 6px; text-align: center; cursor: pointer; background: #fff;";
         div.setAttribute("data-trans", trans);
         div.onclick = () => {
-            if (div.classList.contains('matched')) return;
-            document.querySelectorAll("#matchTransCol .ww-match-item").forEach(el => { if(!el.classList.contains('matched')) el.style.background = "#fff"; });
-            div.style.background = "#e0f7fa";
+            if(div.classList.contains('matched')) return;
+            document.querySelectorAll("#matchTransCol .ww-match-item").forEach(el => el.classList.remove('selected'));
+            div.classList.add('selected');
             selectedMatchTrans = div;
             checkMatchPair();
         };
@@ -422,20 +718,19 @@ function checkMatchPair() {
     let wordVal = selectedMatchWord.getAttribute("data-word");
     let transVal = selectedMatchTrans.getAttribute("data-trans");
 
-    let matchFound = window.activeDataset.some(item => item.word === wordVal && item.translation === transVal);
+    let currentGroup = matchUpGroups[currentGameIndex];
+    let matchFound = currentGroup.some(item => item.word === wordVal && item.translation === transVal);
 
     if (matchFound) {
+        playSoundEffect(true);
         speakWord(wordVal);
-        selectedMatchWord.style.background = "#2ecc71";
-        selectedMatchWord.style.color = "#fff";
-        selectedMatchTrans.style.background = "#2ecc71";
-        selectedMatchTrans.style.color = "#fff";
+        
+        selectedMatchWord.classList.remove('selected');
+        selectedMatchTrans.classList.remove('selected');
         
         selectedMatchWord.classList.add('matched');
         selectedMatchTrans.classList.add('matched');
-
-        logAnswer(wordVal, transVal, transVal, 'correct');
-
+        
         selectedMatchWord = null;
         selectedMatchTrans = null;
 
@@ -443,172 +738,126 @@ function checkMatchPair() {
         const matchedItems = document.querySelectorAll(".ww-match-item.matched").length;
 
         if (totalItems === matchedItems) {
-            setTimeout(() => { showFinalResult(); }, 1000);
+            gameScore += calculateSpeedBonus() + 50;
+            setTimeout(() => { currentGameIndex++; buildMatchUpGame(); }, 1200);
         }
     } else {
+        playSoundEffect(false);
         let wBtn = selectedMatchWord;
         let tBtn = selectedMatchTrans;
-        wBtn.style.background = "#e74c3c";
-        tBtn.style.background = "#e74c3c";
-        wBtn.style.color = "#fff";
-        tBtn.style.color = "#fff";
-                
+        wBtn.style.borderColor = "#e74c3c";
+        tBtn.style.borderColor = "#e74c3c";
+        
         setTimeout(() => {
-            wBtn.style.background = "#fff";
-            tBtn.style.background = "#fff";
-            wBtn.style.color = "#000";
-            tBtn.style.color = "#000";
+            wBtn.classList.remove('selected');
+            tBtn.classList.remove('selected');
+            wBtn.style.borderColor = "#bdc3c7";
+            tBtn.style.borderColor = "#bdc3c7";
         }, 800);
-
-        logAnswer(wordVal, transVal, "Xato juftlik", 'incorrect');
 
         selectedMatchWord = null;
         selectedMatchTrans = null;
     }
 }
 
-// ==========================================
-// 6. TYPE ANSWER O'YINI
-// ==========================================
-function buildTypeAnswerGame() {
-    const playArea = document.getElementById("wwPlayArea");
-    if (!playArea) return;
+// 🎴 4. FLASHCARD GAME
+<div class="ww-fc-container" id="wwFcContainer">
+  <!-- 1. BOSHLANISH EKRANI (ISM VA FAMILIYA) -->
+  <div class="ww-fc-screen" id="fcStartScreen">
+    <div class="ww-fc-start-card">
+      <h2><i class="fa-solid fa-layer-group"></i> Flashcards</h2>
+      <p>O'yinni boshlash uchun ism va familiyangizni kiriting:</p>
+      
+      <div class="ww-fc-input-group">
+        <input type="text" id="fcUserName" placeholder="Ism va Familiya..." autocomplete="off">
+      </div>
+      
+      <button class="ww-fc-start-btn" onclick="startFlashcardGame()">
+        <i class="fa-solid fa-play"></i> Boshlash
+      </button>
+    </div>
+  </div>
 
-    if (currentGameIndex >= totalGameRounds) {
-        showFinalResult();
-        return;
-    }
+  <!-- 2. O'YIN EKRANI -->
+  <div class="ww-fc-screen" id="fcGameScreen" style="display: none;">
+    <!-- Yuqori panel: Taymer va Hisobgich -->
+    <div class="ww-fc-header-bar">
+      <div class="ww-fc-stat-box">
+        <i class="fa-solid fa-clock"></i> <span id="fcTotalTimer">00:00</span>
+      </div>
+      <div class="ww-fc-stat-box">
+        <span class="fc-badge-success" id="fcCorrectBadge">0</span> / 
+        <span class="fc-badge-danger" id="fcWrongBadge">0</span>
+      </div>
+      <div class="ww-fc-stat-box">
+        <span id="fcWordCounter">1/10</span>
+      </div>
+    </div>
 
-    let item = window.activeDataset[currentGameIndex];
+    <!-- 15 soniyalik progress bar -->
+    <div class="ww-fc-progress-container">
+      <div class="ww-fc-progress-bar" id="fcProgressBar"></div>
+      <span class="ww-fc-timer-text" id="fcQuestionTimer">15s</span>
+    </div>
 
-    playArea.innerHTML = `
-        ${renderTopBarHtml('Type Answer', true)}
-        <div style="text-align:center; padding:20px;">
-            <div style="font-size:18px; font-weight:bold; color:#2c3e50; margin-bottom:15px;">${item.translation}</div>
-            <input type="text" id="wwTypeInput" placeholder="So'zni yozing..." autocomplete="off" style="padding:10px; border-radius:6px; border:1px solid #ccc; width:80%; max-width:250px; margin-bottom:15px; outline:none;">
-            <br>
-            <button onclick="submitTypeAnswer()" style="padding:8px 20px; background:#27ae60; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">Tekshirish</button>
-        </div>
-    `;
+    <!-- Asosiy Karta -->
+    <div class="ww-fc-card">
+      <div class="ww-fc-word-container">
+        <span class="ww-fc-word-text" id="fcWordText">Word</span>
+        <button class="ww-fc-speaker-inline-btn" onclick="playCurrentWordAudio()" title="Talaffuz qilish">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
 
-    startCountdown(45, () => {
-        logAnswer(item.word, item.translation, "Vaqt tugadi", 'skipped');
-        currentGameIndex++;
-        buildTypeAnswerGame();
-    });
-}
+      <!-- Pastki tugmalar (I don't know / I know) -->
+      <div class="ww-fc-footer-bar">
+        <button class="ww-fc-action-btn fc-btn-dontknow" onclick="handleAnswer(false)">
+          <i class="fa-solid fa-xmark"></i> I don't know
+        </button>
+        <button class="ww-fc-action-btn fc-btn-know" onclick="handleAnswer(true)">
+          <i class="fa-solid fa-check"></i> I know
+        </button>
+      </div>
+    </div>
+  </div>
 
-function submitTypeAnswer() {
-    clearIntervalTimer();
-    let input = document.getElementById("wwTypeInput");
-    let userVal = input ? input.value.trim().toLowerCase() : "";
-    let item = window.activeDataset[currentGameIndex];
+  <!-- 3. NATIJA EKRANI -->
+  <div class="ww-fc-screen" id="fcResultScreen" style="display: none;">
+    <div class="ww-fc-result-card">
+      <i class="fa-solid fa-trophy ww-fc-trophy-icon"></i>
+      <h3>O'yin Yakunlandi!</h3>
+      <p class="ww-fc-player-name" id="fcResultPlayerName">Ism Familiya</p>
 
-    if (userVal === item.word.toLowerCase()) {
-        gameScore += 1;
-        logAnswer(item.word, item.translation, userVal, 'correct');
-    } else {
-        logAnswer(item.word, item.translation, userVal || "Javobsiz", 'incorrect');
-    }
+      <div class="ww-fc-score-circle">
+        <span id="fcResultPercentage">0%</span>
+      </div>
 
-    currentGameIndex++;
-    buildTypeAnswerGame();
-}
+      <div class="ww-fc-result-stats">
+        <div><i class="fa-solid fa-circle-check text-success"></i> To'g'ri: <b id="fcResultCorrect">0</b></div>
+        <div><i class="fa-solid fa-circle-xmark text-danger"></i> Xato: <b id="fcResultWrong">0</b></div>
+        <div><i class="fa-solid fa-stopwatch text-info"></i> Vaqt: <b id="fcResultTime">00:00</b></div>
+      </div>
 
-// ==========================================
-// 7. NATIJA VA FINISH
-// ==========================================
-function logAnswer(word, translation, userAns, status) {
-    gameAnswersLog.push({ word, translation, userAns, status });
-}
+      <div class="ww-fc-result-actions">
+        <button class="ww-fc-details-btn" onclick="toggleDetailsView()">
+          <i class="fa-solid fa-list-check"></i> Batafsil
+        </button>
+        <button class="ww-fc-restart-btn" onclick="resetFlashcardGame()">
+          <i class="fa-solid fa-rotate-right"></i> Qayta boshlash
+        </button>
+      </div>
 
-function finishWWGame() {
-    clearIntervalTimer();
-    showFinalResult();
-}
-
-function showFinalResult() {
-    clearIntervalTimer();
-    const playArea = document.getElementById("wwPlayArea");
-    if (!playArea) return;
-
-    let correctCount = gameAnswersLog.filter(a => a.status === 'correct').length;
-    let incorrectCount = gameAnswersLog.filter(a => a.status === 'incorrect').length;
-    let skippedCount = gameAnswersLog.filter(a => a.status === 'skipped').length;
-    let totalAsked = gameAnswersLog.length || 1;
-
-    let percentage = Math.round((correctCount / totalAsked) * 100);
-
-    playArea.innerHTML = `
-        <div style="text-align:center; padding:20px;">
-            <div style="font-size:18px; font-weight:bold;">Natija: ${userName}</div>
-            
-            <div style="width:90px; height:90px; border-radius:50%; background:#27ae60; color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; margin:15px auto;">
-                <span style="font-size:22px; font-weight:bold;">${percentage}%</span>
-                <span style="font-size:10px;">O'zlashtirish</span>
-            </div>
-
-            <div style="display:flex; justify-content:space-around; margin-bottom:15px; font-weight:bold;">
-                <div style="color:#27ae60;">To'g'ri: ${correctCount}</div>
-                <div style="color:#e74c3c;">Xato: ${incorrectCount}</div>
-                <div style="color:#f39c12;">O'tkazildi: ${skippedCount}</div>
-            </div>
-
-            <button onclick="toggleDetailsTable()" style="padding:8px 15px; background:#3498db; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold; margin-bottom:10px;">
-                <i class="fa-solid fa-list-check"></i> Batafsil
-            </button>
-
-            <div id="wwDetailsBox" style="display:none; width:100%; max-height:180px; overflow-y:auto; border:1px solid #ddd; border-radius:6px; margin-bottom:10px;">
-                <table style="width:100%; font-size:12px; border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#f2f2f2;">
-                            <th style="padding:6px; border:1px solid #ddd;">So'z</th>
-                            <th style="padding:6px; border:1px solid #ddd;">Javobingiz</th>
-                            <th style="padding:6px; border:1px solid #ddd;">Holat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${gameAnswersLog.map(item => `
-                            <tr>
-                                <td style="padding:6px; border:1px solid #ddd;"><b>${item.word}</b> (${item.translation})</td>
-                                <td style="padding:6px; border:1px solid #ddd;">${item.userAns}</td>
-                                <td style="padding:6px; border:1px solid #ddd; color:${item.status === 'correct' ? '#27ae60' : item.status === 'incorrect' ? '#e74c3c' : '#f39c12'}; font-weight:bold;">
-                                    ${item.status === 'correct' ? 'To\'g\'ri' : item.status === 'incorrect' ? 'Xato' : 'Vaqt yetmadi'}
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-
-            <br>
-            <button onclick="startWWGame('${currentGameType}')" style="padding:10px 20px; background:#27ae60; color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold;">
-                <i class="fa-solid fa-rotate-right"></i> Qaytadan boshlash
-            </button>
-        </div>
-    `;
-}
-
-function toggleDetailsTable() {
-    const box = document.getElementById("wwDetailsBox");
-    if (box) {
-        box.style.display = box.style.display === "none" ? "block" : "none";
-    }
-}
-
-function speakWord(text) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        window.speechSynthesis.speak(utterance);
-    }
-}
-
-// Boshlang'ich holatda Matn tugmasini faollashtirish
-document.addEventListener("DOMContentLoaded", function() {
-    loadContent('text');
-});
+      <!-- BATAFSIL RO'YXAT -->
+      <div class="ww-fc-details-container" id="fcDetailsContainer" style="display: none;">
+        <h4>Batafsil natijalar:</h4>
+        <ul id="fcDetailsList" class="ww-fc-details-list"></ul>
+      </div>
+    </div>
+  </div>
+</div>
 </script>
 </body>
 </html>
+
+
+    
