@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dars Mashg'uloti</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="training_3.css">
+    <link rel="stylesheet" href="training.css">
     <script src="database.js"></script>
 </head>
 <body>
@@ -196,7 +196,6 @@ let currentAudio = null;
 
 function speakWord(word) {
     if (!word) return;
-
     let cleanText = word.replace(/[\[\]\(\)\.,\?!;:"']/g, '').trim();
     if (!cleanText) return;
 
@@ -206,7 +205,6 @@ function speakWord(word) {
     }
 
     const audioUrl = `https://dict.youdao.com/dictvoice?audio=${encodeURIComponent(cleanText)}&type=2`;
-    
     currentAudio = new Audio(audioUrl);
     
     let playPromise = currentAudio.play();
@@ -284,6 +282,9 @@ function updateWWStats() {
     const progressEl = document.getElementById("wwProgressText");
     if(scoreEl) scoreEl.innerText = `✓ ${gameScore}`;
     if(progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
+    
+    const prevBtn = document.getElementById("wwPrev");
+    if(prevBtn) prevBtn.disabled = (currentGameIndex === 0);
 }
 
 function checkGameOver(type, container) {
@@ -374,14 +375,14 @@ function loadContent(type) {
         let audioHtml = '';
         if (currentLessonData.audioUrl) {
             audioHtml = `
-                <div class="sticky-player-wrapper">
+                <div class="sticky-player-wrapper" style="margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                     <div class="audio-player-container">
                         <audio id="lessonAudio" src="${currentLessonData.audioUrl}"></audio>
-                        <div class="player-controls">
-                            <button onclick="rewindAudio(-10)" class="p-btn"><i class="fa-solid fa-backward"></i></button>
-                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play"><i class="fa-solid fa-play"></i></button>
-                            <button onclick="rewindAudio(10)" class="p-btn"><i class="fa-solid fa-forward"></i></button>
-                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select">
+                        <div class="player-controls" style="display:flex; gap:10px; align-items:center; justify-content:center; margin-bottom:8px;">
+                            <button onclick="rewindAudio(-10)" class="p-btn" style="background:none; border:none; font-size:18px; cursor:pointer;"><i class="fa-solid fa-backward"></i></button>
+                            <button onclick="toggleAudio()" id="playPauseBtn" class="p-btn main-play" style="background:#3498db; color:white; border:none; width:36px; height:36px; border-radius:50%; font-size:16px; cursor:pointer;"><i class="fa-solid fa-play"></i></button>
+                            <button onclick="rewindAudio(10)" class="p-btn" style="background:none; border:none; font-size:18px; cursor:pointer;"><i class="fa-solid fa-forward"></i></button>
+                            <select id="audioSpeed" onchange="changeAudioSpeed(this.value)" class="speed-select" style="padding:4px; border-radius:4px;">
                                 <option value="0.75">0.75x</option>
                                 <option value="1.0" selected>1.0x</option>
                                 <option value="1.25">1.25x</option>
@@ -389,7 +390,7 @@ function loadContent(type) {
                             </select>
                         </div>
                         <div class="progress-wrapper">
-                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)">
+                            <input type="range" id="audioProgress" value="0" min="0" max="100" oninput="seekAudio(this.value)" style="width:100%;">
                         </div>
                     </div>
                 </div>`;
@@ -431,18 +432,15 @@ function loadContent(type) {
         initAudioPlayerListeners();
     } 
     else if (type === 'keywords') {
-        let tableHtml = `<table class="keywords-custom-table">            
-            <tr><th>Word</th><th>Translation</th></tr>`;
+        let tableHtml = `<table style="width:100%; border-collapse:collapse; margin-top:10px;">            
+            <tr style="background:#3498db; color:white;"><th style="padding:10px;">Word</th><th style="padding:10px;">Translation</th></tr>`;
         localGameData.forEach(item => {
             let escapedWord = item.word.replace(/'/g, "\\'");
             tableHtml += `<tr>                
-                <td class="kw-bold-word" onclick="speakWord('${escapedWord}')">
-                    <div class="word-with-audio">
-                        <button class="speak-btn"><i class="fa-solid fa-volume-high"></i></button>
-                        <span class="actual-word">${item.word}</span>
-                    </div>
+                <td style="padding:10px; font-weight:bold; cursor:pointer; color:#2c3e50;" onclick="speakWord('${escapedWord}')">                    
+                    <i class="fa-solid fa-volume-high" style="color:#3498db; margin-right:5px;"></i> ${item.word}                
                 </td>                
-                <td class="kw-translation">${item.translation}</td>            
+                <td style="padding:10px; color:#555;">${item.translation}</td>            
             </tr>`;
         });
         tableHtml += `</table>`;
@@ -524,7 +522,6 @@ function buildAnagramaGame() {
         </div>`;
 
     updateWWStats();
-    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
 
     const slotsRow = document.getElementById("slotsRow");
     const lettersRow = document.getElementById("lettersRow");
@@ -615,7 +612,6 @@ function buildTypeAnswerGame() {
         </div>`;
 
     updateWWStats();
-    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
 
     const inputField = document.getElementById("typeAnswerInput");
     inputField.focus();
@@ -676,7 +672,6 @@ function buildMatchUpGame() {
         
     playArea.innerHTML = matchupHtml;
     updateWWStats();
-    document.getElementById("wwPrev").disabled = currentGameIndex === 0;
 
     const wordsCol = document.getElementById("matchWordsCol");
     const transCol = document.getElementById("matchTransCol");
@@ -760,7 +755,7 @@ function checkMatchPair() {
     }
 }
 
-// 🎴 4. FLASHCARD GAME (TAHRIRLANGAN QISM)
+// 🎴 4. FLASHCARD GAME
 function buildFlashcardGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
@@ -779,10 +774,6 @@ function buildFlashcardGame() {
             </div>
             
             <div class="ww-fc-footer-bar">
-                <button class="ww-fc-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'flashcard')">
-                    <i class="fa-solid fa-backward-step"></i>
-                </button>
-                
                 <div class="ww-fc-center-action">
                     <div id="fcOpenZone" style="width: 100%;">
                         <button class="ww-fc-open-btn" onclick="revealFlashcardTranslation()">OPEN</button>
@@ -797,21 +788,11 @@ function buildFlashcardGame() {
                         </button>
                     </div>
                 </div>
-
-                <button class="ww-fc-nav-btn" id="wwNext" onclick="navWWGame(1, 'flashcard')">
-                    <i class="fa-solid fa-forward-step"></i>
-                </button>
             </div>
         </div>
     `;
 
-    const scoreEl = document.getElementById("wwScore");
-    const progressEl = document.getElementById("wwProgressText");
-    if (scoreEl) scoreEl.innerHTML = `${gameScore} ❤️`;
-    if (progressEl) progressEl.innerText = `${currentGameIndex + 1} of ${totalGameRounds}`;
-
-    const prevBtn = document.getElementById("wwPrev");
-    if (prevBtn) prevBtn.disabled = currentGameIndex === 0;
+    updateWWStats();
 }
 
 function revealFlashcardTranslation() {
