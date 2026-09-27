@@ -120,7 +120,7 @@ body {
     border: 2px solid var(--card-border);
     border-radius: 12px;
     position: relative;
-    min-height: 280px;
+    min-height: 380px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -129,10 +129,10 @@ body {
 
 .fullscreen-active {
     position: fixed;
-    top: 60px; left: 0;
+    top: 0; left: 0;
     width: 100vw !important;
-    height: calc(100vh - 60px) !important;
-    z-index: 100;
+    height: 100vh !important;
+    z-index: 1000;
     border: none !important;
     border-radius: 0 !important;
 }
@@ -149,49 +149,6 @@ body {
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 2px 0 var(--card-border);
 }
-
-/* TEXT BOX SKROLL */
-.scrollable-text-content {
-    padding: 15px 20px;
-    overflow-y: auto;
-    flex: 1;
-    max-height: 380px;
-    line-height: 1.6;
-    font-size: 15px;
-}
-
-.scrollable-text-content h3 { margin-top: 0; color: var(--primary-color); font-weight: 800;}
-.iframe-display { width: 100%; height: 100%; border: none; flex: 1; display: none; }
-
-/* TOOLTIP */
-.keyword-tooltip {
-    color: #1a1f71;
-    font-weight: 700;
-    border-bottom: 2px dashed #1a1f71;
-    cursor: help;
-    position: relative;
-    display: inline-block;
-}
-
-.keyword-tooltip::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 125%; left: 50%;
-    transform: translateX(-50%);
-    background-color: #1e293b;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 12px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.15s ease;
-    z-index: 99;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-.keyword-tooltip:hover::after { opacity: 1; }
 
 /* AJRATUVCHI ZONE */
 .games-divider-zone {
@@ -240,170 +197,44 @@ body {
 .matchup-g-btn { color: #2980b9; border-color: #2980b9; box-shadow: 0 3px 0 #2980b9; }
 .anagrama-g-btn { color: #d35400; border-color: #d35400; box-shadow: 0 3px 0 #d35400; }
 .typeanswer-g-btn { color: #2c3e50; border-color: #2c3e50; box-shadow: 0 3px 0 #2c3e50; }
-.wordsearch-g-btn { color: #27ae60; border-color: #27ae60; box-shadow: 0 3px 0 #27ae60; }
-.pair-g-btn { color: #16a085; border-color: #16a085; box-shadow: 0 3px 0 #16a085; }
+.flashcard-g-btn { color: #27ae60; border-color: #27ae60; box-shadow: 0 3px 0 #27ae60; }
 
 .game-card-btn:active {
     transform: translateY(3px);
     box-shadow: 0 0px 0 transparent !important;
 }
 
-/* KEYWORDS JADVALI DIZAYNI */
-.keywords-table-wrapper { padding: 10px; }
-.keywords-custom-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 5px;
-    background: white;
-    border: 2px solid var(--card-border);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.keywords-custom-table th {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 12px 15px;
-    font-weight: 900;
-    text-align: left;
-    font-size: 14px;
-    text-transform: uppercase;
-}
-
-.keywords-custom-table td { padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-size: 15px; }
-.keywords-custom-table tr:last-child td { border-bottom: none; }
-.keywords-custom-table tr:nth-child(even) { background-color: #f8fafc; }
-
-.word-with-audio { display: flex; align-items: center; gap: 12px; width: 100%; }
-.speak-btn {
-    background: #f1f5f9;
-    border: 1.5px solid var(--card-border);
-    color: var(--primary-color);
-    border-radius: 6px;
-    width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 2px 0 var(--card-border);
-    transition: 0.1s;
-    padding: 0; flex-shrink: 0;
-}
-
-.speak-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 0px 0 transparent;
-    background: #e2e8f0;
-}
-
-.actual-word { font-weight: 800; color: #1a202c; font-size: 15px; }
-.kw-bold-word { width: 50%; padding: 8px 12px !important; }
-.kw-translation { color: #4a5568; font-weight: 600; }
-
-/* MUKAMMAL VA STRUKTURAVIY STICKY AUDIO PLEYER STILI */
-.sticky-player-wrapper {
-    position: -webkit-sticky;
-    position: sticky;
-    top: -15px;            
-    background: #ffffff;   
-    padding: 5px 45px 12px 0;
-    margin-bottom: 15px;
-    z-index: 15;           
-    border-bottom: 2px solid var(--card-border);
-}
-
-.audio-player-container {
-    background: #f8fafc;
-    border: 2px solid var(--card-border);
-    border-radius: 8px;
-    padding: 4px 8px;
-    box-shadow: 0 2px 0 var(--card-border);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.player-controls { display: flex; align-items: center; justify-content: center; gap: 8px; }
-
-.p-btn {
-    background: white;
-    border: 1.5px solid var(--card-border);
-    color: black;
-    border-radius: 50%;
-    width: 26px; height: 26px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 1.5px 0 var(--card-border);
-    transition: 0.1s;
-    font-size: 9px;
-    padding: 0;
-}
-
-.p-btn.main-play {
-    background: var(--primary-color);
-    color: white;
-    width: 30px; height: 30px;
-    font-size: 11px;
-}
-
-.p-btn:active {
-    transform: translateY(1.5px);
-    box-shadow: 0 0px 0 transparent;
-}
-
-.speed-select {
-    background: white;
-    border: 1.5px solid var(--card-border);
-    border-radius: 4px;
-    padding: 0 2px;
-    font-weight: bold;
-    font-size: 9px;
-    cursor: pointer;
-    box-shadow: 0 1px 0 var(--card-border);
-    margin-left: 2px;
-    height: 20px;
-}
-
-.progress-wrapper { width: 100%; display: flex; align-items: center; }
-.progress-wrapper input[type="range"] {
-    width: 100%;
-    accent-color: var(--primary-color);
-    cursor: pointer;
-    height: 3px;
-    margin: 0;
-}
-
 /* RESPONSIVE */
 @media (min-width: 600px) {
     .top-materials-bar { max-width: 500px; margin: 0 auto; width: 100%; box-sizing: border-box;}
     .main-layout { max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
-    .games-grid { grid-template-columns: repeat(3, 1fr); max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
+    .games-grid { grid-template-columns: repeat(2, 1fr); max-width: 600px; margin: 0 auto; width: 100%; box-sizing: border-box;}
     .games-divider-zone { max-width: 600px; margin: 10px auto; width: 100%; }
 }
 
 /* ==========================================
-   FLASHCARD 2-RASMDAGI DIZAYN STILIKODLARI
+   2-RASMDAGI EXACT FLASHCARD DIZAYNI
    ========================================== */
 
 .fc-wrapper {
-    background-color: #1a2332;
-    border-radius: 18px;
+    background-color: #152238; /* To'q navy/dark fon */
+    border-radius: 20px;
     padding: 20px 16px;
     display: flex;
     flex-direction: column;
     gap: 16px;
     width: 100%;
-    max-width: 380px;
+    max-width: 350px;
     margin: 0 auto;
     box-sizing: border-box;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* O'RTADAGI OQ KARTA */
+/* MARKAZDAGI OQ KARTA (KO'K BORDER BILAN) */
 .fc-main-card {
     background-color: #ffffff;
-    border: 3px solid #3498db;
-    border-radius: 16px;
+    border: 4px solid #0088ff;
+    border-radius: 18px;
     height: 190px;
     display: flex;
     align-items: center;
@@ -411,7 +242,7 @@ body {
     cursor: pointer;
     padding: 15px;
     box-sizing: border-box;
-    transition: transform 0.15s ease, border-color 0.2s ease;
+    transition: transform 0.12s ease;
     user-select: none;
 }
 
@@ -420,24 +251,24 @@ body {
 }
 
 .fc-main-card.translated {
-    border-color: #9b59b6;
-    background-color: #fcf8ff;
+    border-color: #a855f7;
+    background-color: #faf5ff;
 }
 
-/* SO'Z ATROFIDAGI SARIQ BADGE */
+/* SARIQ BADGE (SO'Z BLOGI) */
 .fc-word-badge {
-    background-color: #fef08a;
-    color: #1e293b;
-    font-size: 28px;
+    background-color: #fef08a; /* 2-rasmdagi yorqin sariq fon */
+    color: #0f172a;
+    font-size: 32px;
     font-weight: 800;
-    padding: 10px 24px;
+    padding: 10px 26px;
     border-radius: 14px;
     text-align: center;
     word-break: break-word;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-/* TUGMALAR QATORI */
+/* JAVOB TUGMALARI (I KNOW / I DON'T KNOW) */
 .fc-action-buttons {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -447,68 +278,84 @@ body {
 
 .fc-btn {
     border: none;
-    border-radius: 12px;
-    padding: 14px 10px;
-    font-size: 15px;
-    font-weight: 800;
+    border-radius: 14px;
+    padding: 12px 6px;
     color: #ffffff;
     cursor: pointer;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: filter 0.15s, transform 0.1s;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    gap: 2px;
+    transition: transform 0.1s ease, background 0.15s;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.25);
 }
 
 .fc-btn:active {
     transform: translateY(2px);
-    box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.25);
 }
 
-/* YASIL TUGMA (I KNOW) */
+.fc-btn-top {
+    font-size: 16px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.fc-btn-sub {
+    font-size: 13px;
+    font-weight: 700;
+    opacity: 0.9;
+}
+
+/* YASIL TUGMA */
 .fc-btn-know {
-    background-color: #2ecc71;
+    background-color: #22c55e;
 }
 
 .fc-btn-know:hover {
-    background-color: #27ae60;
+    background-color: #16a34a;
 }
 
-/* QIZIL TUGMA (I DON'T KNOW) */
+/* QIZIL TUGMA */
 .fc-btn-dontknow {
-    background-color: #e74c3c;
+    background-color: #ef4444;
 }
 
 .fc-btn-dontknow:hover {
-    background-color: #c0392b;
+    background-color: #dc2626;
 }
 
-/* QAYTA ESHITISH TUGMASI */
+/* PASTKI KO'K TUGMA (LISTEN AGAIN) */
+.fc-listen-wrapper {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+}
+
 .fc-listen-btn {
-    background-color: #0984e3;
+    background-color: #0284c7;
     color: #ffffff;
     border: none;
     border-radius: 12px;
-    padding: 12px;
+    padding: 12px 18px;
     font-size: 15px;
     font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 8px;
-    width: 60%;
-    margin: 0 auto;
     transition: background 0.15s, transform 0.1s;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.25);
 }
 
 .fc-listen-btn:hover {
-    background-color: #74b9ff;
+    background-color: #0369a1;
 }
 
 .fc-listen-btn:active {
     transform: translateY(2px);
-    box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.25);
 }
