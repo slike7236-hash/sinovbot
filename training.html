@@ -54,28 +54,28 @@
     <span id="gamesTitleText">GAMELAR RO'YXATI</span>
 </div>
 
+<!-- GAMELAR RO'YXATI PANELI -->
 <div class="games-grid" id="gamesGrid">
-    <button class="game-card-btn matchup-g-btn" onclick="loadContent('matchup')">
-        <div class="game-icon"><i class="fa-solid fa-puzzle-piece"></i></div>
-        <div class="game-info">Match up <i class="fa-solid fa-angle-right"></i></div>
-    </button>        
-    <button class="game-card-btn anagrama-g-btn" onclick="loadContent('anagrama')">
-        <div class="game-icon"><i class="fa-solid fa-shuffle"></i></div>
-        <div class="game-info">Anagrama <i class="fa-solid fa-angle-right"></i></div>
-    </button>        
-    <button class="game-card-btn typeanswer-g-btn" onclick="loadContent('typeanswer')">
-        <div class="game-icon"><i class="fa-solid fa-keyboard"></i></div>
-        <div class="game-info">Type answer <i class="fa-solid fa-angle-right"></i></div>
+    <button class="game-card-btn matchup-g-btn" onclick="startWWGame('matchup')">
+        <span class="game-icon">🧩</span>
+        <span class="game-info">Match up <i class="fa-solid fa-chevron-right"></i></span>
     </button>
-    <button class="game-card-btn flashcard-g-btn" onclick="loadContent('flashcard')">
-        <div class="game-icon"><i class="fa-solid fa-clone"></i></div>
-        <div class="game-info">Flashcard <i class="fa-solid fa-angle-right"></i></div>
+    <button class="game-card-btn anagrama-g-btn" onclick="startWWGame('anagram')">
+        <span class="game-icon">🔤</span>
+        <span class="game-info">Anagrama <i class="fa-solid fa-chevron-right"></i></span>
+    </button>
+    <button class="game-card-btn typeanswer-g-btn" onclick="startWWGame('typeanswer')">
+        <span class="game-icon">⌨️</span>
+        <span class="game-info">Type answer <i class="fa-solid fa-chevron-right"></i></span>
+    </button>
+    <button class="game-card-btn pair-g-btn" onclick="startWWGame('flashcard')">
+        <span class="game-icon">🎴</span>
+        <span class="game-info">Flashcard <i class="fa-solid fa-chevron-right"></i></span>
     </button>
 </div>
-
 <script>
-    // ==========================================
-// GLOBALLASHGAN O'YIN O'ZGARUVCHILARI
+   // ==========================================
+// GLOBUS O'ZGARUVCHILAR
 // ==========================================
 let userName = "";
 let currentGameType = "";
@@ -84,28 +84,39 @@ let totalGameRounds = 0;
 let gameScore = 0;
 let gameTimer = null;
 let timerSeconds = 0;
-let gameStartTime = null;
-
-// Foydalanuvchi javoblarining batafsil jurnali (Result Dashboard uchun)
 let gameAnswersLog = []; 
-// Struct: { word: string, translation: string, userAns: string, status: 'correct'|'incorrect'|'skipped' }
 
 let selectedMatchWord = null;
 let selectedMatchTrans = null;
 
 // ==========================================
-// 1. ISMNI QABUL QILISH VA O'YINNI BOSHLASH
+// 1. O'YINNI BOSH LASH VA ISM KIRITISH
 // ==========================================
 function startWWGame(gameType) {
     currentGameType = gameType;
-    const playArea = document.getElementById("wwPlayArea");
+    const playArea = document.getElementById("scrollableContent") || document.getElementById("wwPlayArea") || document.querySelector(".display-window");
     if (!playArea) return;
 
-    // Boshlang'ich ekranda foydalanuvchidan ismini so'raymiz
-    playArea.innerHTML = `
+    // Keraksiz video/iframe elementlarini yashirish
+    const iframe = document.getElementById("videoDisplay");
+    if (iframe) iframe.style.display = "none";
+    
+    // O'yin konteynerini yaratish
+    let gameContainer = document.getElementById("wwPlayArea");
+    if (!gameContainer) {
+        gameContainer = document.createElement("div");
+        gameContainer.id = "wwPlayArea";
+        gameContainer.style.width = "100%";
+        gameContainer.style.height = "100%";
+        playArea.appendChild(gameContainer);
+    }
+    gameContainer.style.display = "block";
+
+    // Ism kiritish oynasini chiqarish
+    gameContainer.innerHTML = `
         <div class="ww-start-screen">
             <div class="ww-start-title">O'yinni boshlash</div>
-            <p style="font-size:13px; color:#666; margin:0;">Natijangizni saqlash uchun ism va familiyangizni kiritishni kiriting:</p>
+            <p style="font-size:13px; color:#666; margin:0;">Ism va familiyangizni kiriting:</p>
             <input type="text" id="wwUserNameInput" class="ww-name-input" placeholder="Ism Familiya" value="${userName}">
             <button class="ww-start-btn" onclick="confirmStartGame()">START <i class="fa-solid fa-play"></i></button>
         </div>
@@ -114,38 +125,30 @@ function startWWGame(gameType) {
 
 function confirmStartGame() {
     const input = document.getElementById("wwUserNameInput");
-    if (input && input.value.trim() !== "") {
-        userName = input.value.trim();
-    } else {
-        userName = "Mehmon";
-    }
+    userName = (input && input.value.trim() !== "") ? input.value.trim() : "Mehmon";
 
-    // O'yin ma'lumotlarini nolga tenglaymiz
     currentGameIndex = 0;
     gameScore = 0;
     gameAnswersLog = [];
-    gameStartTime = new Date();
 
-    // Game ma'lumotlarini yuklash
     initGameData(currentGameType);
 }
 
 function initGameData(type) {
-    // localGameData - sizning HTML'dagi ma'lumotlar massivi
     if (typeof localGameData !== 'undefined' && localGameData.length > 0) {
         totalGameRounds = localGameData.length;
     } else {
-        totalGameRounds = 10; // Standart qiymat
+        totalGameRounds = 10;
     }
 
     if (type === 'flashcard') buildFlashcardGame();
     else if (type === 'matchup') buildMatchUpGame();
-    else if (type === 'anagram') buildAnagramGame();
     else if (type === 'typeanswer') buildTypeAnswerGame();
+    else if (type === 'anagram') buildTypeAnswerGame();
 }
 
 // ==========================================
-// 2. TIMER VA TOP-BAR TEPA PANELI CONTROL
+// 2. TAYMER VA TEPA PANEL
 // ==========================================
 function clearIntervalTimer() {
     if (gameTimer) {
@@ -172,9 +175,7 @@ function startCountdown(seconds, onTimeout) {
 
 function updateTimerDisplay() {
     const el = document.getElementById("wwTimerDisplay");
-    if (el) {
-        el.innerText = `${timerSeconds}s`;
-    }
+    if (el) el.innerText = `${timerSeconds}s`;
 }
 
 function renderTopBarHtml(title, showTimer = true) {
@@ -188,7 +189,7 @@ function renderTopBarHtml(title, showTimer = true) {
 }
 
 // ==========================================
-// 🎴 3. FLASHCARD GAME
+// 3. FLASHCARD O'YINI (15 soniya taymer)
 // ==========================================
 function buildFlashcardGame() {
     const playArea = document.getElementById("wwPlayArea");
@@ -213,7 +214,7 @@ function buildFlashcardGame() {
             </div>
                         
             <div class="ww-fc-footer-bar">
-                <button class="ww-fc-nav-btn" id="wwPrev" onclick="navWWGame(-1, 'flashcard')">
+                <button class="ww-fc-nav-btn" id="wwPrev" onclick="navWWGame(-1)">
                     <i class="fa-solid fa-backward-step"></i>
                 </button>
                                 
@@ -232,19 +233,16 @@ function buildFlashcardGame() {
                     </div>
                 </div>
 
-                <button class="ww-fc-nav-btn" id="wwNext" onclick="navWWGame(1, 'flashcard')">
+                <button class="ww-fc-nav-btn" id="wwNext" onclick="navWWGame(1)">
                     <i class="fa-solid fa-forward-step"></i>
                 </button>
             </div>
         </div>
     `;
 
-    // Avto-talaffuz (Flashcard ochilganda)
     speakWord(item.word);
 
-    // 15 sekundlik Taymerni ishga tushirish
     startCountdown(15, () => {
-        // Vaqt tugasa xato deb belgilab keyingisiga o'tadi
         logAnswer(item.word, item.translation, "Vaqt tugadi", 'skipped');
         currentGameIndex++;
         buildFlashcardGame();
@@ -278,14 +276,21 @@ function handleFlashcardResult(isCorrect) {
     buildFlashcardGame();
 }
 
+function navWWGame(dir) {
+    clearIntervalTimer();
+    currentGameIndex += dir;
+    if (currentGameIndex < 0) currentGameIndex = 0;
+    buildFlashcardGame();
+}
+
 // ==========================================
-// 🧩 4. MATCH UP GAME
+// 4. MATCH UP O'YINI
 // ==========================================
 function buildMatchUpGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
 
-    if (currentGameIndex >= matchUpGroups.length) {
+    if (typeof matchUpGroups === 'undefined' || currentGameIndex >= matchUpGroups.length) {
         showFinalResult();
         return;
     }
@@ -362,10 +367,10 @@ function checkMatchPair() {
         selectedMatchWord.classList.add('matched');
         selectedMatchTrans.classList.add('matched');
                 
+        logAnswer(wordVal, transVal, transVal, 'correct');
+
         selectedMatchWord = null;
         selectedMatchTrans = null;
-
-        logAnswer(wordVal, transVal, transVal, 'correct');
 
         const totalItems = document.querySelectorAll(".ww-match-item").length;
         const matchedItems = document.querySelectorAll(".ww-match-item.matched").length;
@@ -396,7 +401,7 @@ function checkMatchPair() {
 }
 
 // ==========================================
-// ✏️ 5. TYPE ANSWER (WRITING) & ANAGRAM GAME
+// 5. TYPE ANSWER O'YINI (45 soniya taymer)
 // ==========================================
 function buildTypeAnswerGame() {
     const playArea = document.getElementById("wwPlayArea");
@@ -418,7 +423,6 @@ function buildTypeAnswerGame() {
         </div>
     `;
 
-    // 45 sekundlik Taymer
     startCountdown(45, () => {
         logAnswer(item.word, item.translation, "Vaqt tugadi", 'skipped');
         currentGameIndex++;
@@ -446,7 +450,7 @@ function submitTypeAnswer() {
 }
 
 // ==========================================
-// 📊 6. JURNAL VA NATIJALAR (RESULT)
+// 6. JAVOBLARNI SAQLASH VA NATIJA (FINISH)
 // ==========================================
 function logAnswer(word, translation, userAns, status) {
     gameAnswersLog.push({ word, translation, userAns, status });
@@ -479,15 +483,9 @@ function showFinalResult() {
             </div>
 
             <div class="ww-result-stats-grid">
-                <div class="ww-stat-card" style="color:#27ae60;">
-                    To'g'ri: ${correctCount}
-                </div>
-                <div class="ww-stat-card" style="color:#e74c3c;">
-                    Xato: ${incorrectCount}
-                </div>
-                <div class="ww-stat-card" style="color:#f39c12;">
-                    O'tkazildi: ${skippedCount}
-                </div>
+                <div class="ww-stat-card" style="color:#27ae60;">To'g'ri: ${correctCount}</div>
+                <div class="ww-stat-card" style="color:#e74c3c;">Xato: ${incorrectCount}</div>
+                <div class="ww-stat-card" style="color:#f39c12;">O'tkazildi: ${skippedCount}</div>
             </div>
 
             <button class="ww-start-btn" style="background:#3498db; margin-top:5px;" onclick="toggleDetailsTable()">
@@ -531,9 +529,6 @@ function toggleDetailsTable() {
     }
 }
 
-// ==========================================
-// 🔊 NUTQ VA OVOZ (TTS)
-// ==========================================
 function speakWord(text) {
     if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
