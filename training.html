@@ -761,27 +761,48 @@ function checkMatchPair() {
 }
 
 // 🎴 4. FLASHCARD GAME
-
 // Flashcard ichki holat o'zgaruvchilari
 let fcPlayerName = "";
 let fcTotalSeconds = 0;
 let fcTotalInterval = null;
-
 let fcQuestionTimer = 15;
 let fcQuestionInterval = null;
-
 let fcShuffledData = [];
 let fcCorrectCount = 0;
 let fcWrongCount = 0;
 let fcUserHistory = [];
 let fcGameStarted = false;
 
-// O'yinni boshlash funksiyasi (Sizning localGameData integratsiyangiz bilan)
+// Ism kiritib o'yinni boshlash funksiyasi
+function startFCGameWithPlayer() {
+    const input = document.getElementById("fcUserNameInput");
+    if (input && input.value.trim() !== "") {
+        fcPlayerName = input.value.trim();
+    } else {
+        fcPlayerName = "O'quvchi";
+    }
+    
+    fcGameStarted = true;
+    fcCorrectCount = 0;
+    fcWrongCount = 0;
+    currentGameIndex = 0;
+    
+    // Ma'lumotlarni nusxalab, aralashtirib olamiz (agar localGameData mavjud bo'lsa)
+    if (typeof localGameData !== "undefined" && localGameData.length > 0) {
+        fcShuffledData = [...localGameData].sort(() => Math.random() - 0.5);
+    } else {
+        fcShuffledData = [];
+    }
+
+    buildFlashcardGame();
+}
+
+// O'yinni qurish va ko'rsatish funksiyasi
 function buildFlashcardGame() {
     const playArea = document.getElementById("wwPlayArea");
     if (!playArea) return;
 
-    // Agar o'yin hali boshlanmagan bo'lsa - Ism/Familiya oynasini ko'rsatamiz
+    // 1. Agar o'yin hali boshlanmagan bo'lsa - Ism/Familiya oynasini ko'rsatamiz
     if (!fcGameStarted) {
         playArea.innerHTML = `
             <div class="ww-fc-card">
@@ -798,207 +819,103 @@ function buildFlashcardGame() {
         return;
     }
 
-    // O'yin tugaganini tekshirish
+    // 2. O'yin tugaganini tekshirish
     if (currentGameIndex >= fcShuffledData.length) {
         finishFlashcardGame(playArea);
         return;
     }
 
+    // 3. Joriy kartochka ma'lumotlarini olish
     let item = fcShuffledData[currentGameIndex];
-    let escapedWord = item.word.replace(/'/g, "\\'");
+    if (!item) return;
 
+    // 4. Karta va tugmalar HTML strukturasini joylash
     playArea.innerHTML = `
-        <div class="ww-fc-card">
-            <!-- Yuqori panel: Umumiytimer va hisob -->
-            <div class="ww-fc-header-info">
-                <span><i class="fa-solid fa-clock"></i> <span id="fcTimeText">${formatFCTime(fcTotalSeconds)}</span></span>
-                <span><span style="color:#2ecc71;">${fcCorrectCount}</span> / <span style="color:#e74c3c;">${fcWrongCount}</span></span>
-                <span>${currentGameIndex + 1} / ${fcShuffledData.length}</span>
+        <div class="ww-fc-wrapper">
+            <div class="flashcard-box" id="flashcard" onclick="flipCard()">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front" id="fc-front">
+                        <span class="highlight-target">${item.word}</span>
+                    </div>
+                    <div class="flashcard-back" id="fc-back">
+                        ${item.translation || item.meaning || ''}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="fc-eval-btns">
+                <button class="btn-main" style="background: #22c55e;" onclick="evaluateFlashcard(true)">✅ Bilaman</button>
+                <button class="btn-main btn-wrong" onclick="evaluateFlashcard(false)">❌ Bilmadim</button>
             </div>
 
-            <!-- 15 soniyalik timer progress bor -->
-            <div class="ww-fc-timer-bar-bg">
-                <div id="fcTimerBar" class="ww-fc-timer-bar-fill"></div>
-            </div>
-
-            <!-- So'z va Speaker -->
-            <div class="ww-fc-word-container">
-                <span class="ww-fc-word-text" id="fcWordText">${item.word}</span>
-                <button class="ww-fc-speaker-inline-btn" id="fcSpeakerBtn" onclick="speakWord('${escapedWord}')">
-                    <i class="fa-solid fa-volume-high"></i>
-                </button>
-            </div>
-
-            <!-- Pastki tugmalar: I don't know / I know -->
-            <div class="ww-fc-footer-bar">
-                <button class="ww-fc-dontknow-btn" onclick="handleFlashcardResult(false)">
-                    <i class="fa-solid fa-xmark"></i> I don't know
-                </button>
-                <button class="ww-fc-know-btn" onclick="handleFlashcardResult(true)">
-                    <i class="fa-solid fa-check"></i> I know
-                </button>
+            <div style="margin-top: 10px;">
+                <button class="btn-main" style="background: #0284c7;" onclick="speakCurrentFlashcardWord()">🔊 Qayta eshitish</button>
             </div>
         </div>
     `;
 
-    // Inglizcha avtomatik talaffuz qilish
-    if (typeof speakWord === 'function') {
-        speakWord(item.word);
+    // Statistika/Panelni yangilash (agar loyihangizda mavjud bo'lsa)
+    if (typeof updateWWStats === "function") {
+        updateWWStats();
     }
 
-    // 15 Soniyalik taymerni ishga tushirish
-    startQuestionTimer();
+    // Kartochka almashganida avtomobil/so'z talaffuzini chiqarish
+    setTimeout(() => {
+        speakCurrentFlashcardWord();
+    }, 200);
 }
 
-// Start tugmasi bosilganda
-function startFCGameWithPlayer() {
-    const input = document.getElementById("fcUserNameInput");
-    if (!input || !input.value.trim()) {
-        alert("Iltimos, ism va familiyangizni kiriting!");
-        return;
+// Kartani 3D aylantirish funksiyasi
+function flipCard() {
+    const card = document.getElementById('flashcard');
+    if (card) {
+        card.classList.toggle('flipped');
     }
-
-    fcPlayerName = input.value.trim();
-    fcGameStarted = true;
-    fcCorrectCount = 0;
-    fcWrongCount = 0;
-    fcUserHistory = [];
-    currentGameIndex = 0;
-    fcTotalSeconds = 0;
-
-    // Mavjud localGameData dan nusxa olib random qilamiz
-    if (typeof localGameData !== 'undefined' && localGameData.length > 0) {
-        fcShuffledData = [...localGameData].sort(() => Math.random() - 0.5);
-    } else {
-        fcShuffledData = [];
-    }
-
-    // Umumiy daqiqa/soniya taymerini boshlash
-    clearInterval(fcTotalInterval);
-    fcTotalInterval = setInterval(() => {
-        fcTotalSeconds++;
-        const timeEl = document.getElementById("fcTimeText");
-        if (timeEl) timeEl.innerText = formatFCTime(fcTotalSeconds);
-    }, 1000);
-
-    buildFlashcardGame();
 }
 
-// 15 soniyalik har bir savol taymeri
-function startQuestionTimer() {
-    clearInterval(fcQuestionInterval);
-    fcQuestionTimer = 15;
-    updateTimerBarUI();
-
-    fcQuestionInterval = setInterval(() => {
-        fcQuestionTimer--;
-        updateTimerBarUI();
-
-        if (fcQuestionTimer <= 0) {
-            clearInterval(fcQuestionInterval);
-            // Vaqt tugasa avtomatik xato javobga o'tadi
-            handleFlashcardResult(false, true);
+// So'zni ovozli o'qish funksiyasi
+function speakCurrentFlashcardWord() {
+    if (fcShuffledData[currentGameIndex] && fcShuffledData[currentGameIndex].word) {
+        if (typeof speakWord === "function") {
+            speakWord(fcShuffledData[currentGameIndex].word);
+        } else if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(fcShuffledData[currentGameIndex].word);
+            utterance.lang = 'en-US';
+            window.speechSynthesis.speak(utterance);
         }
-    }, 1000);
-}
-
-function updateTimerBarUI() {
-    const bar = document.getElementById("fcTimerBar");
-    if (bar) {
-        const percentage = (fcQuestionTimer / 15) * 100;
-        bar.style.width = percentage + "%";
-        bar.style.backgroundColor = fcQuestionTimer <= 5 ? "#e74c3c" : "#3498db";
     }
 }
 
-// Javob berilganda (To'g'ri / Xato)
-function handleFlashcardResult(isCorrect, isTimeout = false) {
-    clearInterval(fcQuestionInterval);
-
-    let currentItem = fcShuffledData[currentGameIndex];
-
+// "Bilaman" va "Bilmadim" tugmalarining mantiqiy ishlashi
+function evaluateFlashcard(isCorrect) {
     if (isCorrect) {
-        if (typeof playSoundEffect === 'function') playSoundEffect(true);
-        if (typeof gameScore !== 'undefined') gameScore += 1;
         fcCorrectCount++;
-        fcUserHistory.push({ word: currentItem.word, translation: currentItem.translation, correct: true });
+        if (typeof gameScore !== "undefined") gameScore++;
+        if (typeof playSoundEffect === "function") playSoundEffect(true);
     } else {
-        if (typeof playSoundEffect === 'function') playSoundEffect(false);
         fcWrongCount++;
-        fcUserHistory.push({ 
-            word: currentItem.word, 
-            translation: currentItem.translation, 
-            correct: false, 
-            reason: isTimeout ? 'Vaqt tugadi' : 'Xato' 
-        });
+        if (typeof playSoundEffect === "function") playSoundEffect(false);
     }
 
     currentGameIndex++;
     buildFlashcardGame();
 }
 
-// O'yin tugaganda natijalar oynasini chiqarish
+// O'yin tugaganda natijani ko'rsatish funksiyasi
 function finishFlashcardGame(playArea) {
-    clearInterval(fcTotalInterval);
-    clearInterval(fcQuestionInterval);
-
-    const total = fcShuffledData.length;
-    const percentage = total > 0 ? Math.round((fcCorrectCount / total) * 100) : 0;
-
     playArea.innerHTML = `
         <div class="ww-fc-card">
-            <div class="ww-fc-result-box">
-                <h3 style="margin:0; color:#2c3e50;">Natija</h3>
-                <p style="margin:4px 0; font-size:13px; font-weight:bold; color:#7f8c8d;">${fcPlayerName}</p>
-                
-                <div class="ww-fc-circle-score">${percentage}%</div>
-
-                <div class="ww-fc-stats-row">
-                    <span>To'g'ri: <b style="color:#2ecc71;">${fcCorrectCount}</b></span>
-                    <span>Xato: <b style="color:#e74c3c;">${fcWrongCount}</b></span>
-                    <span>Vaqt: <b>${formatFCTime(fcTotalSeconds)}</b></span>
-                </div>
-
-                <div style="display:flex; gap:8px;">
-                    <button class="ww-fc-action-main-btn" style="background:#34495e; box-shadow:0 3px 0 #2c3e50;" onclick="toggleFCDetails()">
-                        <i class="fa-solid fa-list"></i> Batafsil
-                    </button>
-                    <button class="ww-fc-action-main-btn" onclick="restartFCGame()">
-                        <i class="fa-solid fa-rotate-right"></i> Qayta
-                    </button>
-                </div>
-
-                <ul id="fcDetailsList" class="ww-fc-details-list" style="display:none;">
-                    ${fcUserHistory.map(item => `
-                        <li>
-                            <span><b>${item.word}</b> (${item.translation})</span>
-                            <span class="${item.correct ? 'fc-tag-correct' : 'fc-tag-wrong'}">
-                                ${item.correct ? 'To\'g'ri' : (item.reason || 'Xato')}
-                            </span>
-                        </li>
-                    `).join('')}
-                </ul>
+            <div class="ww-fc-start-box">
+                <h3 style="color:#2c3e50;">🎉 O'yin Yakunlandi!</h3>
+                <p><b>Ism:</b> ${fcPlayerName}</p>
+                <p style="color:#22c55e;"><b>To'g'ri (Bilaman):</b> ${fcCorrectCount}</p>
+                <p style="color:#ef4444;"><b>Noto'g'ri (Bilmadim):</b> ${fcWrongCount}</p>
+                <button class="ww-fc-start-btn" onclick="fcGameStarted = false; buildFlashcardGame();">
+                    🔄 Qayta boshlash
+                </button>
             </div>
         </div>
     `;
-}
-
-function toggleFCDetails() {
-    const list = document.getElementById("fcDetailsList");
-    if (list) {
-        list.style.display = list.style.display === "none" ? "block" : "none";
-    }
-}
-
-function restartFCGame() {
-    fcGameStarted = false;
-    buildFlashcardGame();
-}
-
-function formatFCTime(seconds) {
-    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
-    const secs = (seconds % 60).toString().padStart(2, '0');
-    return `${mins}:${secs}`;
 }
 </script>
 </body>
