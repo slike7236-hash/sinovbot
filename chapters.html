@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mavzular</title>
+    <link rel="stylesheet" href="chapters.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="navbar-chapters">
+        <a href="index.html" class="home-btn"><i class="fa-solid fa-house"></i></a>
+        <div class="book-title-zone" id="bookTitle">Yuklanmoqda...</div>
+    </div>
+
+    <div class="slider-wrapper">
+        <div class="slides-container" id="slidesContainer">
+            <div class="slide slide1">
+                <h2>O'rganishni boshlang!</h2>
+                <p>Har kuni 1 ta dars o'rganish sizni muvaffaqiyatga yetaklaydi.</p>
+            </div>
+            <div class="slide slide2">
+                <h2>Audio eshitishni unutmang</h2>
+                <p>To'g'ri talaffuz ingliz tilida eng muhim qismdir.</p>
+            </div>
+            <div class="slide slide3">
+                <h2>Yangi so'zlar xazinasi</h2>
+                <p>Ushbu kitob yordamida so'z boyligingiz 2 barobarga oshadi.</p>
+            </div>
+            <div class="slide slide4">
+                <h2>Premium Obuna faol</h2>
+                <p>Barcha imkoniyatlar siz uchun cheksiz ochilgan.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="chapters-container">
+        <div class="chapters-list" id="chaptersContainer"></div>
+    </div>
+
+    <div class="smart-footer-panel">
+        
+        <div class="footer-top-row">
+            <div class="widgets-left-side">
+                <span class="date-device"><i class="fa-regular fa-calendar"></i> <span id="liveDate">15.06.2026</span></span>
+                <span class="clock-device" id="digitalClock">00:00:00</span>
+            </div>
+            
+            <div class="pomodoro-integrated-box">
+                <div class="pmo-display-neon" id="pmoTime">25:00</div>
+                <div class="pmo-controls-row">
+                    <button class="pmo-btn-style start" onclick="startPomodoro()">Start</button>
+                    <button class="pmo-btn-style pause" onclick="pausePomodoro()">Pause</button>
+                    <button class="pmo-btn-style reset" onclick="resetPomodoro()">Reset</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-zone">
+            <div class="progress-text">Progress: <span id="progressValue">0/0 (0%)</span></div>
+            <div class="dots-container" id="dotsContainer"></div>
+        </div>
+
+    </div>
+<!-- Telegram WebApp SDK ulanishi (ID olish uchun shart) -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="users.js"></script> 
+
+<script>
+// 1. 180 ta unit uchun xatosiz aqlli baza + DEMO KITOB
+const booksDatabase = {
+    // 🎁 Tekin Demo Kitob
+    "demo": {
+        title: "🎁 Demo Kitob (Tekin Namuna)",
+        units: [
+            { id: 1, name: "Unit 1 (Book 1) - The Lion and the Rabbit" },
+            { id: 2, name: "Unit 1 (Book 2) - Demo Lesson" },
+            { id: 3, name: "Unit 1 (Book 3) - Demo Lesson" },
+            { id: 4, name: "Unit 1 (Book 4) - Demo Lesson" },
+            { id: 5, name: "Unit 1 (Book 5) - Demo Lesson" },
+            { id: 6, name: "Unit 1 (Book 6) - Demo Lesson" }
+        ]
+    },
+    "ess1": { title: "4000 Essential English Words 1", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess2": { title: "4000 Essential English Words 2", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess3": { title: "4000 Essential English Words 3", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess4": { title: "4000 Essential English Words 4", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess5": { title: "4000 Essential English Words 5", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) },
+    "ess6": { title: "4000 Essential English Words 6", units: Array.from({length: 30}, (_, i) => ({ id: i + 1, name: `Unit ${i + 1}` })) }
+};
+
+const urlParams = new URLSearchParams(window.location.search);
+const currentBookCode = urlParams.get('book') || "demo"; 
+
+let userProgressKey = `progress_${currentBookCode}`;
+if (!localStorage.getItem(userProgressKey)) {
+    localStorage.setItem(userProgressKey, 1);
+}
+let currentSavedLesson = parseInt(localStorage.getItem(userProgressKey)) || 1;
+
+// SAHIFANI YUKLASH FUNKSIYASI
+function initChaptersPage() {
+    const book = booksDatabase[currentBookCode];
+    if (!book) return;
+
+    document.getElementById("bookTitle").innerText = book.title;
+
+    const container = document.getElementById("chaptersContainer");
+    container.innerHTML = "";
+    
+    // Foydalanuvchi Telegram ID sini olish
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg) tg.expand();
+    const currentUserId = tg?.initDataUnsafe?.user?.id ? String(tg.initDataUnsafe.user.id) : "0";
+    
+    // Premium obuna borligini tekshirish
+    const userHasAccess = (typeof premiumUsers !== 'undefined' && premiumUsers[currentUserId] && premiumUsers[currentUserId].includes(currentBookCode));
+
+    book.units.forEach(unit => {
+        const card = document.createElement("a");
+        card.className = "chapter-card";
+
+        const isFreeUnit = (unit.id === 1);
+
+        if (isFreeUnit || userHasAccess) {
+            card.href = `training.html?book=${currentBookCode}&unit=${unit.id}`;
+            card.innerHTML = `
+                <div class="chapter-info">
+                    <div class="chapter-num">Mavzu ${unit.id} ${isFreeUnit && !userHasAccess ? '<span style="color:#2ecc71; font-size:12px; font-weight:bold;">(FREE DEMO)</span>' : ''}</div>
+                    <div class="chapter-name">${unit.name}</div>
+                </div>
+                <div class="chapter-icon"><i class="fa-solid fa-chevron-right"></i></div>
+            `;
+        } else {
+            card.href = "javascript:void(0);";
+            card.style.opacity = "0.6";
+            card.onclick = function() {
+                alert("Ushbu mavzuni o'rganish uchun kitobni sotib olishingiz kerak!");
+            };
+            card.innerHTML = `
+                <div class="chapter-info">
+                    <div class="chapter-num">Mavzu ${unit.id}</div>
+                    <div class="chapter-name">${unit.name}</div>
+                </div>
+                <div class="chapter-icon"><i class="fa-solid fa-lock" style="color: #e74c3c;"></i></div>
+            `;
+        }
+
+        container.appendChild(card);
+    });
+
+    const totalUnits = book.units.length;
+    let progressPercent = totalUnits > 0 ? Math.round((currentSavedLesson / totalUnits) * 100) : 0;
+    if (progressPercent > 100) progressPercent = 100;
+
+    document.getElementById("progressValue").innerText = `${currentSavedLesson}/${totalUnits} (${progressPercent}%)`;
+
+    const dotsContainer = document.getElementById("dotsContainer");
+    dotsContainer.innerHTML = "";
+    for (let i = 1; i <= totalUnits; i++) {
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        if (i <= currentSavedLesson) dot.classList.add("active");
+        dotsContainer.appendChild(dot);
+    }
+}
+// BANNER/SLIDER ALMASHISH FUNKSIYASI (TO'G'RILANGAN ISHONCHLI VARIANT)
+let currentSlide = 0;
+const realSlidesCount = 4; // Asosiy slaydlar soni
+
+// 1. Birinchi slayd nusxasini oxiriga qo'shish
+function setupInfiniteSlider() {
+    const container = document.getElementById("slidesContainer");
+    if (container && container.children.length === realSlidesCount) {
+        const firstSlideClone = container.children[0].cloneNode(true);
+        container.appendChild(firstSlideClone); // 5-slayd (klon) bo'lib qo'shiladi
+    }
+}
+
+// 2. Cheksiz tekis siljish funksiyasi
+function runAutoSlider() {
+    const container = document.getElementById("slidesContainer");
+    if (!container) return;
+
+    currentSlide++;
+
+    // Silliq surish
+    container.style.transition = "transform 0.5s ease-in-out";
+    container.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+    // Agar 5-chi (klonlangan) slaydga yetib kelgan bo'lsa
+    if (currentSlide === realSlidesCount) {
+        setTimeout(() => {
+            // Animatsiyani vaqtincha o'chiramiz
+            container.style.transition = "none";
+            currentSlide = 0;
+            container.style.transform = `translateX(0%)`;
+
+            // BRAUZERGA REFLOW BERING (Sakrashsiz darhol 0-slaydga qaytarish uchun):
+            void container.offsetHeight; 
+        }, 500); // 0.5s animatsiya tugagach bajariladi
+    }
+}
+    // SAHIFA YUKLANGANDA FUNKSIYANI CHAQIRISH (SHU QISM TUSHIB QOLGAN EDI)
+// JONLI SOAT VA SANA
+        function runLiveClockAndDate() {
+            const now = new Date();
+            let hrs = now.getHours().toString().padStart(2, '0');
+            let mins = now.getMinutes().toString().padStart(2, '0');
+            let secs = now.getSeconds().toString().padStart(2, '0');
+            
+            const clockEl = document.getElementById('digitalClock');
+            if (clockEl) clockEl.innerText = `${hrs}:${mins}:${secs}`;
+            
+            let day = now.getDate().toString().padStart(2, '0');
+            let month = (now.getMonth() + 1).toString().padStart(2, '0');
+            let year = now.getFullYear();
+            
+            const dateEl = document.getElementById('liveDate');
+            if (dateEl) dateEl.innerText = `${day}.${month}.${year}`;
+        }
+
+        // TAYMER (POMODORO) LOGIKASI
+        let pomodoroInterval = null;
+        let totalSeconds = 25 * 60;
+        let isRunning = false;
+
+        function updatePomodoroDisplay() {
+            let mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            let secs = (totalSeconds % 60).toString().padStart(2, '0');
+            const pmoEl = document.getElementById("pmoTime");
+            if (pmoEl) pmoEl.innerText = `${mins}:${secs}`;
+        }
+
+        function startPomodoro() {
+            if (isRunning) return;
+            isRunning = true;
+            pomodoroInterval = setInterval(() => {
+                if (totalSeconds > 0) {
+                    totalSeconds--;
+                    updatePomodoroDisplay();
+                } else {
+                    clearInterval(pomodoroInterval);
+                    isRunning = false;
+                    alert("Pomodoro tugadi! Biroz dam oling ☕");
+                    resetPomodoro();
+                }
+            }, 1000);
+        }
+
+        function pausePomodoro() {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
+        }
+
+        function resetPomodoro() {
+            clearInterval(pomodoroInterval);
+            isRunning = false;
+            totalSeconds = 25 * 60;
+            updatePomodoroDisplay();
+        }
+
+        // SAHIFANING ISHGA TUSHISHI (TAYMERLAR VA SOATNI KAFOLATLI ISHGATUSHIRISH)
+        document.addEventListener("DOMContentLoaded", function() {
+            initChaptersPage();
+            runLiveClockAndDate();
+            setInterval(runLiveClockAndDate, 1000); // Har sekundda soat yangilanadi
+            setInterval(runAutoSlider, 8000);
+            updatePomodoroDisplay();
+        });
+</script>
+</body>
+</html>
