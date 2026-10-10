@@ -3649,6 +3649,88 @@ ru: {
         keywordsList: [{"word": "amber", "translation": "янтарь"}, {"word": "charcoal", "translation": "древесный уголь, уголь"}, {"word": "columnist", "translation": "обозреватель, колумнист"}, {"word": "courteous", "translation": "учтивый, вежливый"}, {"word": "credentials", "translation": "рекомендации, верительные грамоты, удостоверение"}, {"word": "cricket", "translation": "сверчок"}, {"word": "delta", "translation": "дельта"}, {"word": "detergent", "translation": "моющее средство"}, {"word": "euphemism", "translation": "эвфемизм"}, {"word": "expire", "translation": "истекать (о сроке), терять силу"}, {"word": "granite", "translation": "гранит"}, {"word": "gravel", "translation": "гравий, щебень"}, {"word": "haunt", "translation": "преследовать (о мыслях, страхах)"}, {"word": "liberal", "translation": "либеральный, терпимый"}, {"word": "maze", "translation": "лабиринт"}, {"word": "moss", "translation": "мох"}, {"word": "pebble", "translation": "галька, камешек"}, {"word": "peck", "translation": "клевать"}, {"word": "reservoir", "translation": "водохранилище"}, {"word": "streak", "translation": "полоса, след"}],
         testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=ess6_30",
         games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
-    }
+    },
+        
+},
+    //EASY ENGLISH STARTER
+    "eway1_1": {
+    uz: {
+        title: "People & Family",
+        gamesTitle: "GAMELAR RO'YXATI",
+        textHtml: "<h3 style='text-align: center; color: #0b1d33; font-size: 22px; margin-top: 20px;'>You are not ready for this part yet!</h3>",
+        videoUrl: "https://www.youtube.com/embed/kS08A71vQcI",
+        keywordsList: [{ word: "person", translation: "odam" }, { word: "people", translation: "odamlar" }, { word: "man", translation: "erkak" }, { word: "woman", translation: "ayol" }, { word: "boy", translation: "o'g'il bola" }, { word: "girl", translation: "qiz bola" }, { word: "child", translation: "bola" }, { word: "baby", translation: "chaqaloq" }, { word: "father", translation: "ota" }, { word: "mother", translation: "ona" }, { word: "parent", translation: "ota-ona" }, { word: "son", translation: "o'g'il" }, { word: "daughter", translation: "qiz" }, { word: "brother", translation: "aka / uka" }, { word: "sister", translation: "opa / singil" }, { word: "family", translation: "oila" }],
+        testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=eway1_1",
+      games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+    },
+    ru: {
+        title: "People & Family",
+        gamesTitle: "СПИСОК ИГР",
+        textHtml: "<h3 style='text-align: center; color: #0b1d33; font-size: 22px; margin-top: 20px;'>You are not ready for this part yet!</h3>",
+        videoUrl: "https://www.youtube.com/embed/kS08A71vQcI",
+        keywordsList: [{ word: "person", translation: "человек" }, { word: "people", translation: "люди" }, { word: "man", translation: "мужчина" }, { word: "woman", translation: "женщина" }, { word: "boy", translation: "мальчик" }, { word: "girl", translation: "девочка" }, { word: "child", translation: "ребенок" }, { word: "baby", translation: "младенец" }, { word: "father", translation: "отец" }, { word: "mother", translation: "мать" }, { word: "parent", translation: "родитель" }, { word: "son", translation: "сын" }, { word: "daughter", translation: "дочь" }, { word: "brother", translation: "брат" }, { word: "sister", translation: "сестра" }, { word: "family", translation: "семья" }],
+        testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=eway1_1",
+        games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+    },
+},
+    "eway1_2": {
+    uz: {
+        title: "School & Classroom",
+        gamesTitle: "GAMELAR RO'YXATI",
+        textHtml: "<h3 style='text-align: center; color: #0b1d33; font-size: 22px; margin-top: 20px;'>You are not ready for this part yet!</h3>",
+        videoUrl: "https://www.youtube.com/embed/XBlOSNUGo9Q",
+        keywordsList: [{ word: "school", translation: "maktab" }, { word: "student", translation: "talaba" }, { word: "teacher", translation: "o'qituvchi" }, { word: "class", translation: "sinf" }, { word: "classroom", translation: "sinfxona" }, { word: "lesson", translation: "dars" }, { word: "book", translation: "kitob" }, { word: "notebook", translation: "daftar" }, { word: "pen", translation: "ruchka" }, { word: "pencil", translation: "qalam" }, { word: "eraser", translation: "o'chirg'ich" }, { word: "ruler", translation: "chizg'ich" }, { word: "desk", translation: "parta" }, { word: "chair", translation: "stul" }, { word: "board", translation: "doska" }, { word: "question", translation: "savol" }],
+        testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=eway1_2",
+         games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+    },
+    ru: {
+        title: "School & Classroom",
+        gamesTitle: "СПИСОК ИГР",
+        textHtml: "<h3 style='text-align: center; color: #0b1d33; font-size: 22px; margin-top: 20px;'>You are not ready for this part yet!</h3>",
+        videoUrl: "https://www.youtube.com/embed/XBlOSNUGo9Q",
+        keywordsList: [{ word: "school", translation: "школа" }, { word: "student", translation: "студент, ученик" }, { word: "teacher", translation: "учитель" }, { word: "class", translation: "класс" }, { word: "classroom", translation: "классная комната" }, { word: "lesson", translation: "урок" }, { word: "book", translation: "книга" }, { word: "notebook", translation: "тетрадь" }, { word: "pen", translation: "ручка" }, { word: "pencil", translation: "карандаш" }, { word: "eraser", translation: "ластик" }, { word: "ruler", translation: "линейка" }, { word: "desk", translation: "парта, письменный стол" }, { word: "chair", translation: "стул" }, { word: "board", translation: "доска" }, { word: "question", translation: "вопрос" }],
+        testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=eway1_2",
+       games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+    },
+},
+    "eway1_3": {
+    uz: {
+        title: "Everyday Objects",
+        gamesTitle: "GAMELAR RO'YXATI",
+        textHtml: "<h3 style='text-align: center; color: #0b1d33; font-size: 22px; margin-top: 20px;'>You are not ready for this part yet!</h3>",
+        videoUrl: "https://www.youtube.com/embed/9qp87ZhNzkM",
+        keywordsList: [{ word: "bag", translation: "sumka" }, { word: "box", translation: "quti" }, { word: "bottle", translation: "butilka" }, { word: "cup", translation: "piyola" }, { word: "glass", translation: "stakan" }, { word: "plate", translation: "likopcha" }, { word: "spoon", translation: "qoshiq" }, { word: "fork", translation: "sanchqi" }, { word: "knife", translation: "pichoq" }, { word: "phone", translation: "telefon" }, { word: "clock", translation: "soat" }, { word: "watch", translation: "qo'l soati" }, { word: "picture", translation: "rasm" }, { word: "paper", translation: "qog'oz" }, { word: "umbrella", translation: "soyabon" }, { word: "toy", translation: "o'yinchoq" }],
+        testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=eway1_3",
+       games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+    },
+    ru: {
+        title: "Everyday Objects",
+        gamesTitle: "СПИСОК ИГР",
+        textHtml: "<h3 style='text-align: center; color: #0b1d33; font-size: 22px; margin-top: 20px;'>You are not ready for this part yet!</h3>",
+        videoUrl: "https://www.youtube.com/embed/9qp87ZhNzkM",
+        keywordsList: [{ word: "bag", translation: "сумка" }, { word: "box", translation: "коробка" }, { word: "bottle", translation: "бутылка" }, { word: "cup", translation: "чашка" }, { word: "glass", translation: "стакан" }, { word: "plate", translation: "тарелка" }, { word: "spoon", translation: "ложка" }, { word: "fork", translation: "вилка" }, { word: "knife", translation: "нож" }, { word: "phone", translation: "телефон" }, { word: "clock", translation: "настенные часы" }, { word: "watch", translation: "наручные часы" }, { word: "picture", translation: "картина, рисунок" }, { word: "paper", translation: "бумага" }, { word: "umbrella", translation: "зонт" }, { word: "toy", translation: "игрушка" }],
+        testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=eway1_3",
+      games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+    },
+},
+    "eway1_4": {
+    uz: {
+        title: "Clothes",
+        gamesTitle: "GAMELAR RO'YXATI",
+        textHtml: "<h3 style='text-align: center; color: #0b1d33; font-size: 22px; margin-top: 20px;'>You are not ready for this part yet!</h3>",
+        videoUrl: "https://www.youtube.com/embed/XvMjzPAP3rg",
+        keywordsList: [{ word: "clothes", translation: "kiyimlar" }, { word: "shirt", translation: "ko'ylak" }, { word: "T-shirt", translation: "futbolka" }, { word: "dress", translation: "ko'ylak" }, { word: "skirt", translation: "yubka" }, { word: "trousers", translation: "shim" }, { word: "jeans", translation: "jinsi shim" }, { word: "jacket", translation: "kurtka" }, { word: "coat", translation: "palto" }, { word: "sweater", translation: "sviter" }, { word: "shoes", translation: "oyoq kiyim" }, { word: "socks", translation: "paypoq" }, { word: "hat", translation: "bosh kiyim" }, { word: "cap", translation: "kepka" }, { word: "scarf", translation: "sharf" }, { word: "pocket", translation: "cho'ntak" }],
+        testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=eway1_4",
+    games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+    },
+    ru: {
+        title: "Clothes",
+        gamesTitle: "СПИСОК ИГР",
+        textHtml: "<h3 style='text-align: center; color: #0b1d33; font-size: 22px; margin-top: 20px;'>You are not ready for this part yet!</h3>",
+        videoUrl: "https://www.youtube.com/embed/XvMjzPAP3rg",
+        keywordsList: [{ word: "clothes", translation: "одежда" }, { word: "shirt", translation: "рубашка" }, { word: "T-shirt", translation: "футболка" }, { word: "dress", translation: "платье" }, { word: "skirt", translation: "юбка" }, { word: "trousers", translation: "брюки, штаны" }, { word: "jeans", translation: "джинсы" }, { word: "jacket", translation: "куртка, пиджак" }, { word: "coat", translation: "пальто" }, { word: "sweater", translation: "свитер" }, { word: "shoes", translation: "обувь" }, { word: "socks", translation: "носки" }, { word: "hat", translation: "шляпа, шапка" }, { word: "cap", translation: "кепка" }, { word: "scarf", translation: "шарф" }, { word: "pocket", translation: "карман" }],
+        testUrl: "https://slike7236-hash.github.io/universal-quiz-server/?lesson=eway1_4",
+        games: { matchup: "...", anagrama: "...", typeanswer: "...", wordsearch: "...", pair: "..." }
+    },
 },
 };
