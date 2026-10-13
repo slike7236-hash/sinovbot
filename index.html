@@ -71,122 +71,85 @@
 
     <div class="user-badge" id="userInfo">Foydalanuvchi: Aniqlanmoqda...</div>
 
-    <div class="section-title" id="sec-title">— KITOBLAR RO'YXATI —</div>
-    
-    <div class="carousel-wrapper">
-        <button class="nav-btn prev" onclick="moveBooks(-1)"><i class="fa-solid fa-angle-left"></i></button>
-        <div class="books-slider" id="booksSlider">
-            
-           <div class="book-card">
-                <img src="eway1.jpg" class="book-img" alt="EASY WAY Starter">
-                <div class="book-title" id="t-book-17">EASY WAY: Starter</div>
-                <div class="book-price" id="p-price-17">💰 11,800 so'm/35 kun</div>
-                <button class="book-btn" id="btn-read-17">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess1.jpg" class="book-img" alt="Essential 1">
-                <div class="book-title" id="t-book-1">Essential English Words 1</div>
-                <div class="book-price" id="p-price-1">💰 18,000 so'm/3 oy</div>
-                <button class="book-btn" id="btn-read-1">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess2.jpg" class="book-img" alt="Essential 2">
-                <div class="book-title" id="t-book-2">Essential English Words 2</div>
-                <div class="book-price" id="p-price-2">💰 18,000 so'm/3 oy</div>
-                <button class="book-btn" id="btn-read-2">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess3.jpg" class="book-img" alt="Essential 3">
-                <div class="book-title" id="t-book-3">Essential English Words 3</div>
-                <div class="book-price" id="p-price-3">💰 18,000 so'm / 3 oy</div>
-                <button class="book-btn" id="btn-read-3">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess4.jpg" class="book-img" alt="Essential 4">
-                <div class="book-title" id="t-book-4">Essential English Words 4</div>
-                <div class="book-price" id="p-price-4">💰 18,000 so'm / 3 oy</div>
-                <button class="book-btn" id="btn-read-4">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess5.jpg" class="book-img" alt="Essential 5">
-                <div class="book-title" id="t-book-5">Essential English Words 5</div>
-                <div class="book-price" id="p-price-5">💰 18,000 so'm / 3 oy</div>
-                <button class="book-btn" id="btn-read-5">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess6.jpg" class="book-img" alt="Essential 6">
-                <div class="book-title" id="t-book-6">Essential English Words 6</div>
-                <div class="book-price" id="p-price-6">💰 18,000 so'm / 3 oy</div>
-                <button class="book-btn" id="btn-read-6">...</button>
-            </div>
+  <div class="section-title" id="sec-title">— KITOBLAR RO'YXATI —</div>
 
-            <div class="book-card" style="display: none;">
-                <img src="solel.jpg" class="book-img" alt="Solution El">
-                <div class="book-title" id="t-book-7">Solution Elementary</div>
-                <div class="book-price" id="p-price-7">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-7">...</button>
+    <!-- 1. EASY WAY KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">Easy Way Books</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('ewaySlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="ewaySlider">
+                <div class="book-card" style="width: 160px; flex-shrink: 0;">
+                    <img src="eway1.jpg" class="book-img" alt="EASY WAY Starter">
+                    <div class="book-title" id="t-book-17">EASY WAY: Starter</div>
+                    <div class="book-price" id="p-price-17">💰 11,800 so'm</div>
+                    <button class="book-btn" id="btn-read-17">...</button>
+                </div>
             </div>
-            <div class="book-card" style="display: none;">
-                <img src="solpre.jpg" class="book-img" alt="Solution Pre">
-                <div class="book-title" id="t-book-8">Solution Pre-Intermediate</div>
-                <div class="book-price" id="p-price-8">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-8">...</button>
-            </div>
-            <div class="book-card" style="display: none;">
-                <img src="solint.jpg" class="book-img" alt="Solution Int">
-                <div class="book-title" id="t-book-9">Solution Intermediate</div>
-                <div class="book-price" id="p-price-9">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-9">...</button>
-            </div>
-            <div class="book-card" style="display: none;">
-                <img src="solup.jpg" class="book-img" alt="Solution Upper">
-                <div class="book-title" id="t-book-10">Solution Upper-Intermediate</div>
-                <div class="book-price" id="p-price-10">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-10">...</button>
-            </div>
-            <div class="book-card" style="display: none;">
-                <img src="solad.jpg" class="book-img" alt="Solution Adv">
-                <div class="book-title" id="t-book-11">Solution Advanced</div>
-                <div class="book-price" id="p-price-11">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-11">...</button>
-            </div>
-
-            <div class="book-card">
-                <img src="read1.jpg" class="book-img" alt="Read 1">
-                <div class="book-title" id="t-book-12">Read & Understand 1</div>
-                <div class="book-price" id="p-price-12">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-12">...</button>
-            </div>
-            <div class="book-card">
-                <img src="read2.jpg" class="book-img" alt="Read 2">
-                <div class="book-title" id="t-book-13">Read & Understand 2</div>
-                <div class="book-price" id="p-price-13">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-13">...</button>
-            </div>
-            <div class="book-card">
-                <img src="read3.jpg" class="book-img" alt="Read 3">
-                <div class="book-title" id="t-book-14">Read & Understand 3</div>
-                <div class="book-price" id="p-price-14">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-14">...</button>
-            </div>
-            <div class="book-card">
-                <img src="read4.jpg" class="book-img" alt="Read 4">
-                <div class="book-title" id="t-book-15">Read & Understand 4</div>
-                <div class="book-price" id="p-price-15">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-15">...</button>
-            </div>
-
-            <div class="book-card">
-                <img src="ielt.jpg" class="book-img" alt="IELTS Voc">
-                <div class="book-title" id="t-book-16">Vocabulary for IELTS</div>
-                <div class="book-price" id="p-price-16">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-16">...</button>
-            </div>
-
+            <button class="cat-nav-btn next" onclick="moveCat('ewaySlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
         </div>
-        <button class="nav-btn next" onclick="moveBooks(1)"><i class="fa-solid fa-angle-right"></i></button>
     </div>
 
+    <!-- 2. ESSENTIAL ENGLISH WORDS KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">Essential English Words</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('essSlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="essSlider">
+                <!-- Ess 1-6 -->
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess1.jpg" class="book-img"><div class="book-title" id="t-book-1">Essential 1</div><div class="book-price" id="p-price-1">...</div><button class="book-btn" id="btn-read-1">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess2.jpg" class="book-img"><div class="book-title" id="t-book-2">Essential 2</div><div class="book-price" id="p-price-2">...</div><button class="book-btn" id="btn-read-2">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess3.jpg" class="book-img"><div class="book-title" id="t-book-3">Essential 3</div><div class="book-price" id="p-price-3">...</div><button class="book-btn" id="btn-read-3">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess4.jpg" class="book-img"><div class="book-title" id="t-book-4">Essential 4</div><div class="book-price" id="p-price-4">...</div><button class="book-btn" id="btn-read-4">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess5.jpg" class="book-img"><div class="book-title" id="t-book-5">Essential 5</div><div class="book-price" id="p-price-5">...</div><button class="book-btn" id="btn-read-5">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess6.jpg" class="book-img"><div class="book-title" id="t-book-6">Essential 6</div><div class="book-price" id="p-price-6">...</div><button class="book-btn" id="btn-read-6">...</button></div>
+            </div>
+            <button class="cat-nav-btn next" onclick="moveCat('essSlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
+        </div>
+    </div>
+
+    <!-- 3. SOLUTION BOOKS KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">Solution Books</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('solSlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="solSlider">
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="solel.jpg" class="book-img"><div class="book-title" id="t-book-7">Solution El</div><div class="book-price" id="p-price-7">...</div><button class="book-btn" id="btn-read-7">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="solpre.jpg" class="book-img"><div class="book-title" id="t-book-8">Solution Pre</div><div class="book-price" id="p-price-8">...</div><button class="book-btn" id="btn-read-8">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="solint.jpg" class="book-img"><div class="book-title" id="t-book-9">Solution Int</div><div class="book-price" id="p-price-9">...</div><button class="book-btn" id="btn-read-9">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="solup.jpg" class="book-img"><div class="book-title" id="t-book-10">Solution Up</div><div class="book-price" id="p-price-10">...</div><button class="book-btn" id="btn-read-10">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="solad.jpg" class="book-img"><div class="book-title" id="t-book-11">Solution Adv</div><div class="book-price" id="p-price-11">...</div><button class="book-btn" id="btn-read-11">...</button></div>
+            </div>
+            <button class="cat-nav-btn next" onclick="moveCat('solSlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
+        </div>
+    </div>
+
+    <!-- 4. READ AND UNDERSTAND KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">Read and Understand</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('readSlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="readSlider">
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="read1.jpg" class="book-img"><div class="book-title" id="t-book-12">Read 1</div><div class="book-price" id="p-price-12">...</div><button class="book-btn" id="btn-read-12">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="read2.jpg" class="book-img"><div class="book-title" id="t-book-13">Read 2</div><div class="book-price" id="p-price-13">...</div><button class="book-btn" id="btn-read-13">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="read3.jpg" class="book-img"><div class="book-title" id="t-book-14">Read 3</div><div class="book-price" id="p-price-14">...</div><button class="book-btn" id="btn-read-14">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="read4.jpg" class="book-img"><div class="book-title" id="t-book-15">Read 4</div><div class="book-price" id="p-price-15">...</div><button class="book-btn" id="btn-read-15">...</button></div>
+            </div>
+            <button class="cat-nav-btn next" onclick="moveCat('readSlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
+        </div>
+    </div>
+
+    <!-- 5. IELTS & EXAM VOCABULARIES KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">IELTS & Exam Vocabularies</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('ieltSlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="ieltSlider">
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ielt.jpg" class="book-img"><div class="book-title" id="t-book-16">Vocabulary for IELTS</div><div class="book-price" id="p-price-16">...</div><button class="book-btn" id="btn-read-16">...</button></div>
+            </div>
+            <button class="cat-nav-btn next" onclick="moveCat('ieltSlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
+        </div>
+    </div>
     <div class="payment-section">
         <div class="section-title" id="pay-title">— TO'LOV TIZIMLARI —</div>
         <div class="payment-grid">
@@ -448,6 +411,23 @@
             document.querySelector('.lang-select').value = savedLang;
             changeLanguage(savedLang);
         }
+
+        // Har bir kategoriya bo'yicha alohida surish funksiyasi
+const catPositions = {};
+function moveCat(sliderId, direction) {
+    if (!catPositions[sliderId]) catPositions[sliderId] = 0;
+    const slider = document.getElementById(sliderId);
+    if (!slider) return;
+
+    const cardWidth = 172; // Kartochkaning eni + gap (160 + 12)
+    const maxScroll = slider.scrollWidth - slider.parentElement.clientWidth + 70;
+
+    catPositions[sliderId] += direction * cardWidth;
+    if (catPositions[sliderId] < 0) catPositions[sliderId] = 0;
+    if (catPositions[sliderId] > maxScroll) catPositions[sliderId] = maxScroll;
+
+    slider.style.transform = `translateX(-${catPositions[sliderId]}px)`;
+}
     </script>
 <!-- index_2.html -->
 <script src="users.js"></script> <!-- Asosiy skriptlardan oldin ulaysiz -->
