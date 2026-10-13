@@ -412,22 +412,60 @@
             changeLanguage(savedLang);
         }
 
-        // Har bir kategoriya bo'yicha alohida surish funksiyasi
+      // Har bir kategoriya bo'yicha pozitsiyani saqlash
 const catPositions = {};
+
 function moveCat(sliderId, direction) {
     if (!catPositions[sliderId]) catPositions[sliderId] = 0;
     const slider = document.getElementById(sliderId);
     if (!slider) return;
 
-    const cardWidth = 172; // Kartochkaning eni + gap (160 + 12)
-    const maxScroll = slider.scrollWidth - slider.parentElement.clientWidth + 70;
+    const cardWidth = 162; // Kartochkaning eni (150) + gap (12)
+    const wrapper = slider.parentElement;
+    const maxScroll = slider.scrollWidth - wrapper.clientWidth + 20;
 
     catPositions[sliderId] += direction * cardWidth;
     if (catPositions[sliderId] < 0) catPositions[sliderId] = 0;
     if (catPositions[sliderId] > maxScroll) catPositions[sliderId] = maxScroll;
 
     slider.style.transform = `translateX(-${catPositions[sliderId]}px)`;
+    
+    // Tugmalar holatini yangilash
+    updateCatButtons(sliderId);
 }
+
+// Tugmalarning ko'rinishini boshqaruvchi aqlli funksiya
+function updateCatButtons(sliderId) {
+    const slider = document.getElementById(sliderId);
+    if (!slider) return;
+    const wrapper = slider.parentElement;
+    const prevBtn = wrapper.querySelector('.cat-nav-btn.prev');
+    const nextBtn = wrapper.querySelector('.cat-nav-btn.next');
+    
+    const currentPos = catPositions[sliderId] || 0;
+    const maxScroll = slider.scrollWidth - wrapper.clientWidth + 20;
+
+    // 1. Agar boshida (0-pozitsiyada) bo'lsa — chap (<) tugma BUTUNLAY YASHIRINADI
+    if (currentPos <= 2) {
+        if (prevBtn) prevBtn.style.display = 'none';
+    } else {
+        if (prevBtn) prevBtn.style.display = 'flex';
+    }
+
+    // 2. Agar oxiriga yetib kelgan bo'lsa — o'ng (>) tugma yashirinadi
+    if (currentPos >= maxScroll - 5 || maxScroll <= 10) {
+        if (nextBtn) nextBtn.style.display = 'none';
+    } else {
+        if (nextBtn) nextBtn.style.display = 'flex';
+    }
+}
+
+// Sahifa yuklanganda barcha kategoriyalar uchun tugmalarni to'g'rilab qo'yish
+document.addEventListener("DOMContentLoaded", function() {
+    ['ewaySlider', 'essSlider', 'solSlider', 'readSlider', 'ieltSlider'].forEach(id => {
+        updateCatButtons(id);
+    });
+});
     </script>
 <!-- index_2.html -->
 <script src="users.js"></script> <!-- Asosiy skriptlardan oldin ulaysiz -->
