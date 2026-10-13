@@ -412,7 +412,19 @@
             changeLanguage(savedLang);
         }
 
-      // Har bir kategoriya bo'yicha pozitsiyani saqlash
+      // 1. REKLAMA BANNERINI AVTOMATIK SURISH (ISHLAYDIGAN VARIANT)
+let currentHeroSlide = 0;
+setInterval(() => {
+    currentHeroSlide = (currentHeroSlide + 1) % 3;
+    const container = document.getElementById("sliderContainer");
+    if (container) {
+        // 33.333% bo'yicha suramiz
+        container.style.transform = `translateX(-${currentHeroSlide * 33.333}%)`;
+    }
+}, 4000); // Har 4 sekundda almashadi
+
+
+// 2. KATEGORIYA SURISH VA TUGMALARNI DYNAMIC YASHIRISH
 const catPositions = {};
 
 function moveCat(sliderId, direction) {
@@ -420,9 +432,9 @@ function moveCat(sliderId, direction) {
     const slider = document.getElementById(sliderId);
     if (!slider) return;
 
-    const cardWidth = 162; // Kartochkaning eni (150) + gap (12)
+    const cardWidth = 165; // Kartochka eni (155px) + oralig'i (10px)
     const wrapper = slider.parentElement;
-    const maxScroll = slider.scrollWidth - wrapper.clientWidth + 20;
+    const maxScroll = slider.scrollWidth - wrapper.clientWidth;
 
     catPositions[sliderId] += direction * cardWidth;
     if (catPositions[sliderId] < 0) catPositions[sliderId] = 0;
@@ -430,11 +442,9 @@ function moveCat(sliderId, direction) {
 
     slider.style.transform = `translateX(-${catPositions[sliderId]}px)`;
     
-    // Tugmalar holatini yangilash
     updateCatButtons(sliderId);
 }
 
-// Tugmalarning ko'rinishini boshqaruvchi aqlli funksiya
 function updateCatButtons(sliderId) {
     const slider = document.getElementById(sliderId);
     if (!slider) return;
@@ -443,28 +453,30 @@ function updateCatButtons(sliderId) {
     const nextBtn = wrapper.querySelector('.cat-nav-btn.next');
     
     const currentPos = catPositions[sliderId] || 0;
-    const maxScroll = slider.scrollWidth - wrapper.clientWidth + 20;
+    const maxScroll = slider.scrollWidth - wrapper.clientWidth;
 
-    // 1. Agar boshida (0-pozitsiyada) bo'lsa — chap (<) tugma BUTUNLAY YASHIRINADI
-    if (currentPos <= 2) {
+    // Birinchi kitobda (<) tugmasi yashirinadi
+    if (currentPos <= 5) {
         if (prevBtn) prevBtn.style.display = 'none';
     } else {
         if (prevBtn) prevBtn.style.display = 'flex';
     }
 
-    // 2. Agar oxiriga yetib kelgan bo'lsa — o'ng (>) tugma yashirinadi
-    if (currentPos >= maxScroll - 5 || maxScroll <= 10) {
+    // Sig'maydigan kitob yo'q bo'lsa yoki oxiriga yetsak (>) tugmasi yashirinadi
+    if (maxScroll <= 5 || currentPos >= maxScroll - 5) {
         if (nextBtn) nextBtn.style.display = 'none';
     } else {
         if (nextBtn) nextBtn.style.display = 'flex';
     }
 }
 
-// Sahifa yuklanganda barcha kategoriyalar uchun tugmalarni to'g'rilab qo'yish
+// Sahifa yuklanganda tugmalarni tekshirish
 document.addEventListener("DOMContentLoaded", function() {
-    ['ewaySlider', 'essSlider', 'solSlider', 'readSlider', 'ieltSlider'].forEach(id => {
-        updateCatButtons(id);
-    });
+    setTimeout(() => {
+        ['ewaySlider', 'essSlider', 'solSlider', 'readSlider', 'ieltSlider'].forEach(id => {
+            updateCatButtons(id);
+        });
+    }, 300);
 });
     </script>
 <!-- index_2.html -->
