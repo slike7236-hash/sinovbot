@@ -175,3 +175,12 @@ footer { background-color: var(--primary-color); color: white; text-align: cente
     .books-slider { justify-content: center; flex-wrap: wrap; }
     .book-card { margin: 15px; }
 }
+.book-img { 
+    width: 90px !important; 
+    height: 130px !important; 
+    margin: 0 auto 8px auto !important; 
+    display: block !important; 
+    border-radius: 4px !important; 
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.2) !important; 
+    object-fit: cover !important; 
+}
