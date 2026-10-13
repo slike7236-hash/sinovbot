@@ -80,14 +80,29 @@ body {
 
 /* REKLAMA BANNERI */
 .hero-wrapper {
-    width: 100%; overflow: hidden; position: relative;
+    width: 100%; 
+    overflow: hidden; 
+    position: relative;
     background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000') no-repeat center center/cover;
-    border-bottom: 3px solid var(--accent-color); z-index: 1;
+    border-bottom: 3px solid var(--accent-color); 
+    z-index: 1;
+    max-height: 140px; /* Banner balandligini cheklaymiz */
 }
-.slider-container { display: flex; width: 300%; transition: transform 0.8s ease-in-out; }
-.slide { width: 100vw; box-sizing: border-box; color: white; text-align: center; padding: 25px 15px; min-height: 110px; display: flex; flex-direction: column; justify-content: center; flex-shrink: 0; }
-.slide h1 { font-size: 18px; margin: 0 0 5px 0; font-weight: bold; }
-.slide p { font-size: 12px; color: #f1c40f; margin: 0; }
+
+.slide { 
+    width: 100vw; 
+    box-sizing: border-box; 
+    color: white; 
+    text-align: center; 
+    padding: 15px 15px; 
+    min-height: 90px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    flex-shrink: 0; 
+}
+.slide h1 { font-size: 16px; margin: 0 0 4px 0; font-weight: bold; }
+.slide p { font-size: 11px; color: #f1c40f; margin: 0; }
 
 /* BADGELAR */
 .user-badge { text-align: center; margin: 0; font-weight: bold; color: #2c3e50; font-size: 12px; background: #fff; padding: 8px; border-bottom: 1px solid #ddd; }
