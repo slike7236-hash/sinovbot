@@ -78,7 +78,7 @@ body {
 .sub-menu .menu-item { font-size: 13px; padding: 8px 20px; color: #555; }
 .menu-sep { height: 1px; border-top: 1px solid #edf0f2; margin: 10px 0; }
 
-/* REKLAMA BANNERI */
+/* REKLAMA BANNERI (TUZATILGAN) */
 .hero-wrapper {
     width: 100%; 
     overflow: hidden; 
@@ -86,16 +86,20 @@ body {
     background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?q=80&w=1000') no-repeat center center/cover;
     border-bottom: 3px solid var(--accent-color); 
     z-index: 1;
-    max-height: 140px; /* Banner balandligini cheklaymiz */
+    max-height: 140px;
 }
-
+.slider-container {
+    display: flex;
+    width: 300%;
+    transition: transform 0.6s ease-in-out;
+}
 .slide { 
-    width: 100vw; 
+    width: 33.333%; 
     box-sizing: border-box; 
     color: white; 
     text-align: center; 
-    padding: 15px 15px; 
-    min-height: 90px; 
+    padding: 15px 10px; 
+    min-height: 85px; 
     display: flex; 
     flex-direction: column; 
     justify-content: center; 
@@ -108,14 +112,15 @@ body {
 .user-badge { text-align: center; margin: 0; font-weight: bold; color: #2c3e50; font-size: 12px; background: #fff; padding: 8px; border-bottom: 1px solid #ddd; }
 .section-title { text-align: center; margin: 20px 0 10px 0; font-size: 16px; color: var(--primary-color); text-transform: uppercase; font-weight: bold; }
 
-/* ↔️ YONMA-YON KARUSEL TIZIMI */
-/* 🏷️ KATEGORIYA BO'LIMLARI UCHUN TOZA DIZAYN */
+/* 🏷️ KATEGORIYA BO'LIMLARI VA KARTALAR (IXCHAM VA TOZA) */
 .category-section {
-    margin: 15px 10px;
-    padding: 10px;
+    margin: 15px auto;
+    padding: 12px 8px;
     background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    max-width: 360px;
+    box-sizing: border-box;
 }
 .category-title {
     font-size: 14px;
@@ -127,57 +132,101 @@ body {
     text-transform: uppercase;
 }
 
-/* Karusel konteyneri - O'ng tarafdagi ortiqcha kitoblar ko'rinmaydigan qilib yopiladi */
+/* Karusel konteyneri */
 .cat-carousel-wrapper {
     position: relative;
     width: 100%;
-    max-width: 340px; /* Telefon ekraniga mos o'lcham */
-    margin: 0 auto;
-    overflow: hidden; /* MUHIM: Chetga chiqib ketgan kitoblarni yashiradi */
-    padding: 5px 30px;
+    overflow: hidden;
+    padding: 0;
     box-sizing: border-box;
 }
 .cat-books-slider {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     transition: transform 0.4s ease-out;
     width: max-content;
 }
 
-/* Kitob kartochkasi o'lchami */
+/* Kitob kartochkasi o'lchami (Besõnaqaylik yo'qotildi, optimal o'lchamda) */
 .book-card {
     background: #fdfbf7;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
-    width: 150px;
-    padding: 10px;
+    width: 155px;
+    padding: 8px 6px;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     box-sizing: border-box;
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
+
+.book-img { 
+    width: 85px !important; 
+    height: 120px !important; 
+    margin: 0 auto 6px auto !important; 
+    display: block !important; 
+    border-radius: 4px !important; 
+    box-shadow: 1px 2px 5px rgba(0,0,0,0.18) !important; 
+    object-fit: cover !important; 
+}
+.book-title { 
+    font-size: 12px !important; 
+    margin: 2px 0 !important; 
+    font-weight: bold; 
+    line-height: 1.2;
+    min-height: 28px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+.book-price { 
+    color: #27ae60; 
+    font-weight: bold; 
+    font-size: 11px !important; 
+    margin-bottom: 6px !important; 
+}
+.book-btn { 
+    display: block; 
+    color: white; 
+    padding: 6px 4px !important; 
+    text-decoration: none; 
+    border-radius: 4px; 
+    font-weight: bold; 
+    width: 100%; 
+    font-size: 11px !important;
+    box-sizing: border-box; 
+    border: none; 
+    cursor: pointer; 
+    transition: 0.2s; 
+    text-align: center;
+}
+.book-btn:active { transform: scale(0.97); }
 
 /* Navigatsiya tugmalari */
 .cat-nav-btn {
     position: absolute;
-    top: 45%;
+    top: 40%;
     transform: translateY(-50%);
-    background: rgba(11, 29, 51, 0.85);
+    background: rgba(11, 29, 51, 0.88);
     color: white;
     border: none;
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
     z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
-.cat-nav-btn.prev { left: 0px; }
-.cat-nav-btn.next { right: 0px; }
+.cat-nav-btn.prev { left: 2px; }
+.cat-nav-btn.next { right: 2px; }
+
 /* TO'LOV TIZIMLARI */
 .payment-grid { display: flex; justify-content: center; gap: 10px; margin: 10px auto; padding: 0 15px; max-width: 340px; }
 .payment-card { 
@@ -203,16 +252,5 @@ footer { background-color: var(--primary-color); color: white; text-align: cente
 
 @media (min-width: 768px) {
     .logo-marquee { font-size: 32px; } .slide h1 { font-size: 30px; }
-    .carousel-wrapper { max-width: 700px; } .nav-btn { display: none; }
-    .books-slider { justify-content: center; flex-wrap: wrap; }
-    .book-card { margin: 15px; }
-}
-.book-img { 
-    width: 90px !important; 
-    height: 130px !important; 
-    margin: 0 auto 8px auto !important; 
-    display: block !important; 
-    border-radius: 4px !important; 
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.2) !important; 
-    object-fit: cover !important; 
+    .category-section { max-width: 700px; }
 }
