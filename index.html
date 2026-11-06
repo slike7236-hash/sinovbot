@@ -52,6 +52,7 @@
         </div>
     </div>
 
+    <!-- REKLAMA BANNERI (Mukammal ishlaydigan slayd qismi) -->
     <div class="hero-wrapper">
         <div class="slider-container" id="sliderContainer">
             <div class="slide">
@@ -438,72 +439,92 @@
             changeLanguage(savedLang);
         }
 
-        // --- REKLAMA BANNER SCRIPT (To'g'rilangan va xatosiz ishlaydigan versiya) ---
+        // --- REKLAMA BANNER (Ishonchli va xatosiz cheksiz aylanish funksiyasi) ---
         (function initInfiniteHero() {
             function setup() {
                 var container = document.getElementById("sliderContainer");
-                if (!container || container.getAttribute("data-loop-ready") === "1") return;
+                if (!container || window.__myVocabHeroReady) return;
 
-                var originalSlides = [];
-                for (var i = 0; i < container.children.length; i++) {
-                    if (container.children[i].classList.contains("slide") && !container.children[i].classList.contains("slide-clone")) {
-                        originalSlides.push(container.children[i]);
-                    }
-                }
-                if (originalSlides.length < 2) return;
+                var slides = Array.prototype.filter.call(container.children, function (item) {
+                    return item.classList && item.classList.contains("slide") &&
+                           !item.classList.contains("slide-clone");
+                });
+                if (slides.length < 2) return;
 
-                var firstClone = originalSlides[0].cloneNode(true);
-                firstClone.classList.add("slide-clone");
-                firstClone.setAttribute("aria-hidden", "true");
-                var clonedIds = firstClone.querySelectorAll("[id]");
-                for (var j = 0; j < clonedIds.length; j++) clonedIds[j].removeAttribute("id");
-                container.appendChild(firstClone);
-                container.setAttribute("data-loop-ready", "1");
+                window.__myVocabHeroReady = true;
 
-                var totalSlidesCount = originalSlides.length + 1;
+                Array.prototype.forEach.call(container.querySelectorAll(".slide-clone"), function (node) {
+                    node.remove();
+                });
+
+                var clone = slides[0].cloneNode(true);
+                clone.classList.add("slide-clone");
+                clone.setAttribute("aria-hidden", "true");
+                Array.prototype.forEach.call(clone.querySelectorAll("[id]"), function (node) {
+                    node.removeAttribute("id");
+                });
+                container.appendChild(clone);
+
+                var total = slides.length + 1;
+                var step = 100 / total;
 
                 container.style.setProperty("display", "flex", "important");
-                container.style.setProperty("flex-wrap", "nowrap", "important");
-                container.style.setProperty("width", (totalSlidesCount * 100) + "%", "important");
+                container.style.setProperty("flex-flow", "row nowrap", "important");
+                container.style.setProperty("width", (total * 100) + "%", "important");
+                container.style.setProperty("margin", "0", "important");
+                container.style.setProperty("padding", "0", "important");
                 container.style.setProperty("transition", "transform 600ms ease-in-out", "important");
-                container.style.setProperty("transform", "translateX(0)", "important");
+                container.style.setProperty("transform", "translate3d(0,0,0)", "important");
+                container.style.setProperty("will-change", "transform", "important");
 
-                var allSlides = container.children;
-                for (var k = 0; k < allSlides.length; k++) {
-                    allSlides[k].style.setProperty("display", "flex", "important");
-                    allSlides[k].style.setProperty("flex", "0 0 " + (100 / totalSlidesCount) + "%", "important");
-                    allSlides[k].style.setProperty("width", (100 / totalSlidesCount) + "%", "important");
-                    allSlides[k].style.setProperty("min-width", (100 / totalSlidesCount) + "%", "important");
-                    allSlides[k].style.setProperty("box-sizing", "border-box", "important");
-                }
+                Array.prototype.forEach.call(container.children, function (slide) {
+                    slide.style.setProperty("display", "flex", "important");
+                    slide.style.setProperty("flex", "0 0 " + step + "%", "important");
+                    slide.style.setProperty("width", step + "%", "important");
+                    slide.style.setProperty("min-width", step + "%", "important");
+                    slide.style.setProperty("max-width", step + "%", "important");
+                    slide.style.setProperty("box-sizing", "border-box", "important");
+                });
 
                 var index = 0;
                 var timer = null;
+                var resetTimer = null;
                 var resetting = false;
 
-                container.addEventListener("transitionend", function (event) {
-                    if (event.target !== container || !resetting) return;
+                function resetToFirst() {
+                    if (!resetting) return;
+                    if (resetTimer) window.clearTimeout(resetTimer);
                     container.style.setProperty("transition", "none", "important");
-                    container.style.setProperty("transform", "translateX(0)", "important");
+                    container.style.setProperty("transform", "translate3d(0,0,0)", "important");
                     index = 0;
                     void container.offsetWidth;
                     container.style.setProperty("transition", "transform 600ms ease-in-out", "important");
                     resetting = false;
+                }
+
+                container.addEventListener("transitionend", function (event) {
+                    if (event.target !== container || !resetting || event.propertyName !== "transform") return;
+                    resetToFirst();
                 });
 
                 function advance() {
                     if (resetting) return;
-                    index++;
-                    var percentageStep = 100 / totalSlidesCount;
-                    container.style.setProperty("transform", "translateX(-" + (index * percentageStep) + "%)", "important");
-                    if (index === originalSlides.length) resetting = true;
+                    index += 1;
+                    container.style.setProperty(
+                        "transform",
+                        "translate3d(-" + (index * step) + "%,0,0)",
+                        "important"
+                    );
+                    if (index === slides.length) {
+                        resetting = true;
+                        resetTimer = window.setTimeout(resetToFirst, 850);
+                    }
                 }
 
                 function start() {
                     if (timer) window.clearInterval(timer);
-                    timer = window.setInterval(advance, 4000);
+                    if (!document.hidden) timer = window.setInterval(advance, 4000);
                 }
-
                 function stop() {
                     if (timer) window.clearInterval(timer);
                     timer = null;
@@ -513,12 +534,11 @@
                     if (document.hidden) stop();
                     else start();
                 });
-
                 start();
             }
 
             if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", setup);
+                document.addEventListener("DOMContentLoaded", setup, { once: true });
             } else {
                 setup();
             }
@@ -547,11 +567,13 @@
                 var showPrev = left > 3;
                 prev.style.setProperty('display', showPrev ? 'flex' : 'none', 'important');
                 prev.disabled = !showPrev;
+                prev.setAttribute('aria-hidden', showPrev ? 'false' : 'true');
             }
             if (next) {
                 var showNext = max > 3 && left < max - 3;
                 next.style.setProperty('display', showNext ? 'flex' : 'none', 'important');
                 next.disabled = !showNext;
+                next.setAttribute('aria-hidden', showNext ? 'false' : 'true');
             }
         }
 
@@ -570,3 +592,31 @@
         function refreshCategorySliders() {
             categorySliderIds.forEach(function (id) {
                 var data = getCategorySlider(id);
+                if (!data) return;
+                var slider = data.slider;
+                slider.addEventListener('scroll', function () { updateCatButtons(id); }, { passive: true });
+                updateCatButtons(id);
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', refreshCategorySliders);
+        } else {
+            refreshCategorySliders();
+        }
+        window.addEventListener('load', refreshCategorySliders);
+        window.addEventListener('resize', refreshCategorySliders);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeModal();
+                toggleSidebar(false);
+            }
+        });
+        document.getElementById('customModal').addEventListener('click', (event) => {
+            if (event.target.id === 'customModal') closeModal();
+        });
+    </script>
+    <script src="users.js"></script>
+</body>
+</html>
