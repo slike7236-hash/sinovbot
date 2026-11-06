@@ -71,7 +71,7 @@
 
     <div class="user-badge" id="userInfo">Foydalanuvchi: Aniqlanmoqda...</div>
 
-  <div class="section-title" id="sec-title">— KITOBLAR RO'YXATI —</div>
+    <div class="section-title" id="sec-title">— KITOBLAR RO'YXATI —</div>
 
     <!-- 1. EASY WAY KATEGORIYASI -->
     <div class="category-section">
@@ -96,7 +96,6 @@
         <div class="cat-carousel-wrapper">
             <button class="cat-nav-btn prev" onclick="moveCat('essSlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
             <div class="cat-books-slider" id="essSlider">
-                <!-- Ess 1-6 -->
                 <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess1.jpg" class="book-img"><div class="book-title" id="t-book-1">Essential 1</div><div class="book-price" id="p-price-1">...</div><button class="book-btn" id="btn-read-1">...</button></div>
                 <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess2.jpg" class="book-img"><div class="book-title" id="t-book-2">Essential 2</div><div class="book-price" id="p-price-2">...</div><button class="book-btn" id="btn-read-2">...</button></div>
                 <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess3.jpg" class="book-img"><div class="book-title" id="t-book-3">Essential 3</div><div class="book-price" id="p-price-3">...</div><button class="book-btn" id="btn-read-3">...</button></div>
@@ -108,36 +107,15 @@
         </div>
     </div>
 
-  <div class="book-card" style="display: none;">
-                <img src="solel.jpg" class="book-img" alt="Solution El">
-                <div class="book-title" id="t-book-7">Solution Elementary</div>
-                <div class="book-price" id="p-price-7">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-7">...</button>
-            </div>
-            <div class="book-card" style="display: none;">
-                <img src="solpre.jpg" class="book-img" alt="Solution Pre">
-                <div class="book-title" id="t-book-8">Solution Pre-Intermediate</div>
-                <div class="book-price" id="p-price-8">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-8">...</button>
-            </div>
-            <div class="book-card" style="display: none;">
-                <img src="solint.jpg" class="book-img" alt="Solution Int">
-                <div class="book-title" id="t-book-9">Solution Intermediate</div>
-                <div class="book-price" id="p-price-9">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-9">...</button>
-            </div>
-            <div class="book-card" style="display: none;">
-                <img src="solup.jpg" class="book-img" alt="Solution Upper">
-                <div class="book-title" id="t-book-10">Solution Upper-Intermediate</div>
-                <div class="book-price" id="p-price-10">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-10">...</button>
-            </div>
-            <div class="book-card" style="display: none;">
-                <img src="solad.jpg" class="book-img" alt="Solution Adv">
-                <div class="book-title" id="t-book-11">Solution Advanced</div>
-                <div class="book-price" id="p-price-11">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-11">...</button>
-            </div>
+    <!-- Yashirin Solution Books qismi -->
+    <div style="display: none;">
+        <div class="book-card"><img src="solel.jpg" class="book-img"><div class="book-title" id="t-book-7">Solution Elementary</div><div class="book-price" id="p-price-7">...</div><button class="book-btn" id="btn-read-7">...</button></div>
+        <div class="book-card"><img src="solpre.jpg" class="book-img"><div class="book-title" id="t-book-8">Solution Pre-Intermediate</div><div class="book-price" id="p-price-8">...</div><button class="book-btn" id="btn-read-8">...</button></div>
+        <div class="book-card"><img src="solint.jpg" class="book-img"><div class="book-title" id="t-book-9">Solution Intermediate</div><div class="book-price" id="p-price-9">...</div><button class="book-btn" id="btn-read-9">...</button></div>
+        <div class="book-card"><img src="solup.jpg" class="book-img"><div class="book-title" id="t-book-10">Solution Upper-Intermediate</div><div class="book-price" id="p-price-10">...</div><button class="book-btn" id="btn-read-10">...</button></div>
+        <div class="book-card"><img src="solad.jpg" class="book-img"><div class="book-title" id="t-book-11">Solution Advanced</div><div class="book-price" id="p-price-11">...</div><button class="book-btn" id="btn-read-11">...</button></div>
+    </div>
+
     <!-- 4. READ AND UNDERSTAND KATEGORIYASI -->
     <div class="category-section">
         <div class="category-title">Read and Understand</div>
@@ -164,6 +142,7 @@
             <button class="cat-nav-btn next" onclick="moveCat('ieltSlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
         </div>
     </div>
+
     <div class="payment-section">
         <div class="section-title" id="pay-title">— TO'LOV TIZIMLARI —</div>
         <div class="payment-grid">
@@ -195,8 +174,6 @@
     <script src="users.js"></script>
     <script>
         let currentLang = 'uz';
-        let currentBookIndex = 0;
-        const totalBooksCount = 17;
         let activeRedirectUrl = "";
 
         const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
@@ -212,24 +189,24 @@
         }
 
         const booksData = [
- { id: 17, code: "eway1", nameUz: "EASY WAY: Starter", nameEn: "EASY WAY: Starter", priceUz: "💰 11,800 so'm / 35 kun", priceEn: "💰 $ 1 / 35 days", path: "chapters.html?book=eway1", link: "https://t.me/Payment_managerbot?start=EASY_WAY_Starter" },
-    { id: 1, code: "ess1", nameUz: "Essential English Words 1", nameEn: "Essential English Words 1", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 month", path: "chapters.html?book=ess1", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_1" },
-    { id: 2, code: "ess2", nameUz: "Essential English Words 2", nameEn: "Essential English Words 2", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess2", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_2" },
-    { id: 3, code: "ess3", nameUz: "Essential English Words 3", nameEn: "Essential English Words 3", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess3", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_3" },
-    { id: 4, code: "ess4", nameUz: "Essential English Words 4", nameEn: "Essential English Words 4", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess4", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_4" },
-    { id: 5, code: "ess5", nameUz: "Essential English Words 5", nameEn: "Essential English Words 5", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess5", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_5" },
-    { id: 6, code: "ess6", nameUz: "Essential English Words 6", nameEn: "Essential English Words 6", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess6", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_6" },
-    { id: 7, code: "solel", nameUz: "Solution Elementary", nameEn: "Solution Elementary", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.5", path: "chapters.html?book=solel", link: "https://t.me/Payment_managerbot?start=Solution_Elementary" },
-    { id: 8, code: "solpre", nameUz: "Solution Pre-Intermediate", nameEn: "Solution Pre-Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solpre", link: "https://t.me/Payment_managerbot?start=Solution_Pre_Intermediate" },
-    { id: 9, code: "solint", nameUz: "Solution Intermediate", nameEn: "Solution Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solint", link: "https://t.me/Payment_managerbot?start=Solution_Intermediate" },
-    { id: 10, code: "solup", nameUz: "Solution Upper-Intermediate", nameEn: "Solution Upper-Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solup", link: "https://t.me/Payment_managerbot?start=Solution_Upper_Intermediate" },
-    { id: 11, code: "solad", nameUz: "Solution Advanced", nameEn: "Solution Advanced", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solad", link: "https://t.me/Payment_managerbot?start=Solution_Advanced" },
-    { id: 12, code: "read1", status: "soon", nameUz: "Read & Understand 1", nameEn: "Read & Understand 1", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=read1", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_1" },
-    { id: 13, code: "read2", status: "soon",nameUz: "Read & Understand 2", nameEn: "Read & Understand 2", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=read2", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_2" },
-    { id: 14, code: "read3", status: "soon",nameUz: "Read & Understand 3", nameEn: "Read & Understand 3", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=read3", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_3" },
-    { id: 15, code: "read4", status: "soon",nameUz: "Read & Understand 4", nameEn: "Read & Understand 4", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=read4", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_4" },
-    { id: 16, code: "ielt", status: "soon",nameUz: "Vocabulary for IELTS", nameEn: "Vocabulary for IELTS", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=ielt", link: "https://t.me/Payment_managerbot?start=Vocabulary_for_IELTS" }
-];
+            { id: 17, code: "eway1", nameUz: "EASY WAY: Starter", nameEn: "EASY WAY: Starter", priceUz: "💰 11,800 so'm / 35 kun", priceEn: "💰 $ 1 / 35 days", path: "chapters.html?book=eway1", link: "https://t.me/Payment_managerbot?start=EASY_WAY_Starter" },
+            { id: 1, code: "ess1", nameUz: "Essential English Words 1", nameEn: "Essential English Words 1", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 month", path: "chapters.html?book=ess1", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_1" },
+            { id: 2, code: "ess2", nameUz: "Essential English Words 2", nameEn: "Essential English Words 2", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess2", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_2" },
+            { id: 3, code: "ess3", nameUz: "Essential English Words 3", nameEn: "Essential English Words 3", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess3", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_3" },
+            { id: 4, code: "ess4", nameUz: "Essential English Words 4", nameEn: "Essential English Words 4", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess4", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_4" },
+            { id: 5, code: "ess5", nameUz: "Essential English Words 5", nameEn: "Essential English Words 5", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess5", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_5" },
+            { id: 6, code: "ess6", nameUz: "Essential English Words 6", nameEn: "Essential English Words 6", priceUz: "💰 11,800 so'm / 3 oy", priceEn: "💰 $ 1 / 3 months", path: "chapters.html?book=ess6", link: "https://t.me/Payment_managerbot?start=Essential_English_Words_6" },
+            { id: 7, code: "solel", nameUz: "Solution Elementary", nameEn: "Solution Elementary", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.5", path: "chapters.html?book=solel", link: "https://t.me/Payment_managerbot?start=Solution_Elementary" },
+            { id: 8, code: "solpre", nameUz: "Solution Pre-Intermediate", nameEn: "Solution Pre-Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solpre", link: "https://t.me/Payment_managerbot?start=Solution_Pre_Intermediate" },
+            { id: 9, code: "solint", nameUz: "Solution Intermediate", nameEn: "Solution Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solint", link: "https://t.me/Payment_managerbot?start=Solution_Intermediate" },
+            { id: 10, code: "solup", nameUz: "Solution Upper-Intermediate", nameEn: "Solution Upper-Intermediate", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solup", link: "https://t.me/Payment_managerbot?start=Solution_Upper_Intermediate" },
+            { id: 11, code: "solad", nameUz: "Solution Advanced", nameEn: "Solution Advanced", priceUz: "💰 25,000 so'm", priceEn: "💰 $ 2.0", path: "chapters.html?book=solad", link: "https://t.me/Payment_managerbot?start=Solution_Advanced" },
+            { id: 12, code: "read1", status: "soon", nameUz: "Read & Understand 1", nameEn: "Read & Understand 1", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=read1", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_1" },
+            { id: 13, code: "read2", status: "soon", nameUz: "Read & Understand 2", nameEn: "Read & Understand 2", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=read2", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_2" },
+            { id: 14, code: "read3", status: "soon", nameUz: "Read & Understand 3", nameEn: "Read & Understand 3", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=read3", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_3" },
+            { id: 15, code: "read4", status: "soon", nameUz: "Read & Understand 4", nameEn: "Read & Understand 4", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=read4", link: "https://t.me/Payment_managerbot?start=Read_And_Understand_4" },
+            { id: 16, code: "ielt", status: "soon", nameUz: "Vocabulary for IELTS", nameEn: "Vocabulary for IELTS", priceUz: "💰 0 so'm", priceEn: "💰 $ 0", path: "chapters.html?book=ielt", link: "https://t.me/Payment_managerbot?start=Vocabulary_for_IELTS" }
+        ];
 
         function toggleSidebar(open) {
             const sidebar = document.getElementById("sidebarMenu");
@@ -249,7 +226,7 @@
             };
             const sliderId = categoryMap[index];
             if (!sliderId) {
-                document.getElementById('modalTitle').innerText = currentLang === 'uz' ? 'Solution Books' : 'Solution Books';
+                document.getElementById('modalTitle').innerText = 'Solution Books';
                 document.getElementById('modalDesc').innerText = currentLang === 'uz'
                     ? 'Bu kategoriya hozircha asosiy sahifada ko‘rsatilmagan.'
                     : 'This category is not currently displayed on the homepage.';
@@ -266,14 +243,11 @@
             }
         }
 
-        // users.js dagi premiumUsers ma’lumotini window yoki global lexical scope’dan oladi.
-        // Bu usul const/let bilan e’lon qilingan premiumUsers uchun ham ishlaydi.
         function getPremiumUsersData() {
             try {
                 if (typeof premiumUsers !== "undefined" && premiumUsers) return premiumUsers;
-            } catch (error) { /* global data hali yuklanmagan bo‘lishi mumkin */ }
-            return (window.premiumUsers && typeof window.premiumUsers === "object")
-                ? window.premiumUsers : {};
+            } catch (error) {}
+            return (window.premiumUsers && typeof window.premiumUsers === "object") ? window.premiumUsers : {};
         }
 
         function getCurrentUserBooks() {
@@ -281,7 +255,6 @@
             const key = String(userId || "");
             const record = database[key] ?? database[userId];
             if (Array.isArray(record)) return record.map(item => String(item).trim());
-            // Ayrim users.js formatlarida kitoblar { books: [...] } ichida saqlanishi mumkin.
             if (record && Array.isArray(record.books)) return record.books.map(item => String(item).trim());
             return [];
         }
@@ -327,75 +300,64 @@
             document.getElementById("customModal").style.display = "flex";
         }
 
-     function checkBookAccess() {
-    booksData.forEach(book => {
-        const btn = document.getElementById(`btn-read-${book.id}`);
-        const priceLabel = document.getElementById(`p-price-${book.id}`);
-        const titleLabel = document.getElementById(`t-book-${book.id}`);
-        
-        if (titleLabel) titleLabel.innerText = currentLang === 'uz' ? book.nameUz : book.nameEn;
-        if (priceLabel) priceLabel.innerText = currentLang === 'uz' ? book.priceUz : book.priceEn;
-        if (!btn) return;
+        function checkBookAccess() {
+            booksData.forEach(book => {
+                const btn = document.getElementById(`btn-read-${book.id}`);
+                const priceLabel = document.getElementById(`p-price-${book.id}`);
+                const titleLabel = document.getElementById(`t-book-${book.id}`);
+                
+                if (titleLabel) titleLabel.innerText = currentLang === 'uz' ? book.nameUz : book.nameEn;
+                if (priceLabel) priceLabel.innerText = currentLang === 'uz' ? book.priceUz : book.priceEn;
+                if (!btn) return;
 
-        // 1. Foydalanuvchi ushbu kitobni sotib olganligini aniqlaymiz
-        const userBooks = getCurrentUserBooks();
-        const isPurchased = userBooks.includes(String(book.code));
+                const userBooks = getCurrentUserBooks();
+                const isPurchased = userBooks.includes(String(book.code));
 
-        const demoBooks = ["ess1",  "read1", "ielt", "eway1"];
-        let parentCard = btn.parentElement;
-        let demoBtn = parentCard.querySelector('.demo-btn-free');
+                const demoBooks = ["ess1", "read1", "ielt", "eway1"];
+                let parentCard = btn.parentElement;
+                let demoBtn = parentCard.querySelector('.demo-btn-free');
 
-        // 2. AGAR KITOB SOTIB OLINGAN BO'LSA YOKI STATUSI "SOON" BO'LSA — DEMO TUGMANI YO'QOTAMIZ
-        if (isPurchased || book.status === "soon") {
-            if (demoBtn) {
-                demoBtn.remove(); // Mavjud bo'lsa, sirtdan o'chirib tashlaymiz
-            }
-        } 
-        // 3. AGAR SOTIB OLINMAGAN BO'LSA VA DEMO RO'YXATIDA BO'LSA — DEMO TUGMANI YARATAMIZ
-        else if (demoBooks.includes(book.code) && !demoBtn) {
-            demoBtn = document.createElement('button');
-            demoBtn.className = 'book-btn demo-btn-free';
-            demoBtn.style.marginTop = "5px";
-            demoBtn.style.backgroundColor = "#2bc48a";
-            demoBtn.style.color = "#ffffff";
-            demoBtn.innerText = currentLang === 'uz' ? "Demo (Unit 1 Bepul) 🎁" : "Demo (Unit 1 Free) 🎁";
-            demoBtn.onclick = function() {
-                window.location.href = `training.html?book=${book.code}&unit=1`;
-            };
-            parentCard.appendChild(demoBtn);
+                if (isPurchased || book.status === "soon") {
+                    if (demoBtn) demoBtn.remove();
+                } else if (demoBooks.includes(book.code) && !demoBtn) {
+                    demoBtn = document.createElement('button');
+                    demoBtn.className = 'book-btn demo-btn-free';
+                    demoBtn.style.marginTop = "5px";
+                    demoBtn.style.backgroundColor = "#2bc48a";
+                    demoBtn.style.color = "#ffffff";
+                    demoBtn.innerText = currentLang === 'uz' ? "Demo (Unit 1 Bepul) 🎁" : "Demo (Unit 1 Free) 🎁";
+                    demoBtn.onclick = function() {
+                        window.location.href = `training.html?book=${book.code}&unit=1`;
+                    };
+                    parentCard.appendChild(demoBtn);
+                }
+
+                if (book.status === "soon") {
+                    btn.onclick = null;
+                    btn.disabled = true;
+                    btn.style.backgroundColor = "#7f8c8d";
+                    btn.style.cursor = "not-allowed";
+                    btn.innerText = currentLang === 'uz' ? "Tez orada... ⏳" : "Coming Soon... ⏳";
+                } else if (isPurchased) {
+                    btn.onclick = function() { window.location.href = book.path; };
+                    btn.disabled = false;
+                    btn.style.cursor = "pointer";
+                    btn.style.backgroundColor = "#27ae60"; 
+                    btn.innerText = currentLang === 'uz' ? "O'qishni boshlash ➔" : "Start Reading ➔";
+                } else {
+                    btn.onclick = function() { 
+                        const selectedPrice = currentLang === 'uz' ? book.priceUz : book.priceEn;
+                        openBookModal(currentLang === 'uz' ? book.nameUz : book.nameEn, selectedPrice, book.link); 
+                    };
+                    btn.disabled = false;
+                    btn.style.cursor = "pointer";
+                    btn.style.backgroundColor = "#e74c3c"; 
+                    btn.innerText = currentLang === 'uz' ? "Sotib olish 🛒" : "Buy 🛒";
+                }
+            });
         }
 
-        // --- ASOSIY TUGMA HOLLATLARI ---
-
-        // A) TEZ ORADA CHIQADIGAN KITOBLAR UCHUN
-        if (book.status === "soon") {
-            btn.onclick = null;
-            btn.disabled = true;
-            btn.style.backgroundColor = "#7f8c8d";
-            btn.style.cursor = "not-allowed";
-            btn.innerText = currentLang === 'uz' ? "Tez orada... ⏳" : "Coming Soon... ⏳";
-        }
-        // B) SOTIB OLINGAN KITOBLAR UCHUN (Faqat yashil "O'qishni boshlash" tugmasi ko'rinadi)
-        else if (isPurchased) {
-            btn.onclick = function() { window.location.href = book.path; };
-            btn.disabled = false;
-            btn.style.cursor = "pointer";
-            btn.style.backgroundColor = "#27ae60"; 
-            btn.innerText = currentLang === 'uz' ? "O'qishni boshlash ➔" : "Start Reading ➔";
-        } 
-        // C) SOTIB OLINMAGAN KITOBLAR UCHUN (Qizil "Sotib olish" va Demo tugmasi birga turadi)
-        else {
-            btn.onclick = function() { 
-                const selectedPrice = currentLang === 'uz' ? book.priceUz : book.priceEn;
-                openBookModal(currentLang === 'uz' ? book.nameUz : book.nameEn, selectedPrice, book.link); 
-            };
-            btn.disabled = false;
-            btn.style.cursor = "pointer";
-            btn.style.backgroundColor = "#e74c3c"; 
-            btn.innerText = currentLang === 'uz' ? "Sotib olish 🛒" : "Buy 🛒";
-        }
-    });
-}        function triggerTelegramLink() {
+        function triggerTelegramLink() {
             if (activeRedirectUrl) {
                 if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openTelegramLink) {
                     window.Telegram.WebApp.openTelegramLink(activeRedirectUrl);
@@ -407,15 +369,15 @@
         }
 
         function openBookModal(name, price, link) {
-    activeRedirectUrl = link;
-    document.getElementById("modalTitle").innerText = currentLang === 'uz' ? "Sotib olish" : "Purchase";
-    document.getElementById("modalDesc").innerText = currentLang === 'uz' ? 
-        `Siz "${name}" darsligini tanladingiz.\nNarxi: ${price}.\n\nKitobni faollashtirish uchun rasmiy botimizga o'ting va to'lov chekini yuboring.` :
-        `You selected "${name}".\nPrice: ${price}.\n\nTo activate this book, please go to our official bot and send the payment receipt.`;
-    document.getElementById("modalRedirectLink").innerText = currentLang === 'uz' ? "Botga o'tish ➔" : "Go to Bot ➔";
-    document.getElementById("modalRedirectLink").style.display = "block";
-    document.getElementById("customModal").style.display = "flex";
-}
+            activeRedirectUrl = link;
+            document.getElementById("modalTitle").innerText = currentLang === 'uz' ? "Sotib olish" : "Purchase";
+            document.getElementById("modalDesc").innerText = currentLang === 'uz' ? 
+                `Siz "${name}" darsligini tanladingiz.\nNarxi: ${price}.\n\nKitobni faollashtirish uchun rasmiy botimizga o'ting va to'lov chekini yuboring.` :
+                `You selected "${name}".\nPrice: ${price}.\n\nTo activate this book, please go to our official bot and send the payment receipt.`;
+            document.getElementById("modalRedirectLink").innerText = currentLang === 'uz' ? "Botga o'tish ➔" : "Go to Bot ➔";
+            document.getElementById("modalRedirectLink").style.display = "block";
+            document.getElementById("customModal").style.display = "flex";
+        }
 
         function openPaymentModal(title, text, link) {
             activeRedirectUrl = link;
@@ -465,10 +427,9 @@
                 const element = document.getElementById(key);
                 if (element) element.innerText = translations[lang][key];
             }
-            try { localStorage.setItem('selectedLang', lang); } catch (e) { /* storage may be blocked */ }
+            try { localStorage.setItem('selectedLang', lang); } catch (e) {}
             checkBookAccess();
         }
-
 
         window.onload = function() {
             let savedLang = 'uz';
@@ -477,174 +438,135 @@
             changeLanguage(savedLang);
         }
 
-      // 1. REKLAMA BANNER: ishonchli, uzluksiz 1 -> 2 -> 3 -> 1.
-// 1. REKLAMA BANNER: uchta slayd + bitta texnik klon, cheksiz aylanish.
-// 1. REKLAMA BANNER: ishonchli va xatosiz cheksiz karusel
-(function initInfiniteHero() {
-    function setup() {
-        var container = document.getElementById("sliderContainer");
-        if (!container || container.getAttribute("data-loop-ready") === "1") return;
+        // --- REKLAMA BANNER SCRIPT (To'g'rilangan va xatosiz ishlaydigan versiya) ---
+        (function initInfiniteHero() {
+            function setup() {
+                var container = document.getElementById("sliderContainer");
+                if (!container || container.getAttribute("data-loop-ready") === "1") return;
 
-        var originalSlides = [];
-        for (var i = 0; i < container.children.length; i++) {
-            if (container.children[i].classList.contains("slide") && !container.children[i].classList.contains("slide-clone")) {
-                originalSlides.push(container.children[i]);
+                var originalSlides = [];
+                for (var i = 0; i < container.children.length; i++) {
+                    if (container.children[i].classList.contains("slide") && !container.children[i].classList.contains("slide-clone")) {
+                        originalSlides.push(container.children[i]);
+                    }
+                }
+                if (originalSlides.length < 2) return;
+
+                var firstClone = originalSlides[0].cloneNode(true);
+                firstClone.classList.add("slide-clone");
+                firstClone.setAttribute("aria-hidden", "true");
+                var clonedIds = firstClone.querySelectorAll("[id]");
+                for (var j = 0; j < clonedIds.length; j++) clonedIds[j].removeAttribute("id");
+                container.appendChild(firstClone);
+                container.setAttribute("data-loop-ready", "1");
+
+                var totalSlidesCount = originalSlides.length + 1;
+
+                container.style.setProperty("display", "flex", "important");
+                container.style.setProperty("flex-wrap", "nowrap", "important");
+                container.style.setProperty("width", (totalSlidesCount * 100) + "%", "important");
+                container.style.setProperty("transition", "transform 600ms ease-in-out", "important");
+                container.style.setProperty("transform", "translateX(0)", "important");
+
+                var allSlides = container.children;
+                for (var k = 0; k < allSlides.length; k++) {
+                    allSlides[k].style.setProperty("display", "flex", "important");
+                    allSlides[k].style.setProperty("flex", "0 0 " + (100 / totalSlidesCount) + "%", "important");
+                    allSlides[k].style.setProperty("width", (100 / totalSlidesCount) + "%", "important");
+                    allSlides[k].style.setProperty("min-width", (100 / totalSlidesCount) + "%", "important");
+                    allSlides[k].style.setProperty("box-sizing", "border-box", "important");
+                }
+
+                var index = 0;
+                var timer = null;
+                var resetting = false;
+
+                container.addEventListener("transitionend", function (event) {
+                    if (event.target !== container || !resetting) return;
+                    container.style.setProperty("transition", "none", "important");
+                    container.style.setProperty("transform", "translateX(0)", "important");
+                    index = 0;
+                    void container.offsetWidth;
+                    container.style.setProperty("transition", "transform 600ms ease-in-out", "important");
+                    resetting = false;
+                });
+
+                function advance() {
+                    if (resetting) return;
+                    index++;
+                    var percentageStep = 100 / totalSlidesCount;
+                    container.style.setProperty("transform", "translateX(-" + (index * percentageStep) + "%)", "important");
+                    if (index === originalSlides.length) resetting = true;
+                }
+
+                function start() {
+                    if (timer) window.clearInterval(timer);
+                    timer = window.setInterval(advance, 4000);
+                }
+
+                function stop() {
+                    if (timer) window.clearInterval(timer);
+                    timer = null;
+                }
+
+                document.addEventListener("visibilitychange", function () {
+                    if (document.hidden) stop();
+                    else start();
+                });
+
+                start();
+            }
+
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", setup);
+            } else {
+                setup();
+            }
+        })();
+
+        // --- KATEGORIYA KARUSELLARI ---
+        var categorySliderIds = ['ewaySlider', 'essSlider', 'readSlider', 'ieltSlider'];
+
+        function getCategorySlider(sliderId) {
+            var slider = document.getElementById(sliderId);
+            if (!slider) return null;
+            return { slider: slider, wrapper: slider.parentElement };
+        }
+
+        function updateCatButtons(sliderId) {
+            var data = getCategorySlider(sliderId);
+            if (!data) return;
+            var slider = data.slider;
+            var wrapper = data.wrapper;
+            var prev = wrapper.querySelector('.cat-nav-btn.prev');
+            var next = wrapper.querySelector('.cat-nav-btn.next');
+            var max = Math.max(0, slider.scrollWidth - slider.clientWidth);
+            var left = slider.scrollLeft;
+
+            if (prev) {
+                var showPrev = left > 3;
+                prev.style.setProperty('display', showPrev ? 'flex' : 'none', 'important');
+                prev.disabled = !showPrev;
+            }
+            if (next) {
+                var showNext = max > 3 && left < max - 3;
+                next.style.setProperty('display', showNext ? 'flex' : 'none', 'important');
+                next.disabled = !showNext;
             }
         }
-        if (originalSlides.length < 2) return;
 
-        // Birinchi slaydni oxiriga cheksiz aylanish uchun klonlab qo'shamiz
-        var firstClone = originalSlides[0].cloneNode(true);
-        firstClone.classList.add("slide-clone");
-        firstClone.setAttribute("aria-hidden", "true");
-        var clonedIds = firstClone.querySelectorAll("[id]");
-        for (var j = 0; j < clonedIds.length; j++) clonedIds[j].removeAttribute("id");
-        container.appendChild(firstClone);
-        container.setAttribute("data-loop-ready", "1");
-
-        var totalSlidesCount = originalSlides.length + 1; // Asl slaydlar + 1 ta klon
-
-        // Konteyner va slaydlar o'lchamlarini to'g'ri o'rnatish
-        container.style.setProperty("display", "flex", "important");
-        container.style.setProperty("flex-wrap", "nowrap", "important");
-        container.style.setProperty("width", (totalSlidesCount * 100) + "%", "important");
-        container.style.setProperty("transition", "transform 600ms ease-in-out", "important");
-        container.style.setProperty("transform", "translateX(0)", "important");
-
-        var allSlides = container.children;
-        for (var k = 0; k < allSlides.length; k++) {
-            allSlides[k].style.setProperty("display", "flex", "important");
-            allSlides[k].style.setProperty("flex", "0 0 " + (100 / totalSlidesCount) + "%", "important");
-            allSlides[k].style.setProperty("width", (100 / totalSlidesCount) + "%", "important");
-            allSlides[k].style.setProperty("min-width", (100 / totalSlidesCount) + "%", "important");
-            allSlides[k].style.setProperty("box-sizing", "border-box", "important");
+        function moveCat(sliderId, direction) {
+            var data = getCategorySlider(sliderId);
+            if (!data) return;
+            var slider = data.slider;
+            var card = slider.querySelector('.book-card');
+            var gap = parseFloat(window.getComputedStyle(slider).gap) || 10;
+            var step = card ? card.getBoundingClientRect().width + gap : slider.clientWidth * 0.8;
+            slider.scrollBy({ left: direction * step, behavior: 'smooth' });
+            window.setTimeout(function () { updateCatButtons(sliderId); }, 80);
+            window.setTimeout(function () { updateCatButtons(sliderId); }, 420);
         }
 
-        var index = 0;
-        var timer = null;
-        var resetting = false;
-
-        container.addEventListener("transitionend", function (event) {
-            if (event.target !== container || !resetting) return;
-            container.style.setProperty("transition", "none", "important");
-            container.style.setProperty("transform", "translateX(0)", "important");
-            index = 0;
-            void container.offsetWidth; // Brauzer keshini yangilash
-            container.style.setProperty("transition", "transform 600ms ease-in-out", "important");
-            resetting = false;
-        });
-
-        function advance() {
-            if (resetting) return;
-            index++;
-            var percentageStep = 100 / totalSlidesCount;
-            container.style.setProperty("transform", "translateX(-" + (index * percentageStep) + "%)", "important");
-            
-            // Agar oxirgi klonlangan slaydga yetib borsa, jimgina boshiga qaytarishga tayyorlaymiz
-            if (index === originalSlides.length) {
-                resetting = true;
-            }
-        }
-
-        function start() {
-            if (timer) window.clearInterval(timer);
-            timer = window.setInterval(advance, 4000);
-        }
-
-        function stop() {
-            if (timer) window.clearInterval(timer);
-            timer = null;
-        }
-
-        document.addEventListener("visibilitychange", function () {
-            if (document.hidden) stop();
-            else start();
-        });
-
-        start();
-    }
-
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", setup);
-    } else {
-        setup();
-    }
-})();
-// 2. KITOB KARUSELLARI: native horizontal scroll, Android/WebView bilan mos.
-var categorySliderIds = ['ewaySlider', 'essSlider', 'readSlider', 'ieltSlider'];
-
-function getCategorySlider(sliderId) {
-    var slider = document.getElementById(sliderId);
-    if (!slider) return null;
-    return { slider: slider, wrapper: slider.parentElement };
-}
-
-function updateCatButtons(sliderId) {
-    var data = getCategorySlider(sliderId);
-    if (!data) return;
-    var slider = data.slider;
-    var wrapper = data.wrapper;
-    var prev = wrapper.querySelector('.cat-nav-btn.prev');
-    var next = wrapper.querySelector('.cat-nav-btn.next');
-    var max = Math.max(0, slider.scrollWidth - slider.clientWidth);
-    var left = slider.scrollLeft;
-
-    if (prev) {
-        var showPrev = left > 3;
-        prev.style.setProperty('display', showPrev ? 'flex' : 'none', 'important');
-        prev.disabled = !showPrev;
-        prev.setAttribute('aria-hidden', showPrev ? 'false' : 'true');
-    }
-    if (next) {
-        var showNext = max > 3 && left < max - 3;
-        next.style.setProperty('display', showNext ? 'flex' : 'none', 'important');
-        next.disabled = !showNext;
-        next.setAttribute('aria-hidden', showNext ? 'false' : 'true');
-    }
-}
-
-function moveCat(sliderId, direction) {
-    var data = getCategorySlider(sliderId);
-    if (!data) return;
-    var slider = data.slider;
-    var card = slider.querySelector('.book-card');
-    var gap = parseFloat(window.getComputedStyle(slider).gap) || 10;
-    var step = card ? card.getBoundingClientRect().width + gap : slider.clientWidth * 0.8;
-    slider.scrollBy({ left: direction * step, behavior: 'smooth' });
-    // Update immediately and again after smooth scrolling has progressed.
-    window.setTimeout(function () { updateCatButtons(sliderId); }, 80);
-    window.setTimeout(function () { updateCatButtons(sliderId); }, 420);
-}
-
-function refreshCategorySliders() {
-    categorySliderIds.forEach(function (id) {
-        var data = getCategorySlider(id);
-        if (!data) return;
-        var slider = data.slider;
-        slider.addEventListener('scroll', function () { updateCatButtons(id); }, { passive: true });
-        updateCatButtons(id);
-    });
-}
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', refreshCategorySliders);
-} else {
-    refreshCategorySliders();
-}
-window.addEventListener('load', refreshCategorySliders);
-window.addEventListener('resize', refreshCategorySliders);
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            closeModal();
-            toggleSidebar(false);
-        }
-    });
-    document.getElementById('customModal').addEventListener('click', (event) => {
-        if (event.target.id === 'customModal') closeModal();
-    });
-    </script>
-<!-- index_2.html -->
-<script src="index.js"></script>
-</body>
-</html>
+        function refreshCategorySliders() {
+            categorySliderIds.forEach(function (id) {
+                var data = getCategorySlider(id);
