@@ -789,24 +789,25 @@ footer { margin-top: 34px; padding: 20px 12px; color: #cbd8e8; font-size: 12px; 
 }
 
 
-/* ===== REKLAMA BANNERI: JS CAROUSEL LAYOUT (final override) ===== */
+/* ===== REKLAMA BANNER SLIDER ===== */
+
 .hero-wrapper {
-  display: block !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  position: relative !important;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
 }
-.hero-wrapper #sliderContainer {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  width: 100% !important;
-  max-width: 100% !important;
+
+#sliderContainer {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    transition: transform 0.7s ease-in-out;
+    will-change: transform;
 }
-.hero-wrapper #sliderContainer > .slide {
-  display: flex !important;
-  flex: 0 0 100% !important;
-  width: 100% !important;
-  min-width: 100% !important;
-  max-width: 100% !important;
-  box-sizing: border-box !important;
+
+#sliderContainer .slide {
+    flex: 0 0 100%;
+    width: 100%;
+    min-width: 100%;
+    box-sizing: border-box;
 }
