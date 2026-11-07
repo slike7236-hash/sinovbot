@@ -477,13 +477,41 @@
             changeLanguage(savedLang);
         }
 
-            let currentSlide = 0;
-        setInterval(() => {
-            currentSlide = (currentSlide + 1) % 3;
-            const container = document.getElementById("sliderContainer");
-            if(container) container.style.transform = `translateX(-${currentSlide * 100}vw)`;
-        }, 5000);
+      // 1. BANNER: CSS animatsiyali cheksiz karusel (3 banner + 1 klon).
+(function () {
+    function initBanner() {
+        var track = document.getElementById("sliderContainer");
+        if (!track || track.getAttribute("data-banner-ready") === "1") return;
 
+        var slides = [];
+        for (var i = 0; i < track.children.length; i++) {
+            if (track.children[i].classList.contains("slide") &&
+                !track.children[i].classList.contains("slide-clone")) {
+                slides.push(track.children[i]);
+            }
+        }
+        if (slides.length !== 3) {
+            // Agar bannerlar soni keyin o'zgarsa ham mavjud slaydlarni aylantirish.
+            if (slides.length < 2) return;
+        }
+
+        var clone = slides[0].cloneNode(true);
+        clone.classList.add("slide-clone");
+        clone.setAttribute("aria-hidden", "true");
+        var ids = clone.querySelectorAll("[id]");
+        for (var j = 0; j < ids.length; j++) ids[j].removeAttribute("id");
+        track.appendChild(clone);
+
+        track.setAttribute("data-banner-ready", "1");
+        track.classList.add("banner-running");
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initBanner);
+    } else {
+        initBanner();
+    }
+})();
 // 2. KITOB KARUSELLARI: native horizontal scroll, Android/WebView bilan mos.
 var categorySliderIds = ['ewaySlider', 'essSlider', 'readSlider', 'ieltSlider'];
 

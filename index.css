@@ -787,28 +787,3 @@ footer { margin-top: 34px; padding: 20px 12px; color: #cbd8e8; font-size: 12px; 
     animation-duration: 24s !important;
   }
 }
-
-/* ===== BANNER: working 3-slide rotation (kept separate from book layout) ===== */
-.hero-wrapper {
-  display: block !important;
-  width: 100% !important;
-  overflow: hidden !important;
-  position: relative !important;
-}
-.hero-wrapper #sliderContainer {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  width: 300% !important;
-  max-width: none !important;
-  transition: transform 0.8s ease-in-out !important;
-  animation: none !important;
-  will-change: transform;
-}
-.hero-wrapper #sliderContainer > .slide {
-  display: flex !important;
-  flex: 0 0 100vw !important;
-  width: 100vw !important;
-  min-width: 100vw !important;
-  max-width: 100vw !important;
-  box-sizing: border-box !important;
-}
