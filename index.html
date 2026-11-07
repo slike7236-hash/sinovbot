@@ -477,100 +477,67 @@
             changeLanguage(savedLang);
         }
 
-      // 1. REKLAMA BANNERI: JavaScript boshqaradigan ishonchli cheksiz karusel.
-(function () {
-    function initBanner() {
-        var track = document.getElementById("sliderContainer");
-        if (!track || track.getAttribute("data-banner-ready") === "1") return;
+     // ===== REKLAMA BANNERINI AVTOMATIK AYLANTIRISH =====
 
-        var slides = Array.prototype.filter.call(track.children, function (item) {
-            return item.classList.contains("slide") &&
-                   !item.classList.contains("slide-clone");
-        });
+(function () {
+    function initBannerSlider() {
+        const slider = document.getElementById("sliderContainer");
+
+        if (!slider || slider.dataset.initialized === "true") return;
+
+        const slides = Array.from(slider.querySelectorAll(":scope > .slide"));
 
         if (slides.length < 2) return;
 
-        // Avvalgi CSS animatsiyalarini bekor qilamiz. Boshqaruvni JS to'liq oladi.
-        track.style.setProperty("display", "flex", "important");
-        track.style.setProperty("flex-wrap", "nowrap", "important");
-        track.style.setProperty("width", "100%", "important");
-        track.style.setProperty("max-width", "100%", "important");
-        track.style.setProperty("animation", "none", "important");
-        track.style.setProperty("transition", "transform 650ms ease-in-out", "important");
-        track.style.setProperty("will-change", "transform");
+        slider.dataset.initialized = "true";
 
-        slides.forEach(function (slide) {
-            slide.style.setProperty("display", "flex", "important");
-            slide.style.setProperty("flex", "0 0 100%", "important");
-            slide.style.setProperty("width", "100%", "important");
-            slide.style.setProperty("min-width", "100%", "important");
-            slide.style.setProperty("max-width", "100%", "important");
-        });
+        let currentIndex = 0;
+        let timer = null;
 
-        // Birinchi slayd nusxasi oxiriga qo'shiladi: oxiridan boshiga silliq o'tish uchun.
-        var clone = slides[0].cloneNode(true);
-        clone.classList.add("slide-clone");
-        clone.setAttribute("aria-hidden", "true");
-        clone.querySelectorAll("[id]").forEach(function (node) {
-            node.removeAttribute("id");
-        });
-        clone.style.setProperty("display", "flex", "important");
-        clone.style.setProperty("flex", "0 0 100%", "important");
-        clone.style.setProperty("width", "100%", "important");
-        clone.style.setProperty("min-width", "100%", "important");
-        clone.style.setProperty("max-width", "100%", "important");
-        track.appendChild(clone);
+        function showSlide(index) {
+            slider.style.transform =
+                `translateX(-${index * 100}%)`;
+        }
 
-        var currentIndex = 0;
-        var totalSlides = slides.length;
-        var intervalId = null;
-        var resetTimer = null;
+        function nextSlide() {
+            currentIndex++;
 
-        function showNextSlide() {
-            currentIndex += 1;
-            track.style.setProperty("transition", "transform 650ms ease-in-out", "important");
-            track.style.setProperty(
-                "transform",
-                "translate3d(-" + (currentIndex * 100) + "%, 0, 0)",
-                "important"
-            );
+            if (currentIndex >= slides.length) {
+                currentIndex = 0;
+            }
 
-            // Klon slayd ko'ringach, animatsiyasiz birinchi slaydga qaytamiz.
-            if (currentIndex === totalSlides) {
-                window.clearTimeout(resetTimer);
-                resetTimer = window.setTimeout(function () {
-                    track.style.setProperty("transition", "none", "important");
-                    track.style.setProperty("transform", "translate3d(0, 0, 0)", "important");
-                    currentIndex = 0;
+            showSlide(currentIndex);
+        }
 
-                    // Brauzerga resetni qo'llash imkonini berib, transitionni qaytaramiz.
-                    void track.offsetWidth;
-                    track.style.setProperty("transition", "transform 650ms ease-in-out", "important");
-                }, 700);
+        function startSlider() {
+            if (timer) clearInterval(timer);
+
+            timer = setInterval(nextSlide, 4000);
+        }
+
+        function stopSlider() {
+            if (timer) {
+                clearInterval(timer);
+                timer = null;
             }
         }
 
-        track.style.setProperty("transform", "translate3d(0, 0, 0)", "important");
-        track.setAttribute("data-banner-ready", "1");
-
-        // Har 4 soniyada keyingi reklama.
-        intervalId = window.setInterval(showNextSlide, 4000);
-
-        // Sahifa yashiringanda taymerni to'xtatib, qaytganda davom ettiramiz.
         document.addEventListener("visibilitychange", function () {
             if (document.hidden) {
-                window.clearInterval(intervalId);
-                window.clearTimeout(resetTimer);
+                stopSlider();
             } else {
-                intervalId = window.setInterval(showNextSlide, 4000);
+                startSlider();
             }
         });
+
+        showSlide(0);
+        startSlider();
     }
 
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initBanner, { once: true });
+        document.addEventListener("DOMContentLoaded", initBannerSlider);
     } else {
-        initBanner();
+        initBannerSlider();
     }
 })();
 // 2. KITOB KARUSELLARI: native horizontal scroll, Android/WebView bilan mos.
