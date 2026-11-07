@@ -15,7 +15,7 @@
     <div class="sidebar" id="sidebarMenu">
         <div class="sidebar-header">
             <span id="m-menu-title">Menyu</span>
-            <button class="sidebar-close" onclick="toggleSidebar(false)">✕</button>
+            <button class="sidebar-close" aria-label="Menyuni yopish" onclick="toggleSidebar(false)">✕</button>
         </div>
         <div class="sidebar-menu">
             <p class="menu-title" id="m-cate-title">Kategoriyalar</p>
@@ -40,7 +40,7 @@
     </div>
 
     <div class="navbar">
-        <button class="burger-btn" onclick="toggleSidebar(true)">☰</button>
+        <button class="burger-btn" aria-label="Menyuni ochish" aria-controls="sidebarMenu" onclick="toggleSidebar(true)">☰</button>
         <div class="marquee-zone">
             <div class="logo-marquee">My Vocabularies</div>
         </div>
@@ -71,56 +71,44 @@
 
     <div class="user-badge" id="userInfo">Foydalanuvchi: Aniqlanmoqda...</div>
 
-    <div class="section-title" id="sec-title">— KITOBLAR RO'YXATI —</div>
-    
-    <div class="carousel-wrapper">
-        <button class="nav-btn prev" onclick="moveBooks(-1)"><i class="fa-solid fa-angle-left"></i></button>
-        <div class="books-slider" id="booksSlider">
-            
-           <div class="book-card">
-                <img src="eway1.jpg" class="book-img" alt="EASY WAY Starter">
-                <div class="book-title" id="t-book-17">EASY WAY: Starter</div>
-                <div class="book-price" id="p-price-17">💰 11,800 so'm/35 kun</div>
-                <button class="book-btn" id="btn-read-17">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess1.jpg" class="book-img" alt="Essential 1">
-                <div class="book-title" id="t-book-1">Essential English Words 1</div>
-                <div class="book-price" id="p-price-1">💰 18,000 so'm/3 oy</div>
-                <button class="book-btn" id="btn-read-1">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess2.jpg" class="book-img" alt="Essential 2">
-                <div class="book-title" id="t-book-2">Essential English Words 2</div>
-                <div class="book-price" id="p-price-2">💰 18,000 so'm/3 oy</div>
-                <button class="book-btn" id="btn-read-2">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess3.jpg" class="book-img" alt="Essential 3">
-                <div class="book-title" id="t-book-3">Essential English Words 3</div>
-                <div class="book-price" id="p-price-3">💰 18,000 so'm / 3 oy</div>
-                <button class="book-btn" id="btn-read-3">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess4.jpg" class="book-img" alt="Essential 4">
-                <div class="book-title" id="t-book-4">Essential English Words 4</div>
-                <div class="book-price" id="p-price-4">💰 18,000 so'm / 3 oy</div>
-                <button class="book-btn" id="btn-read-4">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess5.jpg" class="book-img" alt="Essential 5">
-                <div class="book-title" id="t-book-5">Essential English Words 5</div>
-                <div class="book-price" id="p-price-5">💰 18,000 so'm / 3 oy</div>
-                <button class="book-btn" id="btn-read-5">...</button>
-            </div>
-            <div class="book-card">
-                <img src="ess6.jpg" class="book-img" alt="Essential 6">
-                <div class="book-title" id="t-book-6">Essential English Words 6</div>
-                <div class="book-price" id="p-price-6">💰 18,000 so'm / 3 oy</div>
-                <button class="book-btn" id="btn-read-6">...</button>
-            </div>
+  <div class="section-title" id="sec-title">— KITOBLAR RO'YXATI —</div>
 
-            <div class="book-card" style="display: none;">
+    <!-- 1. EASY WAY KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">Easy Way Books</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('ewaySlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="ewaySlider">
+                <div class="book-card" style="width: 160px; flex-shrink: 0;">
+                    <img src="eway1.jpg" class="book-img" alt="EASY WAY Starter">
+                    <div class="book-title" id="t-book-17">EASY WAY: Starter</div>
+                    <div class="book-price" id="p-price-17">💰 11,800 so'm</div>
+                    <button class="book-btn" id="btn-read-17">...</button>
+                </div>
+            </div>
+            <button class="cat-nav-btn next" onclick="moveCat('ewaySlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
+        </div>
+    </div>
+
+    <!-- 2. ESSENTIAL ENGLISH WORDS KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">Essential English Words</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('essSlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="essSlider">
+                <!-- Ess 1-6 -->
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess1.jpg" class="book-img"><div class="book-title" id="t-book-1">Essential 1</div><div class="book-price" id="p-price-1">...</div><button class="book-btn" id="btn-read-1">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess2.jpg" class="book-img"><div class="book-title" id="t-book-2">Essential 2</div><div class="book-price" id="p-price-2">...</div><button class="book-btn" id="btn-read-2">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess3.jpg" class="book-img"><div class="book-title" id="t-book-3">Essential 3</div><div class="book-price" id="p-price-3">...</div><button class="book-btn" id="btn-read-3">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess4.jpg" class="book-img"><div class="book-title" id="t-book-4">Essential 4</div><div class="book-price" id="p-price-4">...</div><button class="book-btn" id="btn-read-4">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess5.jpg" class="book-img"><div class="book-title" id="t-book-5">Essential 5</div><div class="book-price" id="p-price-5">...</div><button class="book-btn" id="btn-read-5">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ess6.jpg" class="book-img"><div class="book-title" id="t-book-6">Essential 6</div><div class="book-price" id="p-price-6">...</div><button class="book-btn" id="btn-read-6">...</button></div>
+            </div>
+            <button class="cat-nav-btn next" onclick="moveCat('essSlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
+        </div>
+    </div>
+
+  <div class="book-card" style="display: none;">
                 <img src="solel.jpg" class="book-img" alt="Solution El">
                 <div class="book-title" id="t-book-7">Solution Elementary</div>
                 <div class="book-price" id="p-price-7">💰 25,000 so'm</div>
@@ -150,43 +138,32 @@
                 <div class="book-price" id="p-price-11">💰 25,000 so'm</div>
                 <button class="book-btn" id="btn-read-11">...</button>
             </div>
-
-            <div class="book-card">
-                <img src="read1.jpg" class="book-img" alt="Read 1">
-                <div class="book-title" id="t-book-12">Read & Understand 1</div>
-                <div class="book-price" id="p-price-12">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-12">...</button>
+    <!-- 4. READ AND UNDERSTAND KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">Read and Understand</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('readSlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="readSlider">
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="read1.jpg" class="book-img"><div class="book-title" id="t-book-12">Read 1</div><div class="book-price" id="p-price-12">...</div><button class="book-btn" id="btn-read-12">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="read2.jpg" class="book-img"><div class="book-title" id="t-book-13">Read 2</div><div class="book-price" id="p-price-13">...</div><button class="book-btn" id="btn-read-13">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="read3.jpg" class="book-img"><div class="book-title" id="t-book-14">Read 3</div><div class="book-price" id="p-price-14">...</div><button class="book-btn" id="btn-read-14">...</button></div>
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="read4.jpg" class="book-img"><div class="book-title" id="t-book-15">Read 4</div><div class="book-price" id="p-price-15">...</div><button class="book-btn" id="btn-read-15">...</button></div>
             </div>
-            <div class="book-card">
-                <img src="read2.jpg" class="book-img" alt="Read 2">
-                <div class="book-title" id="t-book-13">Read & Understand 2</div>
-                <div class="book-price" id="p-price-13">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-13">...</button>
-            </div>
-            <div class="book-card">
-                <img src="read3.jpg" class="book-img" alt="Read 3">
-                <div class="book-title" id="t-book-14">Read & Understand 3</div>
-                <div class="book-price" id="p-price-14">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-14">...</button>
-            </div>
-            <div class="book-card">
-                <img src="read4.jpg" class="book-img" alt="Read 4">
-                <div class="book-title" id="t-book-15">Read & Understand 4</div>
-                <div class="book-price" id="p-price-15">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-15">...</button>
-            </div>
-
-            <div class="book-card">
-                <img src="ielt.jpg" class="book-img" alt="IELTS Voc">
-                <div class="book-title" id="t-book-16">Vocabulary for IELTS</div>
-                <div class="book-price" id="p-price-16">💰 25,000 so'm</div>
-                <button class="book-btn" id="btn-read-16">...</button>
-            </div>
-
+            <button class="cat-nav-btn next" onclick="moveCat('readSlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
         </div>
-        <button class="nav-btn next" onclick="moveBooks(1)"><i class="fa-solid fa-angle-right"></i></button>
     </div>
 
+    <!-- 5. IELTS & EXAM VOCABULARIES KATEGORIYASI -->
+    <div class="category-section">
+        <div class="category-title">IELTS & Exam Vocabularies</div>
+        <div class="cat-carousel-wrapper">
+            <button class="cat-nav-btn prev" onclick="moveCat('ieltSlider', -1)"><i class="fa-solid fa-angle-left"></i></button>
+            <div class="cat-books-slider" id="ieltSlider">
+                <div class="book-card" style="width: 160px; flex-shrink: 0;"><img src="ielt.jpg" class="book-img"><div class="book-title" id="t-book-16">Vocabulary for IELTS</div><div class="book-price" id="p-price-16">...</div><button class="book-btn" id="btn-read-16">...</button></div>
+            </div>
+            <button class="cat-nav-btn next" onclick="moveCat('ieltSlider', 1)"><i class="fa-solid fa-angle-right"></i></button>
+        </div>
+    </div>
     <div class="payment-section">
         <div class="section-title" id="pay-title">— TO'LOV TIZIMLARI —</div>
         <div class="payment-grid">
@@ -205,7 +182,7 @@
     <div class="modal-overlay" id="customModal">
         <div class="modal-box">
             <h3 id="modalTitle">Sotib olish</h3>
-            <p id="modalDesc">...</p>
+            <div id="modalDesc">...</div>
             <button class="modal-redirect-btn" id="modalRedirectLink" onclick="triggerTelegramLink()">Botga o'tish ➔</button>
             <button class="modal-close-btn" onclick="closeModal()">Yopish</button>
         </div>
@@ -215,15 +192,16 @@
         <p id="footer-text">© 2026 My Vocabularies. Barcha huquqlar himoyalangan.</p>
     </footer>
 
+    <script src="users.js"></script>
     <script>
         let currentLang = 'uz';
         let currentBookIndex = 0;
         const totalBooksCount = 17;
         let activeRedirectUrl = "";
 
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        const telegramUser = tg.initDataUnsafe?.user;
+        const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+        if (tg && typeof tg.expand === 'function') tg.expand();
+        const telegramUser = tg && tg.initDataUnsafe ? tg.initDataUnsafe.user : null;
         let userId = 0;
 
         if (telegramUser) {
@@ -260,66 +238,40 @@
             else { sidebar.classList.remove("open"); overlay.style.display = "none"; }
         }
 
-        // Kitob karuseli: faqat ekranda ko'rinadigan kitoblar bo'yicha yuradi.
-        function getVisibleBookCards() {
-            const slider = document.getElementById("booksSlider");
-            if (!slider) return [];
-            return Array.from(slider.children).filter(card =>
-                card.classList.contains("book-card") && card.getClientRects().length > 0
-            );
-        }
-
         function jumpToBookIndex(index) {
             toggleSidebar(false);
-            const slider = document.getElementById("booksSlider");
-            if (!slider) return;
-
-            const allCards = Array.from(slider.children).filter(card => card.classList.contains("book-card"));
-            const visibleCards = getVisibleBookCards();
-            const requestedCard = allCards[index];
-            let targetIndex = visibleCards.indexOf(requestedCard);
-
-            // Yashirilgan kategoriya tanlansa, undan keyingi ko'rinadigan kitobga o'tadi.
-            if (targetIndex < 0) {
-                const nextVisible = allCards.slice(Math.max(0, index)).find(card => visibleCards.includes(card));
-                targetIndex = nextVisible ? visibleCards.indexOf(nextVisible) : visibleCards.length - 1;
+            const categoryMap = {
+                0: 'ewaySlider',
+                1: 'essSlider',
+                7: null,
+                12: 'readSlider',
+                16: 'ieltSlider'
+            };
+            const sliderId = categoryMap[index];
+            if (!sliderId) {
+                document.getElementById('modalTitle').innerText = currentLang === 'uz' ? 'Solution Books' : 'Solution Books';
+                document.getElementById('modalDesc').innerText = currentLang === 'uz'
+                    ? 'Bu kategoriya hozircha asosiy sahifada ko‘rsatilmagan.'
+                    : 'This category is not currently displayed on the homepage.';
+                document.getElementById('modalRedirectLink').style.display = 'none';
+                document.getElementById('customModal').style.display = 'flex';
+                return;
             }
-
-            currentBookIndex = Math.max(0, targetIndex);
-            renderCarouselPosition();
+            const slider = document.getElementById(sliderId);
+            const section = slider ? slider.closest('.category-section') : null;
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                section.classList.add('category-highlight');
+                window.setTimeout(() => section.classList.remove('category-highlight'), 1500);
+            }
         }
 
-        function renderCarouselPosition() {
-            const slider = document.getElementById("booksSlider");
-            const wrapper = slider ? slider.parentElement : null;
-            const cards = getVisibleBookCards();
-            if (!slider || !wrapper || !cards.length) return;
-
-            currentBookIndex = Math.max(0, Math.min(currentBookIndex, cards.length - 1));
-            const firstCard = cards[0];
-            const styles = window.getComputedStyle(slider);
-            const gap = parseFloat(styles.columnGap || styles.gap) || 0;
-            const step = firstCard.getBoundingClientRect().width + gap;
-            const maxOffset = Math.max(0, slider.scrollWidth - wrapper.clientWidth);
-            const offset = Math.min(currentBookIndex * step, maxOffset);
-            slider.style.transform = `translate3d(-${offset}px, 0, 0)`;
-        }
-
-        function moveBooks(direction) {
-            const cards = getVisibleBookCards();
-            if (!cards.length) return;
-            currentBookIndex += direction;
-            currentBookIndex = Math.max(0, Math.min(currentBookIndex, cards.length - 1));
-            renderCarouselPosition();
-        }
-
-        window.addEventListener("resize", renderCarouselPosition);
-
-        // users.js dagi premiumUsers ma'lumotini xavfsiz o'qish.
+        // users.js dagi premiumUsers ma’lumotini window yoki global lexical scope’dan oladi.
+        // Bu usul const/let bilan e’lon qilingan premiumUsers uchun ham ishlaydi.
         function getPremiumUsersData() {
             try {
                 if (typeof premiumUsers !== "undefined" && premiumUsers) return premiumUsers;
-            } catch (error) { /* users.js hali mavjud bo'lmasligi mumkin */ }
+            } catch (error) { /* global data hali yuklanmagan bo‘lishi mumkin */ }
             return (window.premiumUsers && typeof window.premiumUsers === "object")
                 ? window.premiumUsers : {};
         }
@@ -329,9 +281,8 @@
             const key = String(userId || "");
             const record = database[key] ?? database[userId];
             if (Array.isArray(record)) return record.map(item => String(item).trim());
-            if (record && Array.isArray(record.books)) {
-                return record.books.map(item => String(item).trim());
-            }
+            // Ayrim users.js formatlarida kitoblar { books: [...] } ichida saqlanishi mumkin.
+            if (record && Array.isArray(record.books)) return record.books.map(item => String(item).trim());
             return [];
         }
 
@@ -339,11 +290,11 @@
             toggleSidebar(false);
             const userOwned = getCurrentUserBooks();
             const owned = booksData.filter(book => userOwned.includes(String(book.code)));
+            const title = document.getElementById("modalTitle");
             const desc = document.getElementById("modalDesc");
             const redirect = document.getElementById("modalRedirectLink");
 
-            document.getElementById("modalTitle").innerText =
-                currentLang === 'uz' ? "Obunalarim" : "My subscriptions";
+            title.innerText = currentLang === 'uz' ? "Obunalarim" : "My subscriptions";
             desc.innerHTML = "";
 
             if (!owned.length) {
@@ -387,9 +338,10 @@
         if (!btn) return;
 
         // 1. Foydalanuvchi ushbu kitobni sotib olganligini aniqlaymiz
-        const isPurchased = getCurrentUserBooks().includes(String(book.code));
+        const userBooks = getCurrentUserBooks();
+        const isPurchased = userBooks.includes(String(book.code));
 
-        const demoBooks = ["ess1", "solel", "read1", "ielt", "eway1"];
+        const demoBooks = ["ess1",  "read1", "ielt", "eway1"];
         let parentCard = btn.parentElement;
         let demoBtn = parentCard.querySelector('.demo-btn-free');
 
@@ -513,25 +465,100 @@
                 const element = document.getElementById(key);
                 if (element) element.innerText = translations[lang][key];
             }
-            localStorage.setItem('selectedLang', lang);
+            try { localStorage.setItem('selectedLang', lang); } catch (e) { /* storage may be blocked */ }
             checkBookAccess();
         }
 
-        let currentSlide = 0;
+
+        window.onload = function() {
+            let savedLang = 'uz';
+            try { savedLang = localStorage.getItem('selectedLang') || 'uz'; } catch (e) {}
+            document.querySelector('.lang-select').value = savedLang;
+            changeLanguage(savedLang);
+        }
+
+            let currentSlide = 0;
         setInterval(() => {
             currentSlide = (currentSlide + 1) % 3;
             const container = document.getElementById("sliderContainer");
             if(container) container.style.transform = `translateX(-${currentSlide * 100}vw)`;
         }, 5000);
 
-        window.onload = function() {
-            const savedLang = localStorage.getItem('selectedLang') || 'uz';
-            document.querySelector('.lang-select').value = savedLang;
-            changeLanguage(savedLang);
+// 2. KITOB KARUSELLARI: native horizontal scroll, Android/WebView bilan mos.
+var categorySliderIds = ['ewaySlider', 'essSlider', 'readSlider', 'ieltSlider'];
+
+function getCategorySlider(sliderId) {
+    var slider = document.getElementById(sliderId);
+    if (!slider) return null;
+    return { slider: slider, wrapper: slider.parentElement };
+}
+
+function updateCatButtons(sliderId) {
+    var data = getCategorySlider(sliderId);
+    if (!data) return;
+    var slider = data.slider;
+    var wrapper = data.wrapper;
+    var prev = wrapper.querySelector('.cat-nav-btn.prev');
+    var next = wrapper.querySelector('.cat-nav-btn.next');
+    var max = Math.max(0, slider.scrollWidth - slider.clientWidth);
+    var left = slider.scrollLeft;
+
+    if (prev) {
+        var showPrev = left > 3;
+        prev.style.setProperty('display', showPrev ? 'flex' : 'none', 'important');
+        prev.disabled = !showPrev;
+        prev.setAttribute('aria-hidden', showPrev ? 'false' : 'true');
+    }
+    if (next) {
+        var showNext = max > 3 && left < max - 3;
+        next.style.setProperty('display', showNext ? 'flex' : 'none', 'important');
+        next.disabled = !showNext;
+        next.setAttribute('aria-hidden', showNext ? 'false' : 'true');
+    }
+}
+
+function moveCat(sliderId, direction) {
+    var data = getCategorySlider(sliderId);
+    if (!data) return;
+    var slider = data.slider;
+    var card = slider.querySelector('.book-card');
+    var gap = parseFloat(window.getComputedStyle(slider).gap) || 10;
+    var step = card ? card.getBoundingClientRect().width + gap : slider.clientWidth * 0.8;
+    slider.scrollBy({ left: direction * step, behavior: 'smooth' });
+    // Update immediately and again after smooth scrolling has progressed.
+    window.setTimeout(function () { updateCatButtons(sliderId); }, 80);
+    window.setTimeout(function () { updateCatButtons(sliderId); }, 420);
+}
+
+function refreshCategorySliders() {
+    categorySliderIds.forEach(function (id) {
+        var data = getCategorySlider(id);
+        if (!data) return;
+        var slider = data.slider;
+        slider.addEventListener('scroll', function () { updateCatButtons(id); }, { passive: true });
+        updateCatButtons(id);
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', refreshCategorySliders);
+} else {
+    refreshCategorySliders();
+}
+window.addEventListener('load', refreshCategorySliders);
+window.addEventListener('resize', refreshCategorySliders);
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeModal();
+            toggleSidebar(false);
         }
+    });
+    document.getElementById('customModal').addEventListener('click', (event) => {
+        if (event.target.id === 'customModal') closeModal();
+    });
     </script>
 <!-- index_2.html -->
-<script src="users.js"></script> <!-- Asosiy skriptlardan oldin ulaysiz -->
-<script src="index.js"></script> <!-- yoki kodingiz turgan script -->
+<script src="index.js"></script>
 </body>
 </html>
