@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="training.css">
     <script src="database.js"></script>
+    <script src="databasetest.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -125,48 +126,6 @@ async function addCloudLeaderboardScore(type, result) {
         .collection("scores").add(payload);
     return ref.id;
 }
-
-// Test iframe bridge: the quiz remains in its own GitHub project.
-async function saveBestTestScore(result) {
-    const user = await firebaseReady;
-    const boardId = `${lessonKey}_test`;
-    const scoresRef = cloudDB.collection("leaderboards").doc(boardId).collection("scores");
-    const scoreId = user.uid;
-    const scoreRef = scoresRef.doc(scoreId);
-    const payload = {
-        name: String(result.name || "Student").trim().slice(0, 40),
-        score: Math.max(0, Number(result.score) || 0),
-        percent: Math.max(0, Math.min(100, Number(result.percent) || 0)),
-        correct: Math.max(0, Number(result.correct) || 0),
-        total: Math.max(0, Number(result.total) || 0),
-        duration: Math.max(0, Math.min(86400, Number(result.duration) || 0)),
-        date: Date.now()
-    };
-    const oldDoc = await scoreRef.get();
-    const old = oldDoc.exists ? oldDoc.data() : null;
-    const isBetter = !old || payload.score > Number(old.score || 0) ||
-        (payload.score === Number(old.score || 0) && payload.percent > Number(old.percent || 0)) ||
-        (payload.score === Number(old.score || 0) && payload.percent === Number(old.percent || 0) && payload.duration < Number(old.duration || 0));
-    if (isBetter) await scoreRef.set(payload);
-
-    const snapshot = await scoresRef.get();
-    const all = snapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
-    all.sort((a,b) => (Number(b.score)-Number(a.score)) || (Number(b.percent)-Number(a.percent)) || (Number(a.duration)-Number(b.duration)) || (Number(a.date)-Number(b.date)));
-    const rank = all.findIndex(row => row._id === scoreId) + 1;
-    return { scores: all.slice(0,30), rank, best: all.find(row => row._id === scoreId), updated: isBetter };
-}
-
-window.addEventListener('message', async (event) => {
-    const frame = document.getElementById('iframeViewer');
-    if (!frame || event.source !== frame.contentWindow || !event.data || event.data.type !== 'TRAINING_TEST_RESULT') return;
-    try {
-        const result = await saveBestTestScore(event.data.result || {});
-        frame.contentWindow.postMessage({ type: 'TRAINING_TEST_LEADERBOARD', payload: result }, event.origin);
-    } catch (error) {
-        console.error('Test leaderboard save error:', error);
-        frame.contentWindow.postMessage({ type: 'TRAINING_TEST_LEADERBOARD_ERROR' }, event.origin);
-    }
-});
 
 const urlParams = new URLSearchParams(window.location.search);
 const bookCode = urlParams.get('book') || "ess1";
@@ -533,6 +492,158 @@ function resetAndRestart(type) {
     loadContent(type);
 }
 
+
+// ==================== VOCABULARY TEST (native Training module) ====================
+let trainingQuizState = null;
+let trainingQuizTimer = null;
+
+function renderVocabularyQuiz(container) {
+    clearInterval(trainingQuizTimer);
+    const params = new URLSearchParams(window.location.search);
+    const quizKey = `${bookCode}_${unitId}`;
+    const questions = (typeof quizDatabase !== 'undefined' && quizDatabase[quizKey]) ? quizDatabase[quizKey] : [];
+    trainingQuizState = { questions, quizKey, index: 0, score: 0, name: '', timeSpent: 0, timeLeft: 15, locked: false };
+
+    if (!questions.length) {
+        container.innerHTML = `<div class="training-quiz-card"><h2>Test topilmadi</h2><p>${escapeHtml(quizKey)} uchun savollar bazasi mavjud emas.</p></div>`;
+        return;
+    }
+    container.innerHTML = `
+      <div class="training-quiz-card" id="trainingQuizCard">
+        <div class="training-quiz-start" id="trainingQuizStart">
+          <i class="fa-solid fa-graduation-cap training-quiz-cap"></i>
+          <h2>Vocabulary Quiz</h2>
+          <p>Ismingizni kiriting va testni boshlang.</p>
+          <input id="trainingQuizName" class="training-quiz-name" maxlength="40" placeholder="Ismingizni kiriting">
+          <button class="training-quiz-primary" type="button" onclick="startTrainingQuiz()">Start Quiz</button>
+        </div>
+      </div>`;
+}
+
+function trainingQuizSound(type) {
+    try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        const ctx = new AC(), osc = ctx.createOscillator(), gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = type === 'wrong' ? 'sawtooth' : 'sine';
+        osc.frequency.value = type === 'wrong' ? 150 : 523.25;
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
+        osc.start(); osc.stop(ctx.currentTime + 0.22);
+    } catch (_) {}
+}
+
+function startTrainingQuiz() {
+    const state = trainingQuizState;
+    const input = document.getElementById('trainingQuizName');
+    const name = input ? input.value.trim() : '';
+    if (!name) { alert('Iltimos, ismingizni kiriting.'); return; }
+    state.name = name.slice(0, 40);
+    renderTrainingQuizQuestion();
+}
+
+function renderTrainingQuizQuestion() {
+    const s = trainingQuizState;
+    clearInterval(trainingQuizTimer);
+    if (s.index >= s.questions.length) { finishTrainingQuiz(); return; }
+    s.timeLeft = 15; s.locked = false;
+    const q = s.questions[s.index];
+    const card = document.getElementById('trainingQuizCard');
+    card.innerHTML = `
+      <div class="training-quiz-header"><span>Question: ${s.index + 1}/${s.questions.length}</span><span id="trainingQuizTimer">15s</span></div>
+      <div class="training-quiz-progress"><div id="trainingQuizProgress"></div></div>
+      <div class="training-quiz-question" id="trainingQuizQuestion"></div>
+      <div class="training-quiz-options" id="trainingQuizOptions"></div>`;
+    document.getElementById('trainingQuizQuestion').textContent = q.q;
+    const box = document.getElementById('trainingQuizOptions');
+    q.o.forEach(option => {
+        const btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'training-quiz-option'; btn.textContent = option;
+        btn.addEventListener('click', () => answerTrainingQuiz(btn, option));
+        box.appendChild(btn);
+    });
+    trainingQuizTimer = setInterval(() => {
+        s.timeLeft--; s.timeSpent++;
+        const timer = document.getElementById('trainingQuizTimer');
+        const progress = document.getElementById('trainingQuizProgress');
+        if (timer) timer.textContent = `${s.timeLeft}s`;
+        if (progress) { progress.style.width = `${Math.max(0, s.timeLeft / 15 * 100)}%`; if (s.timeLeft <= 5) progress.classList.add('danger'); }
+        if (s.timeLeft <= 0) {
+            clearInterval(trainingQuizTimer); s.locked = true;
+            markTrainingCorrect(); trainingQuizSound('wrong');
+            setTimeout(() => { s.index++; renderTrainingQuizQuestion(); }, 900);
+        }
+    }, 1000);
+}
+
+function markTrainingCorrect() {
+    const s = trainingQuizState, correct = s.questions[s.index].a;
+    document.querySelectorAll('.training-quiz-option').forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correct) btn.classList.add('correct');
+    });
+}
+
+function answerTrainingQuiz(btn, selected) {
+    const s = trainingQuizState;
+    if (s.locked) return;
+    s.locked = true; clearInterval(trainingQuizTimer);
+    const correct = s.questions[s.index].a;
+    document.querySelectorAll('.training-quiz-option').forEach(b => b.disabled = true);
+    if (selected === correct) { s.score++; btn.classList.add('correct'); trainingQuizSound('correct'); }
+    else { btn.classList.add('wrong'); markTrainingCorrect(); trainingQuizSound('wrong'); }
+    setTimeout(() => { s.index++; renderTrainingQuizQuestion(); }, 900);
+}
+
+async function finishTrainingQuiz() {
+    clearInterval(trainingQuizTimer);
+    const s = trainingQuizState;
+    const total = s.questions.length;
+    const percent = Math.round(s.score / total * 100);
+    const card = document.getElementById('trainingQuizCard');
+    card.innerHTML = `<div class="training-quiz-result"><i class="fa-solid fa-trophy"></i><h2>Quiz Completed!</h2>
+      <p>Well done, <b>${escapeHtml(s.name)}</b>!</p>
+      <p>Score: <b>${s.score}/${total}</b> · ${percent}% · ${s.timeSpent}s</p>
+      <div class="training-quiz-board"><h3>🏆 TOP 30 LEADERBOARD</h3><div id="trainingQuizBoard">Natijalar yuklanmoqda...</div></div>
+      <button class="training-quiz-primary" onclick="renderVocabularyQuiz(document.getElementById('textContainer'))">Try Again</button></div>`;
+    try {
+        await saveBestTestScore({ name:s.name, score:s.score, percent, correct:s.score, total, duration:s.timeSpent, date:Date.now() });
+        await showTrainingQuizLeaderboard();
+    } catch (err) {
+        console.error('Test result save failed:', err);
+        const board = document.getElementById('trainingQuizBoard');
+        if (board) board.textContent = 'Natijani saqlashda xatolik. Firebase qoidalarini tekshiring.';
+    }
+}
+
+async function saveBestTestScore(result) {
+    const user = await firebaseReady;
+    const boardRef = cloudDB.collection('leaderboards').doc(`${lessonKey}_test`);
+    const scoreRef = boardRef.collection('scores').doc(user.uid);
+    await cloudDB.runTransaction(async tx => {
+        const snap = await tx.get(scoreRef);
+        const old = snap.exists ? snap.data() : null;
+        const better = !old || result.score > Number(old.score) ||
+            (result.score === Number(old.score) && result.percent > Number(old.percent)) ||
+            (result.score === Number(old.score) && result.percent === Number(old.percent) && result.duration < Number(old.duration));
+        if (better) tx.set(scoreRef, { ...result, name: String(result.name).slice(0,40), uid:user.uid });
+    });
+}
+
+async function showTrainingQuizLeaderboard() {
+    const box = document.getElementById('trainingQuizBoard');
+    if (!box) return;
+    const scores = await getCloudLeaderboard('test');
+    const user = await firebaseReady;
+    const ownIndex = scores.findIndex(row => row.uid === user.uid || row._id === user.uid);
+    const top = scores.slice(0, 30);
+    let html = top.length ? top.map((row, i) => `<div class="training-quiz-score ${row.uid === user.uid ? 'current' : ''}"><span>${i+1}. ${escapeHtml(row.name || 'Student')}</span><b>${Number(row.score)||0}/${Number(row.total)||0} · ${Number(row.duration)||0}s</b></div>`).join('') : '<p>Hozircha natijalar yo‘q.</p>';
+    if (ownIndex >= 30) html += `<p class="training-quiz-own-rank">Sizning o‘rningiz: ${ownIndex+1} · ${Number(scores[ownIndex].score)||0} ball</p>`;
+    box.innerHTML = html;
+}
+// ================== END VOCABULARY TEST ==================
+
 function loadContent(type) {
     currentActiveGameType = type;
     const textZone = document.getElementById("textContainer");
@@ -631,24 +742,13 @@ function loadContent(type) {
         textZone.innerHTML = tableHtml;
         textZone.style.display = "block";
     }
-    else if (type === 'video' || type === 'test') {
+    else if (type === 'video') {
+        iframeZone.src = currentLessonData.videoUrl || "";
         iframeZone.style.display = "block";
-        if (type === 'test') {
-            iframeZone.onload = async () => {
-                try {
-                    const user = await firebaseReady;
-                    iframeZone.contentWindow.postMessage({
-                        type: 'TRAINING_TEST_INIT',
-                        lessonKey,
-                        userId: user.uid
-                    }, '*');
-                } catch (error) { console.error('Test iframe initialization error:', error); }
-            };
-            iframeZone.src = currentLessonData.testUrl || "";
-        } else {
-            iframeZone.onload = null;
-            iframeZone.src = currentLessonData.videoUrl || "";
-        }
+    }
+    else if (type === 'test') {
+        textZone.style.display = "block";
+        renderVocabularyQuiz(textZone);
     } 
     else {
         currentActiveGameType = type;
