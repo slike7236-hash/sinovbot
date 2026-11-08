@@ -7,6 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="training.css">
     <script src="database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -74,6 +77,55 @@
 </div>
 
 <script>
+// Firebase: shared leaderboard for every visitor of this training site.
+const firebaseConfig = {
+    apiKey: "AIzaSyAqtniC_TRKJMlHTlQGurvTL7g1zXCNz4Y",
+    authDomain: "reytingmyworks.firebaseapp.com",
+    projectId: "reytingmyworks",
+    storageBucket: "reytingmyworks.firebasestorage.app",
+    messagingSenderId: "336402722667",
+    appId: "1:336402722667:web:ae8e02c95583ff3679262e",
+    measurementId: "G-3T36PDMX3B"
+};
+
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const cloudAuth = firebase.auth();
+const cloudDB = firebase.firestore();
+const firebaseReady = cloudAuth.currentUser
+    ? Promise.resolve(cloudAuth.currentUser)
+    : cloudAuth.signInAnonymously().then(credential => credential.user);
+
+async function getCloudLeaderboard(type) {
+    await firebaseReady;
+    const boardId = `${lessonKey}_${type}`;
+    const snapshot = await cloudDB.collection("leaderboards").doc(boardId)
+        .collection("scores").limit(1000).get();
+    const scores = snapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+    scores.sort((a, b) => (Number(b.score) - Number(a.score)) ||
+        (Number(b.percent) - Number(a.percent)) ||
+        (Number(a.duration) - Number(b.duration)) ||
+        (Number(a.date) - Number(b.date)));
+    return scores;
+}
+
+async function addCloudLeaderboardScore(type, result) {
+    await firebaseReady;
+    const boardId = `${lessonKey}_${type}`;
+    // Only fields allowed by the Firestore security rules are sent.
+    const payload = {
+        name: String(result.name || "Student").trim().slice(0, 40),
+        score: Number(result.score) || 0,
+        percent: Math.max(0, Math.min(100, Number(result.percent) || 0)),
+        correct: Math.max(0, Number(result.correct) || 0),
+        total: Math.max(0, Number(result.total) || 0),
+        duration: Math.max(0, Math.min(86400, Number(result.duration) || 0)),
+        date: Number(result.date) || Date.now()
+    };
+    const ref = await cloudDB.collection("leaderboards").doc(boardId)
+        .collection("scores").add(payload);
+    return ref.id;
+}
+
 const urlParams = new URLSearchParams(window.location.search);
 const bookCode = urlParams.get('book') || "ess1";
 const unitId = urlParams.get('unit') || "1";
@@ -362,35 +414,48 @@ function checkGameOver(type, container) {
     return false;
 }
 
-function submitLocalScore(type) {
-    const nameInp = document.getElementById("leaderboardName").value.trim();
-    if(!nameInp) { alert("Please enter your name!"); return; }
-    const storageKey = `lb_${lessonKey}_${type}`;
-    let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
-    scores.push({ name: nameInp, score: gameScore, duration: gameSeconds, date: new Date().getTime() });
-    scores.sort((a, b) => b.score - a.score || a.duration - b.duration);
-    scores = scores.slice(0, 10);
-    localStorage.setItem(storageKey, JSON.stringify(scores));
-    document.getElementById("leaderboardInputZone").style.display = "none";
-    showLocalLeaderboard(type);
+async function submitLocalScore(type) {
+    const input = document.getElementById("leaderboardName");
+    const nameInp = input ? input.value.trim() : "";
+    if (!nameInp) { alert("Please enter your name!"); return; }
+    const submitBtn = document.querySelector("#leaderboardInputZone .ww-action-btn");
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+        const result = { name: nameInp, score: gameScore, correct: 0, total: 0,
+            percent: 0, duration: gameSeconds, date: Date.now() };
+        await addCloudLeaderboardScore(type, result);
+        document.getElementById("leaderboardInputZone").style.display = "none";
+        await showLocalLeaderboard(type);
+    } catch (error) {
+        console.error("Firebase leaderboard save error:", error);
+        alert("Natijani saqlashda xatolik yuz berdi. Internet va Firebase sozlamalarini tekshiring.");
+        if (submitBtn) submitBtn.disabled = false;
+    }
 }
 
-function showLocalLeaderboard(type) {
-    const storageKey = `lb_${lessonKey}_${type}`;
-    const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+async function showLocalLeaderboard(type) {
     const table = document.getElementById("lbTable");
-    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Name</th><th>Score</th><th>Time</th></tr>`;
-    scores.forEach((row, idx) => {
-        const m = Math.floor(row.duration / 60);
-        const s = row.duration % 60;
-        table.innerHTML += `<tr>            
-            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${idx+1}</td>            
-            <td style="padding:6px; border:1px solid #ddd; font-weight:bold;">${row.name}</td>            
-            <td style="padding:6px; border:1px solid #ddd; font-weight:bold; text-align:center; color:#2ecc71;">${row.score}</td>            
-            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m}:${s<10?'0':''}${s}</td>        
-        </tr>`;
-    });
+    if (!table) return;
+    table.innerHTML = '<tr><td colspan="4">Loading leaderboard...</td></tr>';
     document.getElementById("leaderboardDisplay").style.display = "block";
+    try {
+        const scores = await getCloudLeaderboard(type);
+        table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Name</th><th>Score</th><th>Time</th></tr>`;
+        scores.slice(0, 10).forEach((row, idx) => {
+            const m = Math.floor((Number(row.duration) || 0) / 60);
+            const sec = (Number(row.duration) || 0) % 60;
+            table.innerHTML += `<tr>
+                <td style="padding:6px;border:1px solid #ddd;text-align:center;">${idx + 1}</td>
+                <td style="padding:6px;border:1px solid #ddd;font-weight:bold;">${escapeHtml(row.name)}</td>
+                <td style="padding:6px;border:1px solid #ddd;font-weight:bold;text-align:center;color:#2ecc71;">${Number(row.score) || 0}</td>
+                <td style="padding:6px;border:1px solid #ddd;text-align:center;">${m}:${sec < 10 ? '0' : ''}${sec}</td>
+            </tr>`;
+        });
+        if (!scores.length) table.innerHTML += '<tr><td colspan="4">No results yet</td></tr>';
+    } catch (error) {
+        console.error("Firebase leaderboard read error:", error);
+        table.innerHTML = '<tr><td colspan="4">Leaderboard could not be loaded.</td></tr>';
+    }
 }
 
 function resetAndRestart(type) {
@@ -1011,62 +1076,62 @@ function recordGameAnswer(item, correct, timedOut = false, userAnswer = '') {
     else gameSessionResults.push(row);
 }
 
-function saveGameSessionScore(type) {
-    const key = `lb_${lessonKey}_${type}`;
+async function saveGameSessionScore(type) {
     const total = localGameData.length;
     const correct = gameSessionResults.filter(r => r && r.correct).length;
     const percent = total ? Math.round(correct / total * 100) : 0;
-    const result = { name: gameStudentName, score: correct, correct, total, percent, duration: gameSeconds, details: gameSessionResults.map(r => r ? ({...r}) : ({correct:false, unanswered:true})), date: Date.now() };
-    let scores = JSON.parse(localStorage.getItem(key)) || [];
-    scores.push(result);
-    scores.sort((a,b) => (b.score-a.score) || (b.percent-a.percent) || (a.duration-b.duration) || (a.date-b.date));
-    scores = scores.slice(0, 1000);
-    localStorage.setItem(key, JSON.stringify(scores));
-    return { result, scores, rank: scores.findIndex(r => r.date === result.date) + 1 };
+    const result = { name: gameStudentName, score: correct, correct, total,
+        percent, duration: gameSeconds, details: gameSessionResults.map(r => r ? ({...r}) : ({correct:false, unanswered:true})), date: Date.now() };
+    const id = await addCloudLeaderboardScore(type, result);
+    const scores = await getCloudLeaderboard(type);
+    return { result, scores, id, rank: scores.findIndex(r => r._id === id) + 1 };
 }
 
-function renderGameSessionResults(container, type) {
+async function renderGameSessionResults(container, type) {
     clearInterval(gameRoundTimerInterval);
     gameRoundTimerInterval = null;
-    const saved = saveGameSessionScore(type);
-    const result = saved.result;
-    const rank = saved.rank;
-    const min = Math.floor(result.duration / 60), sec = result.duration % 60;
-    const rows = saved.scores.slice(0,10).map((r,i) => {
-        const m = Math.floor(r.duration/60), s = r.duration%60;
-        return `<tr class="${r.date===result.date?'yf-current-rank':''}"><td>${i+1}</td><td>${escapeHtml(r.name)}</td><td>${r.percent}%</td><td>${m}:${s<10?'0':''}${s}</td></tr>`;
-    }).join('');
-    container.innerHTML = `
-      <div class="ww-result-screen yf-result-screen">
-        <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
-        <h2>Activity Complete!</h2>
-        <p class="yf-result-user">${escapeHtml(result.name)}</p>
-        <div class="ww-result-stats yf-result-stats">
-          <div class="ww-stat-row"><span>⏱️ Time:</span><strong>${min} m ${sec} s</strong></div>
-          <div class="ww-stat-row"><span>🎯 Correct:</span><strong>${result.correct} / ${result.total}</strong></div>
-          <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
-          <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
-        </div>
-        <div class="yf-result-actions">
-          <button class="yf-details-btn" onclick="toggleGameDetails('${type}')"><i class="fa-solid fa-list-check"></i> Details</button>
-          ${['anagrama','typeanswer'].includes(type) && result.details.some(r => r && !r.correct) ? `
-          <button class="yf-retry-btn" onclick="retryGameMistakes('${type}')">
-            <i class="fa-solid fa-rotate-right"></i> Practice Mistakes
-          </button>` : ''}
-        </div>
-        <div id="yfGameDetails" class="yf-details-panel" style="display:none;">
-          <h3>Answer Details</h3>
-          <div class="yf-detail-list">
-          ${result.details.map((r,i)=>`<div class="yf-detail-item ${r.correct?'yf-detail-correct':'yf-detail-wrong'}">
-            <div class="yf-detail-icon">${r.correct?'✓':'✕'}</div>
-            <div class="yf-detail-word"><strong>${i+1}. ${escapeHtml(r.word||'')}</strong><span>${escapeHtml(r.translation||'')}</span>${r.userAnswer?`<small>Your answer: ${escapeHtml(r.userAnswer)}</small>`:''}</div>
-            <div class="yf-detail-status">${r.correct?'Correct':(r.timedOut?'Time up':(r.unanswered?'Not answered':'Wrong'))}</div>
-          </div>`).join('')}
-          </div>
-        </div>
-        <div class="yf-leaderboard-block"><h3>🏆 TOP 10 LEADERBOARD</h3><table class="yf-leaderboard-table"><thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>${rows}</tbody></table></div>
-        <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('${type}')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>
-      </div>`;
+    container.innerHTML = '<div class="ww-result-screen">Loading shared leaderboard...</div>';
+    try {
+        const saved = await saveGameSessionScore(type);
+        const result = saved.result;
+        const rank = saved.rank;
+        const min = Math.floor(result.duration / 60), sec = result.duration % 60;
+        const rows = saved.scores.slice(0,10).map((r,i) => {
+            const m = Math.floor(r.duration/60), s = r.duration%60;
+            return `<tr class="${r._id === saved.id ? 'yf-current-rank' : ''}"><td>${i+1}</td><td>${escapeHtml(r.name)}</td><td>${Number(r.percent)||0}%</td><td>${m}:${s<10?'0':''}${s}</td></tr>`;
+        }).join('');
+        container.innerHTML = `
+          <div class="ww-result-screen yf-result-screen">
+            <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
+            <h2>Activity Complete!</h2>
+            <p class="yf-result-user">${escapeHtml(result.name)}</p>
+            <div class="ww-result-stats yf-result-stats">
+              <div class="ww-stat-row"><span>⏱️ Time:</span><strong>${min} m ${sec} s</strong></div>
+              <div class="ww-stat-row"><span>🎯 Correct:</span><strong>${result.correct} / ${result.total}</strong></div>
+              <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
+              <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
+            </div>
+            <div class="yf-result-actions">
+              <button class="yf-details-btn" onclick="toggleGameDetails('${type}')"><i class="fa-solid fa-list-check"></i> Details</button>
+              ${['anagrama','typeanswer'].includes(type) && result.details.some(r => r && !r.correct) ? `
+              <button class="yf-retry-btn" onclick="retryGameMistakes('${type}')"><i class="fa-solid fa-rotate-right"></i> Practice Mistakes</button>` : ''}
+            </div>
+            <div id="yfGameDetails" class="yf-details-panel" style="display:none;">
+              <h3>Answer Details</h3><div class="yf-detail-list">
+              ${result.details.map((r,i)=>`<div class="yf-detail-item ${r.correct?'yf-detail-correct':'yf-detail-wrong'}">
+                <div class="yf-detail-icon">${r.correct?'✓':'✕'}</div>
+                <div class="yf-detail-word"><strong>${i+1}. ${escapeHtml(r.word||'')}</strong><span>${escapeHtml(r.translation||'')}</span>${r.userAnswer?`<small>Your answer: ${escapeHtml(r.userAnswer)}</small>`:''}</div>
+                <div class="yf-detail-status">${r.correct?'Correct':(r.timedOut?'Time up':(r.unanswered?'Not answered':'Wrong'))}</div>
+              </div>`).join('')}
+              </div>
+            </div>
+            <div class="yf-leaderboard-block"><h3>🏆 TOP 10 LEADERBOARD</h3><table class="yf-leaderboard-table"><thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>${rows}</tbody></table></div>
+            <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('${type}')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>
+          </div>`;
+    } catch (error) {
+        console.error("Firebase session leaderboard error:", error);
+        container.innerHTML = '<div class="ww-result-screen">Natijani umumiy reytingga saqlab bo‘lmadi. Internet yoki Firebase sozlamalarini tekshiring.</div>';
+    }
 }
 
 function retryGameMistakes(type) {
@@ -1367,112 +1432,67 @@ function handleFlashcardResult(isCorrect, timedOut = false) {
     buildFlashcardGame();
 }
 
-function getFlashcardScoreList() {
-    const storageKey = `lb_${lessonKey}_flashcard`;
-    return JSON.parse(localStorage.getItem(storageKey)) || [];
+async function getFlashcardScoreList() {
+    return await getCloudLeaderboard('flashcard');
 }
 
-function saveFlashcardScore() {
-    const storageKey = `lb_${lessonKey}_flashcard`;
+async function saveFlashcardScore() {
     const total = totalGameRounds || localGameData.length;
     const correct = flashcardResults.filter(r => r && r.correct).length;
     const percent = total ? Math.round((correct / total) * 100) : 0;
     const result = {
-        name: flashcardStudentName,
-        score: correct,
-        correct: correct,
-        total: total,
-        percent: percent,
+        name: flashcardStudentName, score: correct, correct, total, percent,
         duration: gameSeconds,
         details: flashcardResults.map(r => r ? ({...r}) : ({correct:false, unanswered:true})),
-        retryMode: flashcardRetryMode,
-        date: Date.now()
+        retryMode: flashcardRetryMode, date: Date.now()
     };
-
-    let scores = getFlashcardScoreList();
-    scores.push(result);
-    scores.sort((a,b) => (b.score - a.score) || (b.percent - a.percent) || (a.duration - b.duration) || (a.date - b.date));
-    // Keep enough history to calculate a meaningful rank, while avoiding unlimited localStorage growth.
-    scores = scores.slice(0, 1000);
-    localStorage.setItem(storageKey, JSON.stringify(scores));
-
-    return { result, scores, rank: scores.findIndex(x => x.date === result.date) + 1 };
+    const id = await addCloudLeaderboardScore('flashcard', result);
+    const scores = await getFlashcardScoreList();
+    return { result, scores, id, rank: scores.findIndex(x => x._id === id) + 1 };
 }
 
-function renderFlashcardResults(container) {
+async function renderFlashcardResults(container) {
     const min = Math.floor(gameSeconds / 60);
     const sec = gameSeconds % 60;
-    const saved = saveFlashcardScore();
-    const result = saved.result;
-    const rank = saved.rank;
-    const top10 = saved.scores.slice(0, 10);
+    container.innerHTML = '<div class="ww-result-screen">Loading shared leaderboard...</div>';
+    try {
+        const saved = await saveFlashcardScore();
+        const result = saved.result;
+        const rank = saved.rank;
+        const top10 = saved.scores.slice(0, 10);
+        let rows = top10.map((row, idx) => {
+            const m = Math.floor(row.duration / 60);
+            const s = row.duration % 60;
+            return `<tr class="${row._id === saved.id ? 'yf-current-rank' : ''}">
+                <td>${idx + 1}</td><td>${escapeHtml(row.name)}</td><td>${Number(row.percent)||0}%</td><td>${m}:${s < 10 ? '0' : ''}${s}</td>
+            </tr>`;
+        }).join('');
+        if (rank > 10) rows += `<tr class="yf-current-rank yf-your-row"><td>${rank}</td><td>${escapeHtml(result.name)} (You)</td><td>${result.percent}%</td><td>${min}:${sec < 10 ? '0' : ''}${sec}</td></tr>`;
 
-    let rows = top10.map((row, idx) => {
-        const m = Math.floor(row.duration / 60);
-        const s = row.duration % 60;
-        const isCurrent = row.date === result.date;
-        return `<tr class="${isCurrent ? 'yf-current-rank' : ''}">
-            <td>${idx + 1}</td>
-            <td>${escapeHtml(row.name)}</td>
-            <td>${row.percent}%</td>
-            <td>${m}:${s < 10 ? '0' : ''}${s}</td>
-        </tr>`;
-    }).join('');
-
-    if (rank > 10) {
-        rows += `<tr class="yf-current-rank yf-your-row">
-            <td>${rank}</td><td>${escapeHtml(result.name)} (You)</td><td>${result.percent}%</td><td>${min}:${sec < 10 ? '0' : ''}${sec}</td>
-        </tr>`;
-    }
-
-    container.innerHTML = `
-        <div class="ww-result-screen yf-result-screen">
-            <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
-            <h2>Activity Complete!</h2>
-            <p class="yf-result-user">${escapeHtml(result.name)}</p>
-
-            <div class="ww-result-stats yf-result-stats">
-                <div class="ww-stat-row"><span>⏱️ Time:</span><strong>${min} m ${sec} s</strong></div>
-                <div class="ww-stat-row"><span>🎯 Correct:</span><strong>${result.correct} / ${result.total}</strong></div>
-                <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
-                <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
-            </div>
-
-            <div class="yf-result-actions">
-                <button class="yf-details-btn" onclick="toggleFlashcardDetails()">
-                    <i class="fa-solid fa-list-check"></i> Details
-                </button>
-                ${result.details.some(r => r && !r.correct) ? `
-                <button class="yf-retry-btn" onclick="retryFlashcardMistakes()">
-                    <i class="fa-solid fa-rotate-right"></i> Practice Mistakes
-                </button>` : ''}
-            </div>
-
-            <div id="yfFlashcardDetails" class="yf-details-panel" style="display:none;">
-                <h3>Answer Details</h3>
-                <div class="yf-detail-list">
-                    ${result.details.map((r, i) => `
-                        <div class="yf-detail-item ${r.correct ? 'yf-detail-correct' : 'yf-detail-wrong'}">
-                            <div class="yf-detail-icon">${r.correct ? '✓' : '✕'}</div>
-                            <div class="yf-detail-word"><strong>${i + 1}. ${escapeHtml(r.word || localGameData[i]?.word || '')}</strong><span>${escapeHtml(r.translation || localGameData[i]?.translation || '')}</span></div>
-                            <div class="yf-detail-status">${r.correct ? 'Correct' : (r.timedOut ? 'Time up' : (r.unanswered ? 'Not answered' : 'Wrong'))}</div>
-                        </div>
-                    `).join('')}
+        container.innerHTML = `
+            <div class="ww-result-screen yf-result-screen">
+                <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div><h2>Activity Complete!</h2>
+                <p class="yf-result-user">${escapeHtml(result.name)}</p>
+                <div class="ww-result-stats yf-result-stats">
+                    <div class="ww-stat-row"><span>⏱️ Time:</span><strong>${min} m ${sec} s</strong></div>
+                    <div class="ww-stat-row"><span>🎯 Correct:</span><strong>${result.correct} / ${result.total}</strong></div>
+                    <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
+                    <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
                 </div>
-            </div>
-
-            <div class="yf-leaderboard-block">
-                <h3>🏆 TOP 10 LEADERBOARD</h3>
-                <table class="yf-leaderboard-table">
-                    <thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead>
-                    <tbody>${rows}</tbody>
-                </table>
-            </div>
-
-            <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('flashcard')">
-                Start Again <i class="fa-solid fa-arrow-rotate-right"></i>
-            </button>
-        </div>`;
+                <div class="yf-result-actions">
+                    <button class="yf-details-btn" onclick="toggleFlashcardDetails()"><i class="fa-solid fa-list-check"></i> Details</button>
+                    ${result.details.some(r => r && !r.correct) ? `<button class="yf-retry-btn" onclick="retryFlashcardMistakes()"><i class="fa-solid fa-rotate-right"></i> Practice Mistakes</button>` : ''}
+                </div>
+                <div id="yfFlashcardDetails" class="yf-details-panel" style="display:none;"><h3>Answer Details</h3><div class="yf-detail-list">
+                    ${result.details.map((r, i) => `<div class="yf-detail-item ${r.correct ? 'yf-detail-correct' : 'yf-detail-wrong'}"><div class="yf-detail-icon">${r.correct ? '✓' : '✕'}</div><div class="yf-detail-word"><strong>${i + 1}. ${escapeHtml(r.word || localGameData[i]?.word || '')}</strong><span>${escapeHtml(r.translation || localGameData[i]?.translation || '')}</span></div><div class="yf-detail-status">${r.correct ? 'Correct' : (r.timedOut ? 'Time up' : (r.unanswered ? 'Not answered' : 'Wrong'))}</div></div>`).join('')}
+                </div></div>
+                <div class="yf-leaderboard-block"><h3>🏆 TOP 10 LEADERBOARD</h3><table class="yf-leaderboard-table"><thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>${rows}</tbody></table></div>
+                <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('flashcard')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>
+            </div>`;
+    } catch (error) {
+        console.error("Firebase flashcard leaderboard error:", error);
+        container.innerHTML = '<div class="ww-result-screen">Natijani umumiy reytingga saqlab bo‘lmadi. Internet yoki Firebase sozlamalarini tekshiring.</div>';
+    }
 }
 
 function retryFlashcardMistakes() {
