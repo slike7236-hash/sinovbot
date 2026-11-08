@@ -126,6 +126,48 @@ async function addCloudLeaderboardScore(type, result) {
     return ref.id;
 }
 
+// Test iframe bridge: the quiz remains in its own GitHub project.
+async function saveBestTestScore(result) {
+    const user = await firebaseReady;
+    const boardId = `${lessonKey}_test`;
+    const scoresRef = cloudDB.collection("leaderboards").doc(boardId).collection("scores");
+    const scoreId = user.uid;
+    const scoreRef = scoresRef.doc(scoreId);
+    const payload = {
+        name: String(result.name || "Student").trim().slice(0, 40),
+        score: Math.max(0, Number(result.score) || 0),
+        percent: Math.max(0, Math.min(100, Number(result.percent) || 0)),
+        correct: Math.max(0, Number(result.correct) || 0),
+        total: Math.max(0, Number(result.total) || 0),
+        duration: Math.max(0, Math.min(86400, Number(result.duration) || 0)),
+        date: Date.now()
+    };
+    const oldDoc = await scoreRef.get();
+    const old = oldDoc.exists ? oldDoc.data() : null;
+    const isBetter = !old || payload.score > Number(old.score || 0) ||
+        (payload.score === Number(old.score || 0) && payload.percent > Number(old.percent || 0)) ||
+        (payload.score === Number(old.score || 0) && payload.percent === Number(old.percent || 0) && payload.duration < Number(old.duration || 0));
+    if (isBetter) await scoreRef.set(payload);
+
+    const snapshot = await scoresRef.get();
+    const all = snapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
+    all.sort((a,b) => (Number(b.score)-Number(a.score)) || (Number(b.percent)-Number(a.percent)) || (Number(a.duration)-Number(b.duration)) || (Number(a.date)-Number(b.date)));
+    const rank = all.findIndex(row => row._id === scoreId) + 1;
+    return { scores: all.slice(0,30), rank, best: all.find(row => row._id === scoreId), updated: isBetter };
+}
+
+window.addEventListener('message', async (event) => {
+    const frame = document.getElementById('iframeViewer');
+    if (!frame || event.source !== frame.contentWindow || !event.data || event.data.type !== 'TRAINING_TEST_RESULT') return;
+    try {
+        const result = await saveBestTestScore(event.data.result || {});
+        frame.contentWindow.postMessage({ type: 'TRAINING_TEST_LEADERBOARD', payload: result }, event.origin);
+    } catch (error) {
+        console.error('Test leaderboard save error:', error);
+        frame.contentWindow.postMessage({ type: 'TRAINING_TEST_LEADERBOARD_ERROR' }, event.origin);
+    }
+});
+
 const urlParams = new URLSearchParams(window.location.search);
 const bookCode = urlParams.get('book') || "ess1";
 const unitId = urlParams.get('unit') || "1";
@@ -590,8 +632,23 @@ function loadContent(type) {
         textZone.style.display = "block";
     }
     else if (type === 'video' || type === 'test') {
-        iframeZone.src = type === 'video' ? (currentLessonData.videoUrl || "") : (currentLessonData.testUrl || "");
         iframeZone.style.display = "block";
+        if (type === 'test') {
+            iframeZone.onload = async () => {
+                try {
+                    const user = await firebaseReady;
+                    iframeZone.contentWindow.postMessage({
+                        type: 'TRAINING_TEST_INIT',
+                        lessonKey,
+                        userId: user.uid
+                    }, '*');
+                } catch (error) { console.error('Test iframe initialization error:', error); }
+            };
+            iframeZone.src = currentLessonData.testUrl || "";
+        } else {
+            iframeZone.onload = null;
+            iframeZone.src = currentLessonData.videoUrl || "";
+        }
     } 
     else {
         currentActiveGameType = type;
