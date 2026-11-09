@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="training.css">
     <script src="database.js"></script>
-    <script src="databasetest.js"></script>
+    <script src="questions.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -128,8 +128,11 @@ async function addCloudLeaderboardScore(type, result) {
 }
 
 const urlParams = new URLSearchParams(window.location.search);
-const bookCode = urlParams.get('book') || "ess1";
-const unitId = urlParams.get('unit') || "1";
+// Supports both Training URLs (?book=ess1&unit=1) and the old lesson key (?lesson=ess1_1).
+const requestedLessonKey = urlParams.get('lesson') || urlParams.get('lessonKey') || urlParams.get('id') || '';
+const lessonMatch = requestedLessonKey.match(/^([A-Za-z0-9]+)_(\d+)$/);
+const bookCode = urlParams.get('book') || (lessonMatch ? lessonMatch[1] : 'ess1');
+const unitId = urlParams.get('unit') || (lessonMatch ? lessonMatch[2] : '1');
 const lessonKey = `${bookCode}_${unitId}`;
 
 let currentLang = localStorage.getItem('selectedLang') || 'uz';
@@ -499,7 +502,6 @@ let trainingQuizTimer = null;
 
 function renderVocabularyQuiz(container) {
     clearInterval(trainingQuizTimer);
-    const params = new URLSearchParams(window.location.search);
     const quizKey = `${bookCode}_${unitId}`;
     const questions = (typeof quizDatabase !== 'undefined' && quizDatabase[quizKey]) ? quizDatabase[quizKey] : [];
     trainingQuizState = { questions, quizKey, index: 0, score: 0, name: '', timeSpent: 0, timeLeft: 15, locked: false };
@@ -577,11 +579,15 @@ function renderTrainingQuizQuestion() {
     }, 1000);
 }
 
+function normalizeQuizAnswer(value) {
+    return String(value ?? '').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+}
+
 function markTrainingCorrect() {
-    const s = trainingQuizState, correct = s.questions[s.index].a;
+    const s = trainingQuizState, correct = normalizeQuizAnswer(s.questions[s.index].a);
     document.querySelectorAll('.training-quiz-option').forEach(btn => {
         btn.disabled = true;
-        if (btn.textContent === correct) btn.classList.add('correct');
+        if (normalizeQuizAnswer(btn.textContent) === correct) btn.classList.add('correct');
     });
 }
 
@@ -591,7 +597,7 @@ function answerTrainingQuiz(btn, selected) {
     s.locked = true; clearInterval(trainingQuizTimer);
     const correct = s.questions[s.index].a;
     document.querySelectorAll('.training-quiz-option').forEach(b => b.disabled = true);
-    if (selected === correct) { s.score++; btn.classList.add('correct'); trainingQuizSound('correct'); }
+    if (normalizeQuizAnswer(selected) === normalizeQuizAnswer(correct)) { s.score++; btn.classList.add('correct'); trainingQuizSound('correct'); }
     else { btn.classList.add('wrong'); markTrainingCorrect(); trainingQuizSound('wrong'); }
     setTimeout(() => { s.index++; renderTrainingQuizQuestion(); }, 900);
 }
@@ -605,7 +611,7 @@ async function finishTrainingQuiz() {
     card.innerHTML = `<div class="training-quiz-result"><i class="fa-solid fa-trophy"></i><h2>Quiz Completed!</h2>
       <p>Well done, <b>${escapeHtml(s.name)}</b>!</p>
       <p>Score: <b>${s.score}/${total}</b> · ${percent}% · ${s.timeSpent}s</p>
-      <div class="training-quiz-board"><h3>🏆 TOP 30 LEADERBOARD</h3><div id="trainingQuizBoard">Natijalar yuklanmoqda...</div></div>
+      <div class="training-quiz-board"><h3>🏆 TOP 30 · ${escapeHtml(s.quizKey)}</h3><div id="trainingQuizBoard">Natijalar yuklanmoqda...</div></div>
       <button class="training-quiz-primary" onclick="renderVocabularyQuiz(document.getElementById('textContainer'))">Try Again</button></div>`;
     try {
         await saveBestTestScore({ name:s.name, score:s.score, percent, correct:s.score, total, duration:s.timeSpent, date:Date.now() });
@@ -645,6 +651,7 @@ async function showTrainingQuizLeaderboard() {
 // ================== END VOCABULARY TEST ==================
 
 function loadContent(type) {
+    if (typeof trainingQuizTimer !== 'undefined') clearInterval(trainingQuizTimer);
     currentActiveGameType = type;
     const textZone = document.getElementById("textContainer");
     const iframeZone = document.getElementById("iframeViewer");
