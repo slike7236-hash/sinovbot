@@ -116,7 +116,7 @@ function sortSharedScores(scores) {
     );
 }
 
-async function saveSharedGameScore(type, result) {
+async function saveSharedGameScore(type, result, documentId) {
     if (!['anagrama', 'typeanswer'].includes(type)) {
         throw new Error('Bu o‘yin umumiy Firebase reytingiga ulanmagan.');
     }
@@ -133,9 +133,50 @@ async function saveSharedGameScore(type, result) {
         date: Number(result.date || Date.now())
     };
     const boardId = `${lessonKey}_${type}`;
-    await leaderboardDb.collection('leaderboards').doc(boardId).collection('scores').add(payload);
+    // Deterministic document ID prevents duplicate rows if a network timeout
+    // happens after Firestore has already accepted the write.
+    await leaderboardDb.collection('leaderboards').doc(boardId)
+        .collection('scores').doc(documentId).set(payload);
     return payload;
 }
+
+// Local backup is written first. Only Anagram and Type Answer use this
+// temporary cache/queue in addition to the shared Firebase leaderboard.
+function getPendingSharedScores() {
+    try { return JSON.parse(localStorage.getItem('ew_pending_shared_scores') || '[]'); }
+    catch (_) { return []; }
+}
+function setPendingSharedScores(items) {
+    localStorage.setItem('ew_pending_shared_scores', JSON.stringify(items));
+}
+function getLocalSharedBackup(type) {
+    try { return JSON.parse(localStorage.getItem(`ew_backup_${lessonKey}_${type}`) || '[]'); }
+    catch (_) { return []; }
+}
+function storeLocalSharedBackup(type, result) {
+    const key = `ew_backup_${lessonKey}_${type}`;
+    const scores = getLocalSharedBackup(type);
+    if (!scores.some(r => r.localId === result.localId)) scores.push(result);
+    scores.sort((a,b) => (Number(b.score)-Number(a.score)) ||
+        (Number(b.percent)-Number(a.percent)) || (Number(a.duration)-Number(b.duration)));
+    localStorage.setItem(key, JSON.stringify(scores.slice(0, 1000)));
+}
+async function syncPendingSharedScores() {
+    const pending = getPendingSharedScores();
+    if (!pending.length || !leaderboardDb) return;
+    const remaining = [];
+    for (const item of pending) {
+        try {
+            await saveSharedGameScore(item.type, item.result, item.documentId);
+        } catch (error) {
+            console.warn('Natijani Firebase bilan sinxronlash kechiktirildi:', error);
+            remaining.push(item);
+        }
+    }
+    setPendingSharedScores(remaining);
+}
+window.addEventListener('online', syncPendingSharedScores);
+setTimeout(syncPendingSharedScores, 1500);
 
 async function getSharedGameScores(type) {
     if (!['anagrama', 'typeanswer'].includes(type)) return [];
@@ -1091,15 +1132,40 @@ async function saveGameSessionScore(type) {
         date: Date.now()
     };
 
-    // Anagram va Type Answer: Firebase umumiy reytingi.
+    // Anagram and Type Answer: save locally immediately, then sync to Firebase.
     if (type === 'anagrama' || type === 'typeanswer') {
-        await saveSharedGameScore(type, result);
-        const scores = await getSharedGameScores(type);
-        const rank = scores.findIndex(r => r.name === result.name && Number(r.date) === result.date) + 1;
-        return { result, scores: scores.slice(0, 30), rank: rank || '—', shared: true };
+        result.localId = `${type}_${result.date}_${Math.random().toString(36).slice(2, 10)}`;
+        const documentId = result.localId.replace(/[^a-zA-Z0-9_-]/g, '_');
+        storeLocalSharedBackup(type, result);
+
+        const pending = getPendingSharedScores();
+        pending.push({ type, result, documentId });
+        setPendingSharedScores(pending);
+
+        let shared = false;
+        let firebaseScores = [];
+        try {
+            await saveSharedGameScore(type, result, documentId);
+            setPendingSharedScores(getPendingSharedScores().filter(item => item.documentId !== documentId));
+            firebaseScores = await getSharedGameScores(type);
+            shared = true;
+        } catch (error) {
+            // Keep the local result visible even if Firebase is unavailable.
+            console.warn('Firebase saqlashi muvaffaqiyatsiz; natija lokal zaxirada:', error);
+        }
+
+        const scores = shared ? firebaseScores : getLocalSharedBackup(type);
+        const rank = scores.findIndex(r =>
+            (r.localId && r.localId === result.localId) ||
+            (Number(r.date) === result.date && r.name === result.name)
+        ) + 1;
+        return {
+            result, scores: scores.slice(0, 30), rank: rank || '—',
+            shared, syncPending: !shared
+        };
     }
 
-    // Match Up va boshqa o‘yinlar: faqat shu brauzer localStorage'i.
+    // Match Up and all other games: browser localStorage only.
     const key = `lb_${lessonKey}_${type}`;
     let scores = JSON.parse(localStorage.getItem(key) || '[]');
     scores.push(result);
@@ -1112,23 +1178,37 @@ async function saveGameSessionScore(type) {
 async function renderGameSessionResults(container, type) {
     clearInterval(gameRoundTimerInterval);
     gameRoundTimerInterval = null;
-    container.innerHTML = '<div class="ww-result-screen"><p>Natija saqlanmoqda...</p></div>';
+    container.innerHTML = '<div class="ww-result-screen"><p>Natija tayyorlanmoqda...</p></div>';
     let saved;
     try {
         saved = await saveGameSessionScore(type);
     } catch (error) {
         console.error(error);
-        container.innerHTML = `<div class="ww-result-screen"><h2>Natijani saqlashda xatolik</h2><p>${escapeHtml(error.message || 'Noma’lum xatolik')}</p><button class="ww-restart-btn" onclick="resetAndRestart('${type}')">Start Again</button></div>`;
-        return;
+        // A rendering/storage error must not hide the student's completed result.
+        const correct = gameSessionResults.filter(r => r && r.correct).length;
+        const total = localGameData.length;
+        saved = {
+            result: {
+                name: gameStudentName || 'Student', score: correct, correct, total,
+                percent: total ? Math.round(correct / total * 100) : 0,
+                duration: gameSeconds, date: Date.now(),
+                details: gameSessionResults.map(r => r ? ({...r}) : ({correct:false, unanswered:true}))
+            },
+            scores: [], rank: '—', shared: false, syncPending: true
+        };
     }
     const result = saved.result;
     const rank = saved.rank || '—';
     const min = Math.floor(result.duration / 60), sec = result.duration % 60;
     const rows = saved.scores.map((r,i) => {
         const m = Math.floor(Number(r.duration || 0)/60), s = Number(r.duration || 0)%60;
-        return `<tr class="${Number(r.date)===result.date?'yf-current-rank':''}"><td>${i+1}</td><td>${escapeHtml(r.name || '')}</td><td>${Number(r.percent || 0)}%</td><td>${m}:${s<10?'0':''}${s}</td></tr>`;
+        return `<tr class="${(r.localId && r.localId === result.localId) || (Number(r.date)===result.date && r.name===result.name)?'yf-current-rank':''}"><td>${i+1}</td><td>${escapeHtml(r.name || '')}</td><td>${Number(r.percent || 0)}%</td><td>${m}:${s<10?'0':''}${s}</td></tr>`;
     }).join('');
-    const topLabel = saved.shared ? 'TOP 30 — UMUMIY REYTING' : 'TOP 10 — LOCAL REYTING';
+    const topLabel = saved.shared ? 'TOP 30 — UMUMIY REYTING' :
+        (['anagrama','typeanswer'].includes(type) ? 'TOP 30 — VAQTINCHA LOKAL ZAXIRA' : 'TOP 10 — LOCAL REYTING');
+    const syncNotice = saved.syncPending
+        ? '<p style="color:#b7791f;font-size:13px;margin:8px 0;">Internet yoki Firebase bilan aloqa yo‘q. Natija qurilmada saqlandi va internet qaytganda yuborishga uriniladi.</p>'
+        : '';
     container.innerHTML = `
       <div class="ww-result-screen yf-result-screen">
         <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
@@ -1140,6 +1220,7 @@ async function renderGameSessionResults(container, type) {
           <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
           <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
         </div>
+        ${syncNotice}
         <div class="yf-result-actions">
           <button class="yf-details-btn" onclick="toggleGameDetails('${type}')"><i class="fa-solid fa-list-check"></i> Details</button>
           ${['anagrama','typeanswer'].includes(type) && result.details.some(r => r && !r.correct) ? `<button class="yf-retry-btn" onclick="retryGameMistakes('${type}')"><i class="fa-solid fa-rotate-right"></i> Practice Mistakes</button>` : ''}
@@ -1148,7 +1229,7 @@ async function renderGameSessionResults(container, type) {
           <h3>Answer Details</h3><div class="yf-detail-list">
           ${result.details.map((r,i)=>`<div class="yf-detail-item ${r.correct?'yf-detail-correct':'yf-detail-wrong'}"><div class="yf-detail-icon">${r.correct?'✓':'✕'}</div><div class="yf-detail-word"><strong>${i+1}. ${escapeHtml(r.word||'')}</strong><span>${escapeHtml(r.translation||'')}</span>${r.userAnswer?`<small>Your answer: ${escapeHtml(r.userAnswer)}</small>`:''}</div><div class="yf-detail-status">${r.correct?'Correct':(r.timedOut?'Time up':(r.unanswered?'Not answered':'Wrong'))}</div></div>`).join('')}
           </div></div>
-        <div class="yf-leaderboard-block"><h3>🏆 ${topLabel}</h3><table class="yf-leaderboard-table"><thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>${rows || '<tr><td colspan="4">Hozircha natijalar yo‘q</td></tr>'}</tbody></table></div>
+        <div class="yf-leaderboard-block"><h3>🏆 ${topLabel}</h3><table class="yf-leaderboard-table"><thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>${rows || `<tr><td colspan="4">${saved.syncPending ? 'Lokal zaxiradagi natija' : 'Hozircha natijalar yo‘q'}</td></tr>`}</tbody></table></div>
         <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('${type}')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>
       </div>`;
 }
