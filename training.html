@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="training.css">
     <script src="database.js"></script>
-    <script src="questions.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -78,7 +77,12 @@
 </div>
 
 <script>
-// Firebase: shared leaderboard for every visitor of this training site.
+const urlParams = new URLSearchParams(window.location.search);
+const bookCode = urlParams.get('book') || "ess1";
+const unitId = urlParams.get('unit') || "1";
+const lessonKey = `${bookCode}_${unitId}`;
+
+// Umumiy reyting faqat Anagram va Type Answer uchun ishlatiladi.
 const firebaseConfig = {
     apiKey: "AIzaSyAqtniC_TRKJMlHTlQGurvTL7g1zXCNz4Y",
     authDomain: "reytingmyworks.firebaseapp.com",
@@ -89,51 +93,60 @@ const firebaseConfig = {
     measurementId: "G-3T36PDMX3B"
 };
 
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const cloudAuth = firebase.auth();
-const cloudDB = firebase.firestore();
-const firebaseReady = cloudAuth.currentUser
-    ? Promise.resolve(cloudAuth.currentUser)
-    : cloudAuth.signInAnonymously().then(credential => credential.user);
-
-async function getCloudLeaderboard(type) {
-    await firebaseReady;
-    const boardId = `${lessonKey}_${type}`;
-    const snapshot = await cloudDB.collection("leaderboards").doc(boardId)
-        .collection("scores").limit(1000).get();
-    const scores = snapshot.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
-    scores.sort((a, b) => (Number(b.score) - Number(a.score)) ||
-        (Number(b.percent) - Number(a.percent)) ||
-        (Number(a.duration) - Number(b.duration)) ||
-        (Number(a.date) - Number(b.date)));
-    return scores;
+let leaderboardDb = null;
+let leaderboardAuthReady = Promise.resolve(false);
+try {
+    if (typeof firebase !== 'undefined' && firebaseConfig.apiKey && firebaseConfig.projectId) {
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        leaderboardDb = firebase.firestore();
+        leaderboardAuthReady = firebase.auth().signInAnonymously()
+            .then(() => true)
+            .catch(error => { console.error('Firebase auth error:', error); return false; });
+    }
+} catch (error) {
+    console.error('Firebase initialization error:', error);
 }
 
-async function addCloudLeaderboardScore(type, result) {
-    await firebaseReady;
-    const boardId = `${lessonKey}_${type}`;
-    // Only fields allowed by the Firestore security rules are sent.
+function sortSharedScores(scores) {
+    return scores.sort((a, b) =>
+        (Number(b.score || 0) - Number(a.score || 0)) ||
+        (Number(b.percent || 0) - Number(a.percent || 0)) ||
+        (Number(a.duration || 0) - Number(b.duration || 0)) ||
+        (Number(a.date || 0) - Number(b.date || 0))
+    );
+}
+
+async function saveSharedGameScore(type, result) {
+    if (!['anagrama', 'typeanswer'].includes(type)) {
+        throw new Error('Bu o‘yin umumiy Firebase reytingiga ulanmagan.');
+    }
+    if (!leaderboardDb) throw new Error('Firebase ulanmagan. Internet va Firebase sozlamalarini tekshiring.');
+    const signedIn = await leaderboardAuthReady;
+    if (!signedIn) throw new Error('Firebase autentifikatsiyasi bajarilmadi.');
     const payload = {
-        name: String(result.name || "Student").trim().slice(0, 40),
-        score: Number(result.score) || 0,
-        percent: Math.max(0, Math.min(100, Number(result.percent) || 0)),
-        correct: Math.max(0, Number(result.correct) || 0),
-        total: Math.max(0, Number(result.total) || 0),
-        duration: Math.max(0, Math.min(86400, Number(result.duration) || 0)),
-        date: Number(result.date) || Date.now()
+        name: String(result.name || 'Student').trim().slice(0, 40),
+        score: Number(result.score || 0),
+        percent: Number(result.percent || 0),
+        correct: Number(result.correct || 0),
+        total: Number(result.total || 0),
+        duration: Number(result.duration || 0),
+        date: Number(result.date || Date.now())
     };
-    const ref = await cloudDB.collection("leaderboards").doc(boardId)
-        .collection("scores").add(payload);
-    return ref.id;
+    const boardId = `${lessonKey}_${type}`;
+    await leaderboardDb.collection('leaderboards').doc(boardId).collection('scores').add(payload);
+    return payload;
 }
 
-const urlParams = new URLSearchParams(window.location.search);
-// Supports both Training URLs (?book=ess1&unit=1) and the old lesson key (?lesson=ess1_1).
-const requestedLessonKey = urlParams.get('lesson') || urlParams.get('lessonKey') || urlParams.get('id') || '';
-const lessonMatch = requestedLessonKey.match(/^([A-Za-z0-9]+)_(\d+)$/);
-const bookCode = urlParams.get('book') || (lessonMatch ? lessonMatch[1] : 'ess1');
-const unitId = urlParams.get('unit') || (lessonMatch ? lessonMatch[2] : '1');
-const lessonKey = `${bookCode}_${unitId}`;
+async function getSharedGameScores(type) {
+    if (!['anagrama', 'typeanswer'].includes(type)) return [];
+    if (!leaderboardDb) throw new Error('Firebase ulanmagan.');
+    const signedIn = await leaderboardAuthReady;
+    if (!signedIn) throw new Error('Firebase autentifikatsiyasi bajarilmadi.');
+    const boardId = `${lessonKey}_${type}`;
+    const snapshot = await leaderboardDb.collection('leaderboards').doc(boardId)
+        .collection('scores').limit(1000).get();
+    return sortSharedScores(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+}
 
 let currentLang = localStorage.getItem('selectedLang') || 'uz';
 if(currentLang === 'en') currentLang = 'uz'; 
@@ -418,48 +431,35 @@ function checkGameOver(type, container) {
     return false;
 }
 
-async function submitLocalScore(type) {
-    const input = document.getElementById("leaderboardName");
-    const nameInp = input ? input.value.trim() : "";
-    if (!nameInp) { alert("Please enter your name!"); return; }
-    const submitBtn = document.querySelector("#leaderboardInputZone .ww-action-btn");
-    if (submitBtn) submitBtn.disabled = true;
-    try {
-        const result = { name: nameInp, score: gameScore, correct: 0, total: 0,
-            percent: 0, duration: gameSeconds, date: Date.now() };
-        await addCloudLeaderboardScore(type, result);
-        document.getElementById("leaderboardInputZone").style.display = "none";
-        await showLocalLeaderboard(type);
-    } catch (error) {
-        console.error("Firebase leaderboard save error:", error);
-        alert("Natijani saqlashda xatolik yuz berdi. Internet va Firebase sozlamalarini tekshiring.");
-        if (submitBtn) submitBtn.disabled = false;
-    }
+function submitLocalScore(type) {
+    const nameInp = document.getElementById("leaderboardName").value.trim();
+    if(!nameInp) { alert("Please enter your name!"); return; }
+    const storageKey = `lb_${lessonKey}_${type}`;
+    let scores = JSON.parse(localStorage.getItem(storageKey)) || [];
+    scores.push({ name: nameInp, score: gameScore, duration: gameSeconds, date: new Date().getTime() });
+    scores.sort((a, b) => b.score - a.score || a.duration - b.duration);
+    scores = scores.slice(0, 10);
+    localStorage.setItem(storageKey, JSON.stringify(scores));
+    document.getElementById("leaderboardInputZone").style.display = "none";
+    showLocalLeaderboard(type);
 }
 
-async function showLocalLeaderboard(type) {
+function showLocalLeaderboard(type) {
+    const storageKey = `lb_${lessonKey}_${type}`;
+    const scores = JSON.parse(localStorage.getItem(storageKey)) || [];
     const table = document.getElementById("lbTable");
-    if (!table) return;
-    table.innerHTML = '<tr><td colspan="4">Loading leaderboard...</td></tr>';
+    table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Name</th><th>Score</th><th>Time</th></tr>`;
+    scores.forEach((row, idx) => {
+        const m = Math.floor(row.duration / 60);
+        const s = row.duration % 60;
+        table.innerHTML += `<tr>            
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${idx+1}</td>            
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold;">${row.name}</td>            
+            <td style="padding:6px; border:1px solid #ddd; font-weight:bold; text-align:center; color:#2ecc71;">${row.score}</td>            
+            <td style="padding:6px; border:1px solid #ddd; text-align:center;">${m}:${s<10?'0':''}${s}</td>        
+        </tr>`;
+    });
     document.getElementById("leaderboardDisplay").style.display = "block";
-    try {
-        const scores = await getCloudLeaderboard(type);
-        table.innerHTML = `<tr style="background:#eee;"><th>№</th><th>Name</th><th>Score</th><th>Time</th></tr>`;
-        scores.slice(0, 10).forEach((row, idx) => {
-            const m = Math.floor((Number(row.duration) || 0) / 60);
-            const sec = (Number(row.duration) || 0) % 60;
-            table.innerHTML += `<tr>
-                <td style="padding:6px;border:1px solid #ddd;text-align:center;">${idx + 1}</td>
-                <td style="padding:6px;border:1px solid #ddd;font-weight:bold;">${escapeHtml(row.name)}</td>
-                <td style="padding:6px;border:1px solid #ddd;font-weight:bold;text-align:center;color:#2ecc71;">${Number(row.score) || 0}</td>
-                <td style="padding:6px;border:1px solid #ddd;text-align:center;">${m}:${sec < 10 ? '0' : ''}${sec}</td>
-            </tr>`;
-        });
-        if (!scores.length) table.innerHTML += '<tr><td colspan="4">No results yet</td></tr>';
-    } catch (error) {
-        console.error("Firebase leaderboard read error:", error);
-        table.innerHTML = '<tr><td colspan="4">Leaderboard could not be loaded.</td></tr>';
-    }
 }
 
 function resetAndRestart(type) {
@@ -495,163 +495,7 @@ function resetAndRestart(type) {
     loadContent(type);
 }
 
-
-// ==================== VOCABULARY TEST (native Training module) ====================
-let trainingQuizState = null;
-let trainingQuizTimer = null;
-
-function renderVocabularyQuiz(container) {
-    clearInterval(trainingQuizTimer);
-    const quizKey = `${bookCode}_${unitId}`;
-    const questions = (typeof quizDatabase !== 'undefined' && quizDatabase[quizKey]) ? quizDatabase[quizKey] : [];
-    trainingQuizState = { questions, quizKey, index: 0, score: 0, name: '', timeSpent: 0, timeLeft: 15, locked: false };
-
-    if (!questions.length) {
-        container.innerHTML = `<div class="training-quiz-card"><h2>Test topilmadi</h2><p>${escapeHtml(quizKey)} uchun savollar bazasi mavjud emas.</p></div>`;
-        return;
-    }
-    container.innerHTML = `
-      <div class="training-quiz-card" id="trainingQuizCard">
-        <div class="training-quiz-start" id="trainingQuizStart">
-          <i class="fa-solid fa-graduation-cap training-quiz-cap"></i>
-          <h2>Vocabulary Quiz</h2>
-          <p>Ismingizni kiriting va testni boshlang.</p>
-          <input id="trainingQuizName" class="training-quiz-name" maxlength="40" placeholder="Ismingizni kiriting">
-          <button class="training-quiz-primary" type="button" onclick="startTrainingQuiz()">Start Quiz</button>
-        </div>
-      </div>`;
-}
-
-function trainingQuizSound(type) {
-    try {
-        const AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
-        const ctx = new AC(), osc = ctx.createOscillator(), gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.type = type === 'wrong' ? 'sawtooth' : 'sine';
-        osc.frequency.value = type === 'wrong' ? 150 : 523.25;
-        gain.gain.setValueAtTime(0.18, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
-        osc.start(); osc.stop(ctx.currentTime + 0.22);
-    } catch (_) {}
-}
-
-function startTrainingQuiz() {
-    const state = trainingQuizState;
-    const input = document.getElementById('trainingQuizName');
-    const name = input ? input.value.trim() : '';
-    if (!name) { alert('Iltimos, ismingizni kiriting.'); return; }
-    state.name = name.slice(0, 40);
-    renderTrainingQuizQuestion();
-}
-
-function renderTrainingQuizQuestion() {
-    const s = trainingQuizState;
-    clearInterval(trainingQuizTimer);
-    if (s.index >= s.questions.length) { finishTrainingQuiz(); return; }
-    s.timeLeft = 15; s.locked = false;
-    const q = s.questions[s.index];
-    const card = document.getElementById('trainingQuizCard');
-    card.innerHTML = `
-      <div class="training-quiz-header"><span>Question: ${s.index + 1}/${s.questions.length}</span><span id="trainingQuizTimer">15s</span></div>
-      <div class="training-quiz-progress"><div id="trainingQuizProgress"></div></div>
-      <div class="training-quiz-question" id="trainingQuizQuestion"></div>
-      <div class="training-quiz-options" id="trainingQuizOptions"></div>`;
-    document.getElementById('trainingQuizQuestion').textContent = q.q;
-    const box = document.getElementById('trainingQuizOptions');
-    q.o.forEach(option => {
-        const btn = document.createElement('button');
-        btn.type = 'button'; btn.className = 'training-quiz-option'; btn.textContent = option;
-        btn.addEventListener('click', () => answerTrainingQuiz(btn, option));
-        box.appendChild(btn);
-    });
-    trainingQuizTimer = setInterval(() => {
-        s.timeLeft--; s.timeSpent++;
-        const timer = document.getElementById('trainingQuizTimer');
-        const progress = document.getElementById('trainingQuizProgress');
-        if (timer) timer.textContent = `${s.timeLeft}s`;
-        if (progress) { progress.style.width = `${Math.max(0, s.timeLeft / 15 * 100)}%`; if (s.timeLeft <= 5) progress.classList.add('danger'); }
-        if (s.timeLeft <= 0) {
-            clearInterval(trainingQuizTimer); s.locked = true;
-            markTrainingCorrect(); trainingQuizSound('wrong');
-            setTimeout(() => { s.index++; renderTrainingQuizQuestion(); }, 900);
-        }
-    }, 1000);
-}
-
-function normalizeQuizAnswer(value) {
-    return String(value ?? '').trim().replace(/\s+/g, ' ').toLocaleLowerCase();
-}
-
-function markTrainingCorrect() {
-    const s = trainingQuizState, correct = normalizeQuizAnswer(s.questions[s.index].a);
-    document.querySelectorAll('.training-quiz-option').forEach(btn => {
-        btn.disabled = true;
-        if (normalizeQuizAnswer(btn.textContent) === correct) btn.classList.add('correct');
-    });
-}
-
-function answerTrainingQuiz(btn, selected) {
-    const s = trainingQuizState;
-    if (s.locked) return;
-    s.locked = true; clearInterval(trainingQuizTimer);
-    const correct = s.questions[s.index].a;
-    document.querySelectorAll('.training-quiz-option').forEach(b => b.disabled = true);
-    if (normalizeQuizAnswer(selected) === normalizeQuizAnswer(correct)) { s.score++; btn.classList.add('correct'); trainingQuizSound('correct'); }
-    else { btn.classList.add('wrong'); markTrainingCorrect(); trainingQuizSound('wrong'); }
-    setTimeout(() => { s.index++; renderTrainingQuizQuestion(); }, 900);
-}
-
-async function finishTrainingQuiz() {
-    clearInterval(trainingQuizTimer);
-    const s = trainingQuizState;
-    const total = s.questions.length;
-    const percent = Math.round(s.score / total * 100);
-    const card = document.getElementById('trainingQuizCard');
-    card.innerHTML = `<div class="training-quiz-result"><i class="fa-solid fa-trophy"></i><h2>Quiz Completed!</h2>
-      <p>Well done, <b>${escapeHtml(s.name)}</b>!</p>
-      <p>Score: <b>${s.score}/${total}</b> · ${percent}% · ${s.timeSpent}s</p>
-      <div class="training-quiz-board"><h3>🏆 TOP 30 · ${escapeHtml(s.quizKey)}</h3><div id="trainingQuizBoard">Natijalar yuklanmoqda...</div></div>
-      <button class="training-quiz-primary" onclick="renderVocabularyQuiz(document.getElementById('textContainer'))">Try Again</button></div>`;
-    try {
-        await saveBestTestScore({ name:s.name, score:s.score, percent, correct:s.score, total, duration:s.timeSpent, date:Date.now() });
-        await showTrainingQuizLeaderboard();
-    } catch (err) {
-        console.error('Test result save failed:', err);
-        const board = document.getElementById('trainingQuizBoard');
-        if (board) board.textContent = 'Natijani saqlashda xatolik. Firebase qoidalarini tekshiring.';
-    }
-}
-
-async function saveBestTestScore(result) {
-    const user = await firebaseReady;
-    const boardRef = cloudDB.collection('leaderboards').doc(`${lessonKey}_test`);
-    const scoreRef = boardRef.collection('scores').doc(user.uid);
-    await cloudDB.runTransaction(async tx => {
-        const snap = await tx.get(scoreRef);
-        const old = snap.exists ? snap.data() : null;
-        const better = !old || result.score > Number(old.score) ||
-            (result.score === Number(old.score) && result.percent > Number(old.percent)) ||
-            (result.score === Number(old.score) && result.percent === Number(old.percent) && result.duration < Number(old.duration));
-        if (better) tx.set(scoreRef, { ...result, name: String(result.name).slice(0,40), uid:user.uid });
-    });
-}
-
-async function showTrainingQuizLeaderboard() {
-    const box = document.getElementById('trainingQuizBoard');
-    if (!box) return;
-    const scores = await getCloudLeaderboard('test');
-    const user = await firebaseReady;
-    const ownIndex = scores.findIndex(row => row.uid === user.uid || row._id === user.uid);
-    const top = scores.slice(0, 30);
-    let html = top.length ? top.map((row, i) => `<div class="training-quiz-score ${row.uid === user.uid ? 'current' : ''}"><span>${i+1}. ${escapeHtml(row.name || 'Student')}</span><b>${Number(row.score)||0}/${Number(row.total)||0} · ${Number(row.duration)||0}s</b></div>`).join('') : '<p>Hozircha natijalar yo‘q.</p>';
-    if (ownIndex >= 30) html += `<p class="training-quiz-own-rank">Sizning o‘rningiz: ${ownIndex+1} · ${Number(scores[ownIndex].score)||0} ball</p>`;
-    box.innerHTML = html;
-}
-// ================== END VOCABULARY TEST ==================
-
 function loadContent(type) {
-    if (typeof trainingQuizTimer !== 'undefined') clearInterval(trainingQuizTimer);
     currentActiveGameType = type;
     const textZone = document.getElementById("textContainer");
     const iframeZone = document.getElementById("iframeViewer");
@@ -749,13 +593,9 @@ function loadContent(type) {
         textZone.innerHTML = tableHtml;
         textZone.style.display = "block";
     }
-    else if (type === 'video') {
-        iframeZone.src = currentLessonData.videoUrl || "";
+    else if (type === 'video' || type === 'test') {
+        iframeZone.src = type === 'video' ? (currentLessonData.videoUrl || "") : (currentLessonData.testUrl || "");
         iframeZone.style.display = "block";
-    }
-    else if (type === 'test') {
-        textZone.style.display = "block";
-        renderVocabularyQuiz(textZone);
     } 
     else {
         currentActiveGameType = type;
@@ -1244,58 +1084,73 @@ async function saveGameSessionScore(type) {
     const total = localGameData.length;
     const correct = gameSessionResults.filter(r => r && r.correct).length;
     const percent = total ? Math.round(correct / total * 100) : 0;
-    const result = { name: gameStudentName, score: correct, correct, total,
-        percent, duration: gameSeconds, details: gameSessionResults.map(r => r ? ({...r}) : ({correct:false, unanswered:true})), date: Date.now() };
-    const id = await addCloudLeaderboardScore(type, result);
-    const scores = await getCloudLeaderboard(type);
-    return { result, scores, id, rank: scores.findIndex(r => r._id === id) + 1 };
+    const result = {
+        name: gameStudentName, score: correct, correct, total, percent,
+        duration: gameSeconds,
+        details: gameSessionResults.map(r => r ? ({...r}) : ({correct:false, unanswered:true})),
+        date: Date.now()
+    };
+
+    // Anagram va Type Answer: Firebase umumiy reytingi.
+    if (type === 'anagrama' || type === 'typeanswer') {
+        await saveSharedGameScore(type, result);
+        const scores = await getSharedGameScores(type);
+        const rank = scores.findIndex(r => r.name === result.name && Number(r.date) === result.date) + 1;
+        return { result, scores: scores.slice(0, 30), rank: rank || '—', shared: true };
+    }
+
+    // Match Up va boshqa o‘yinlar: faqat shu brauzer localStorage'i.
+    const key = `lb_${lessonKey}_${type}`;
+    let scores = JSON.parse(localStorage.getItem(key) || '[]');
+    scores.push(result);
+    scores.sort((a,b) => (b.score-a.score) || (b.percent-a.percent) || (a.duration-b.duration) || (a.date-b.date));
+    scores = scores.slice(0, 1000);
+    localStorage.setItem(key, JSON.stringify(scores));
+    return { result, scores: scores.slice(0, 10), rank: scores.findIndex(r => r.date === result.date) + 1, shared: false };
 }
 
 async function renderGameSessionResults(container, type) {
     clearInterval(gameRoundTimerInterval);
     gameRoundTimerInterval = null;
-    container.innerHTML = '<div class="ww-result-screen">Loading shared leaderboard...</div>';
+    container.innerHTML = '<div class="ww-result-screen"><p>Natija saqlanmoqda...</p></div>';
+    let saved;
     try {
-        const saved = await saveGameSessionScore(type);
-        const result = saved.result;
-        const rank = saved.rank;
-        const min = Math.floor(result.duration / 60), sec = result.duration % 60;
-        const rows = saved.scores.slice(0,10).map((r,i) => {
-            const m = Math.floor(r.duration/60), s = r.duration%60;
-            return `<tr class="${r._id === saved.id ? 'yf-current-rank' : ''}"><td>${i+1}</td><td>${escapeHtml(r.name)}</td><td>${Number(r.percent)||0}%</td><td>${m}:${s<10?'0':''}${s}</td></tr>`;
-        }).join('');
-        container.innerHTML = `
-          <div class="ww-result-screen yf-result-screen">
-            <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
-            <h2>Activity Complete!</h2>
-            <p class="yf-result-user">${escapeHtml(result.name)}</p>
-            <div class="ww-result-stats yf-result-stats">
-              <div class="ww-stat-row"><span>⏱️ Time:</span><strong>${min} m ${sec} s</strong></div>
-              <div class="ww-stat-row"><span>🎯 Correct:</span><strong>${result.correct} / ${result.total}</strong></div>
-              <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
-              <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
-            </div>
-            <div class="yf-result-actions">
-              <button class="yf-details-btn" onclick="toggleGameDetails('${type}')"><i class="fa-solid fa-list-check"></i> Details</button>
-              ${['anagrama','typeanswer'].includes(type) && result.details.some(r => r && !r.correct) ? `
-              <button class="yf-retry-btn" onclick="retryGameMistakes('${type}')"><i class="fa-solid fa-rotate-right"></i> Practice Mistakes</button>` : ''}
-            </div>
-            <div id="yfGameDetails" class="yf-details-panel" style="display:none;">
-              <h3>Answer Details</h3><div class="yf-detail-list">
-              ${result.details.map((r,i)=>`<div class="yf-detail-item ${r.correct?'yf-detail-correct':'yf-detail-wrong'}">
-                <div class="yf-detail-icon">${r.correct?'✓':'✕'}</div>
-                <div class="yf-detail-word"><strong>${i+1}. ${escapeHtml(r.word||'')}</strong><span>${escapeHtml(r.translation||'')}</span>${r.userAnswer?`<small>Your answer: ${escapeHtml(r.userAnswer)}</small>`:''}</div>
-                <div class="yf-detail-status">${r.correct?'Correct':(r.timedOut?'Time up':(r.unanswered?'Not answered':'Wrong'))}</div>
-              </div>`).join('')}
-              </div>
-            </div>
-            <div class="yf-leaderboard-block"><h3>🏆 TOP 10 LEADERBOARD</h3><table class="yf-leaderboard-table"><thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>${rows}</tbody></table></div>
-            <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('${type}')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>
-          </div>`;
+        saved = await saveGameSessionScore(type);
     } catch (error) {
-        console.error("Firebase session leaderboard error:", error);
-        container.innerHTML = '<div class="ww-result-screen">Natijani umumiy reytingga saqlab bo‘lmadi. Internet yoki Firebase sozlamalarini tekshiring.</div>';
+        console.error(error);
+        container.innerHTML = `<div class="ww-result-screen"><h2>Natijani saqlashda xatolik</h2><p>${escapeHtml(error.message || 'Noma’lum xatolik')}</p><button class="ww-restart-btn" onclick="resetAndRestart('${type}')">Start Again</button></div>`;
+        return;
     }
+    const result = saved.result;
+    const rank = saved.rank || '—';
+    const min = Math.floor(result.duration / 60), sec = result.duration % 60;
+    const rows = saved.scores.map((r,i) => {
+        const m = Math.floor(Number(r.duration || 0)/60), s = Number(r.duration || 0)%60;
+        return `<tr class="${Number(r.date)===result.date?'yf-current-rank':''}"><td>${i+1}</td><td>${escapeHtml(r.name || '')}</td><td>${Number(r.percent || 0)}%</td><td>${m}:${s<10?'0':''}${s}</td></tr>`;
+    }).join('');
+    const topLabel = saved.shared ? 'TOP 30 — UMUMIY REYTING' : 'TOP 10 — LOCAL REYTING';
+    container.innerHTML = `
+      <div class="ww-result-screen yf-result-screen">
+        <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
+        <h2>Activity Complete!</h2>
+        <p class="yf-result-user">${escapeHtml(result.name)}</p>
+        <div class="ww-result-stats yf-result-stats">
+          <div class="ww-stat-row"><span>⏱️ Time:</span><strong>${min} m ${sec} s</strong></div>
+          <div class="ww-stat-row"><span>🎯 Correct:</span><strong>${result.correct} / ${result.total}</strong></div>
+          <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
+          <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
+        </div>
+        <div class="yf-result-actions">
+          <button class="yf-details-btn" onclick="toggleGameDetails('${type}')"><i class="fa-solid fa-list-check"></i> Details</button>
+          ${['anagrama','typeanswer'].includes(type) && result.details.some(r => r && !r.correct) ? `<button class="yf-retry-btn" onclick="retryGameMistakes('${type}')"><i class="fa-solid fa-rotate-right"></i> Practice Mistakes</button>` : ''}
+        </div>
+        <div id="yfGameDetails" class="yf-details-panel" style="display:none;">
+          <h3>Answer Details</h3><div class="yf-detail-list">
+          ${result.details.map((r,i)=>`<div class="yf-detail-item ${r.correct?'yf-detail-correct':'yf-detail-wrong'}"><div class="yf-detail-icon">${r.correct?'✓':'✕'}</div><div class="yf-detail-word"><strong>${i+1}. ${escapeHtml(r.word||'')}</strong><span>${escapeHtml(r.translation||'')}</span>${r.userAnswer?`<small>Your answer: ${escapeHtml(r.userAnswer)}</small>`:''}</div><div class="yf-detail-status">${r.correct?'Correct':(r.timedOut?'Time up':(r.unanswered?'Not answered':'Wrong'))}</div></div>`).join('')}
+          </div></div>
+        <div class="yf-leaderboard-block"><h3>🏆 ${topLabel}</h3><table class="yf-leaderboard-table"><thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>${rows || '<tr><td colspan="4">Hozircha natijalar yo‘q</td></tr>'}</tbody></table></div>
+        <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('${type}')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>
+      </div>`;
 }
 
 function retryGameMistakes(type) {
@@ -1596,67 +1451,112 @@ function handleFlashcardResult(isCorrect, timedOut = false) {
     buildFlashcardGame();
 }
 
-async function getFlashcardScoreList() {
-    return await getCloudLeaderboard('flashcard');
+function getFlashcardScoreList() {
+    const storageKey = `lb_${lessonKey}_flashcard`;
+    return JSON.parse(localStorage.getItem(storageKey)) || [];
 }
 
-async function saveFlashcardScore() {
+function saveFlashcardScore() {
+    const storageKey = `lb_${lessonKey}_flashcard`;
     const total = totalGameRounds || localGameData.length;
     const correct = flashcardResults.filter(r => r && r.correct).length;
     const percent = total ? Math.round((correct / total) * 100) : 0;
     const result = {
-        name: flashcardStudentName, score: correct, correct, total, percent,
+        name: flashcardStudentName,
+        score: correct,
+        correct: correct,
+        total: total,
+        percent: percent,
         duration: gameSeconds,
         details: flashcardResults.map(r => r ? ({...r}) : ({correct:false, unanswered:true})),
-        retryMode: flashcardRetryMode, date: Date.now()
+        retryMode: flashcardRetryMode,
+        date: Date.now()
     };
-    const id = await addCloudLeaderboardScore('flashcard', result);
-    const scores = await getFlashcardScoreList();
-    return { result, scores, id, rank: scores.findIndex(x => x._id === id) + 1 };
+
+    let scores = getFlashcardScoreList();
+    scores.push(result);
+    scores.sort((a,b) => (b.score - a.score) || (b.percent - a.percent) || (a.duration - b.duration) || (a.date - b.date));
+    // Keep enough history to calculate a meaningful rank, while avoiding unlimited localStorage growth.
+    scores = scores.slice(0, 1000);
+    localStorage.setItem(storageKey, JSON.stringify(scores));
+
+    return { result, scores, rank: scores.findIndex(x => x.date === result.date) + 1 };
 }
 
-async function renderFlashcardResults(container) {
+function renderFlashcardResults(container) {
     const min = Math.floor(gameSeconds / 60);
     const sec = gameSeconds % 60;
-    container.innerHTML = '<div class="ww-result-screen">Loading shared leaderboard...</div>';
-    try {
-        const saved = await saveFlashcardScore();
-        const result = saved.result;
-        const rank = saved.rank;
-        const top10 = saved.scores.slice(0, 10);
-        let rows = top10.map((row, idx) => {
-            const m = Math.floor(row.duration / 60);
-            const s = row.duration % 60;
-            return `<tr class="${row._id === saved.id ? 'yf-current-rank' : ''}">
-                <td>${idx + 1}</td><td>${escapeHtml(row.name)}</td><td>${Number(row.percent)||0}%</td><td>${m}:${s < 10 ? '0' : ''}${s}</td>
-            </tr>`;
-        }).join('');
-        if (rank > 10) rows += `<tr class="yf-current-rank yf-your-row"><td>${rank}</td><td>${escapeHtml(result.name)} (You)</td><td>${result.percent}%</td><td>${min}:${sec < 10 ? '0' : ''}${sec}</td></tr>`;
+    const saved = saveFlashcardScore();
+    const result = saved.result;
+    const rank = saved.rank;
+    const top10 = saved.scores.slice(0, 10);
 
-        container.innerHTML = `
-            <div class="ww-result-screen yf-result-screen">
-                <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div><h2>Activity Complete!</h2>
-                <p class="yf-result-user">${escapeHtml(result.name)}</p>
-                <div class="ww-result-stats yf-result-stats">
-                    <div class="ww-stat-row"><span>⏱️ Time:</span><strong>${min} m ${sec} s</strong></div>
-                    <div class="ww-stat-row"><span>🎯 Correct:</span><strong>${result.correct} / ${result.total}</strong></div>
-                    <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
-                    <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
-                </div>
-                <div class="yf-result-actions">
-                    <button class="yf-details-btn" onclick="toggleFlashcardDetails()"><i class="fa-solid fa-list-check"></i> Details</button>
-                    ${result.details.some(r => r && !r.correct) ? `<button class="yf-retry-btn" onclick="retryFlashcardMistakes()"><i class="fa-solid fa-rotate-right"></i> Practice Mistakes</button>` : ''}
-                </div>
-                <div id="yfFlashcardDetails" class="yf-details-panel" style="display:none;"><h3>Answer Details</h3><div class="yf-detail-list">
-                    ${result.details.map((r, i) => `<div class="yf-detail-item ${r.correct ? 'yf-detail-correct' : 'yf-detail-wrong'}"><div class="yf-detail-icon">${r.correct ? '✓' : '✕'}</div><div class="yf-detail-word"><strong>${i + 1}. ${escapeHtml(r.word || localGameData[i]?.word || '')}</strong><span>${escapeHtml(r.translation || localGameData[i]?.translation || '')}</span></div><div class="yf-detail-status">${r.correct ? 'Correct' : (r.timedOut ? 'Time up' : (r.unanswered ? 'Not answered' : 'Wrong'))}</div></div>`).join('')}
-                </div></div>
-                <div class="yf-leaderboard-block"><h3>🏆 TOP 10 LEADERBOARD</h3><table class="yf-leaderboard-table"><thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead><tbody>${rows}</tbody></table></div>
-                <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('flashcard')">Start Again <i class="fa-solid fa-arrow-rotate-right"></i></button>
-            </div>`;
-    } catch (error) {
-        console.error("Firebase flashcard leaderboard error:", error);
-        container.innerHTML = '<div class="ww-result-screen">Natijani umumiy reytingga saqlab bo‘lmadi. Internet yoki Firebase sozlamalarini tekshiring.</div>';
+    let rows = top10.map((row, idx) => {
+        const m = Math.floor(row.duration / 60);
+        const s = row.duration % 60;
+        const isCurrent = row.date === result.date;
+        return `<tr class="${isCurrent ? 'yf-current-rank' : ''}">
+            <td>${idx + 1}</td>
+            <td>${escapeHtml(row.name)}</td>
+            <td>${row.percent}%</td>
+            <td>${m}:${s < 10 ? '0' : ''}${s}</td>
+        </tr>`;
+    }).join('');
+
+    if (rank > 10) {
+        rows += `<tr class="yf-current-rank yf-your-row">
+            <td>${rank}</td><td>${escapeHtml(result.name)} (You)</td><td>${result.percent}%</td><td>${min}:${sec < 10 ? '0' : ''}${sec}</td>
+        </tr>`;
     }
+
+    container.innerHTML = `
+        <div class="ww-result-screen yf-result-screen">
+            <div class="ww-result-trophy"><i class="fa-solid fa-trophy"></i></div>
+            <h2>Activity Complete!</h2>
+            <p class="yf-result-user">${escapeHtml(result.name)}</p>
+
+            <div class="ww-result-stats yf-result-stats">
+                <div class="ww-stat-row"><span>⏱️ Time:</span><strong>${min} m ${sec} s</strong></div>
+                <div class="ww-stat-row"><span>🎯 Correct:</span><strong>${result.correct} / ${result.total}</strong></div>
+                <div class="ww-stat-row"><span>📊 Accuracy:</span><strong>${result.percent}%</strong></div>
+                <div class="ww-stat-row"><span>🏆 Rank:</span><strong>#${rank}</strong></div>
+            </div>
+
+            <div class="yf-result-actions">
+                <button class="yf-details-btn" onclick="toggleFlashcardDetails()">
+                    <i class="fa-solid fa-list-check"></i> Details
+                </button>
+                ${result.details.some(r => r && !r.correct) ? `
+                <button class="yf-retry-btn" onclick="retryFlashcardMistakes()">
+                    <i class="fa-solid fa-rotate-right"></i> Practice Mistakes
+                </button>` : ''}
+            </div>
+
+            <div id="yfFlashcardDetails" class="yf-details-panel" style="display:none;">
+                <h3>Answer Details</h3>
+                <div class="yf-detail-list">
+                    ${result.details.map((r, i) => `
+                        <div class="yf-detail-item ${r.correct ? 'yf-detail-correct' : 'yf-detail-wrong'}">
+                            <div class="yf-detail-icon">${r.correct ? '✓' : '✕'}</div>
+                            <div class="yf-detail-word"><strong>${i + 1}. ${escapeHtml(r.word || localGameData[i]?.word || '')}</strong><span>${escapeHtml(r.translation || localGameData[i]?.translation || '')}</span></div>
+                            <div class="yf-detail-status">${r.correct ? 'Correct' : (r.timedOut ? 'Time up' : (r.unanswered ? 'Not answered' : 'Wrong'))}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="yf-leaderboard-block">
+                <h3>🏆 TOP 10 LEADERBOARD</h3>
+                <table class="yf-leaderboard-table">
+                    <thead><tr><th>№</th><th>Name</th><th>Accuracy</th><th>Time</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+
+            <button class="ww-restart-btn yf-restart-btn" onclick="resetAndRestart('flashcard')">
+                Start Again <i class="fa-solid fa-arrow-rotate-right"></i>
+            </button>
+        </div>`;
 }
 
 function retryFlashcardMistakes() {

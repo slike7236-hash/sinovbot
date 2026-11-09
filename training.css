@@ -451,26 +451,3 @@ body {
   .yf-detail-status{display:none}
   .yf-leaderboard-table{font-size:12px}
 }
-
-/* Native Vocabulary Test module */
-.training-quiz-card{width:100%;max-width:620px;margin:20px auto;background:#fff;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,.08);box-sizing:border-box;color:#1e293b}
-.training-quiz-start,.training-quiz-result{text-align:center;padding:12px 0}
-.training-quiz-cap,.training-quiz-result>i{font-size:48px;color:#3b82f6;margin-bottom:12px}
-.training-quiz-start p,.training-quiz-result p{color:#64748b}
-.training-quiz-name{width:min(85%,360px);padding:13px;border:2px solid #e2e8f0;border-radius:10px;font-size:16px;text-align:center;margin:12px auto;display:block;box-sizing:border-box}
-.training-quiz-primary{background:#3b82f6;color:#fff;border:0;padding:13px 26px;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;margin-top:12px}
-.training-quiz-header{display:flex;justify-content:space-between;color:#64748b;font-weight:700;margin-bottom:14px}
-.training-quiz-progress{height:7px;background:#e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:22px}
-.training-quiz-progress>div{height:100%;width:100%;background:#3b82f6;transition:width .2s linear}
-.training-quiz-progress>div.danger{background:#ef4444}
-.training-quiz-question{font-size:20px;font-weight:700;text-align:center;line-height:1.45;margin:20px 0}
-.training-quiz-options{display:flex;flex-direction:column;gap:10px}
-.training-quiz-option{width:100%;text-align:left;padding:13px 15px;border:2px solid #e2e8f0;border-radius:10px;background:#fff;color:#334155;font-size:16px;font-weight:600;cursor:pointer}
-.training-quiz-option:disabled{cursor:default;opacity:1}
-.training-quiz-option.correct{border-color:#10b981;background:#ecfdf5;color:#065f46}
-.training-quiz-option.wrong{border-color:#ef4444;background:#fef2f2;color:#991b1b}
-.training-quiz-board{margin:22px 0 10px;border-top:2px dashed #e2e8f0;padding-top:14px;text-align:left}
-.training-quiz-board h3{text-align:center;font-size:16px}
-.training-quiz-score{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;background:#f8fafc;border-radius:8px;margin:5px 0;font-size:14px}
-.training-quiz-score.current,.training-quiz-own-rank{background:#ecfdf5;border:1px solid #a7f3d0;font-weight:700;padding:9px 12px;border-radius:8px}
-@media(max-width:600px){.training-quiz-card{padding:16px;margin:10px auto}.training-quiz-question{font-size:18px}.training-quiz-option{font-size:15px}}
